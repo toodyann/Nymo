@@ -1691,7 +1691,7 @@ class ChatApp {
       const replyHtml = msg.replyTo
         ? `<div class="message-reply">
             <div class="message-reply-name">${msg.replyTo.from === 'own' ? this.user.name : this.currentChat.name}</div>
-            <div class="message-reply-text">${this.escapeHtml(msg.replyTo.text || '')}</div>
+            <div class="message-reply-text">${this.formatMessageText(msg.replyTo.text || '')}</div>
           </div>`
         : '';
 
@@ -2125,7 +2125,7 @@ class ChatApp {
     const replyHtml = msg.replyTo
       ? `<div class="message-reply">
           <div class="message-reply-name">${msg.replyTo.from === 'own' ? this.user.name : this.currentChat.name}</div>
-          <div class="message-reply-text">${this.escapeHtml(msg.replyTo.text || '')}</div>
+          <div class="message-reply-text">${this.formatMessageText(msg.replyTo.text || '')}</div>
         </div>`
       : '';
 
@@ -2583,14 +2583,18 @@ class ChatApp {
     return escapeHtml(text);
   }
 
+  formatMessageText(text) {
+    return this.escapeHtml(text || '').replace(/\r?\n/g, '<br>');
+  }
+
   buildMessageBodyHtml(msg) {
     if (msg?.type === 'image' && msg.imageUrl) {
       const safeUrl = this.escapeAttr(msg.imageUrl);
       const caption = (msg.text || '').trim();
-      const captionHtml = caption ? `<div class="message-image-caption">${this.escapeHtml(caption)}</div>` : '';
+      const captionHtml = caption ? `<div class="message-image-caption">${this.formatMessageText(caption)}</div>` : '';
       return `<img class="message-image" src="${safeUrl}" alt="Надіслане фото" loading="lazy" />${captionHtml}`;
     }
-    return this.escapeHtml(msg?.text || '');
+    return this.formatMessageText(msg?.text || '');
   }
 
   initMessageImageTransitions(rootEl) {

@@ -790,24 +790,56 @@
     transform: none;
     width: 100%;
     max-width: 100%;
-    max-height: 85vh;
-    border-radius: 16px 16px 0 0;
+    max-height: 88vh;
+    border-radius: 24px 24px 0 0;
   }
 
   #newChatModal .contact-input {
-    padding: 12px 16px;
+    padding: 14px 16px;
     width: 100%;
     box-sizing: border-box;
   }
 
-  #newChatModal .modal-body {
+  #newChatModal .new-chat-body {
     padding: 16px;
     overflow-x: hidden;
   }
 
-  #newChatModal .modal-footer {
+  #newChatModal .new-chat-header {
+    padding: 18px 16px 14px;
+    gap: 14px;
+  }
+
+  #newChatModal .new-chat-header h3 {
+    font-size: 22px;
+  }
+
+  #newChatModal .new-chat-heading-copy p {
+    font-size: 13px;
+  }
+
+  #newChatModal .new-chat-panel,
+  #newChatModal .group-fields.active {
+    padding: 14px;
+  }
+
+  #newChatModal .new-chat-tips {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  #newChatModal .new-chat-footer {
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     gap: 8px;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  #newChatModal .new-chat-footer .btn,
+  #newChatModal .new-chat-footer .btn-secondary,
+  #newChatModal .new-chat-footer .btn-primary {
+    width: 100%;
+    min-width: 0;
   }
 
   .chats-list::-webkit-scrollbar,
@@ -1075,10 +1107,19 @@
     max-height: 80vh;
   }
 
-  #newChatModal .modal-header h3,
-  #newChatModal .modal-header h2 {
-    font-size: 16px;
-    color: #f5f5f7 !important;
+  #newChatModal .new-chat-header h3 {
+    font-size: 19px;
+  }
+
+  #newChatModal .new-chat-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  #newChatModal .new-chat-kicker {
+    margin-bottom: 6px;
+    font-size: 10px;
   }
 
   .chat-header-actions {

@@ -226,8 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ></textarea>
           <button type="button" class="btn-emoji">😊</button>
           <button type="button" class="btn-send" id="sendBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 C22.9702544,11.6889879 22.9702544,11.6889879 22.9702544,11.6889879 L4.13399899,2.89156808 C3.34915502,2.40289614 2.40734225,2.51449029 1.77946707,3.0857824 C0.994623095,3.89052102 0.837654326,4.98001571 1.15159189,5.76550319 L3.03521743,12.2065962 C3.03521743,12.3636936 3.34915502,12.5741566 3.50612381,12.5741566 L16.6915026,13.3596434 C16.6915026,13.3596434 17.1624089,13.3596434 17.1624089,12.9173502 C17.1624089,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M237.9,200.1,141.85,32.18a16,16,0,0,0-27.89,0l-95.89,168a16,16,0,0,0,19.26,22.92L128,192.45l90.67,30.63A16.22,16.22,0,0,0,224,224a16,16,0,0,0,13.86-23.9Zm-14.05,7.84L136,178.26V120a8,8,0,0,0-16,0v58.26L32.16,207.94,32,208,127.86,40,224,208Z"></path>
             </svg>
           </button>
         </div>
@@ -237,13 +237,28 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- Екран привітання -->
     <div class="welcome-screen" id="welcomeScreen">
       <div class="welcome-content">
+        <div class="welcome-badge">ORION SPACE</div>
         <div class="welcome-icon">
           <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="currentColor"/>
           </svg>
         </div>
-        <h2>Ласкаво просимо до Orion</h2>
-        <p>Виберіть контакт зі списку, щоб почати спілкування</p>
+        <h2>Ваші діалоги в одному просторі</h2>
+        <p>Оберіть чат ліворуч або створіть новий, щоб почати розмову без зайвих кроків.</p>
+        <div class="welcome-steps">
+          <div class="welcome-step">
+            <span>1</span>
+            <strong>Оберіть контакт</strong>
+          </div>
+          <div class="welcome-step">
+            <span>2</span>
+            <strong>Напишіть перше повідомлення</strong>
+          </div>
+          <div class="welcome-step">
+            <span>3</span>
+            <strong>Керуйте чатами в одному місці</strong>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -324,40 +339,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Модальне вікно для нового чату -->
 <div class="modal" id="newChatModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Новий чат</h3>
-      <button class="btn-close" id="closeModalBtn">
+  <div class="modal-content new-chat-shell">
+    <div class="modal-header new-chat-header">
+      <div class="new-chat-heading">
+        <div class="new-chat-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"></path>
+          </svg>
+        </div>
+        <div class="new-chat-heading-copy">
+          <span class="new-chat-kicker">Швидкий старт</span>
+          <h3>Створити новий чат</h3>
+          <p>Додайте контакт або зберіть групу в окремий діалог за кілька секунд.</p>
+        </div>
+      </div>
+      <button class="btn-close" id="closeModalBtn" aria-label="Закрити вікно">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
-    <div class="modal-body">
-      <input 
-        type="text" 
-        id="newContactInput" 
-        class="contact-input" 
-        placeholder="Ім'я контакту"
-        autocomplete="off"
-      >
-      <label class="group-toggle">
-        <input type="checkbox" id="isGroupToggle" />
-        <span>Це група</span>
-      </label>
+    <div class="modal-body new-chat-body">
+      <div class="new-chat-panel">
+        <label class="new-chat-field">
+          <span class="new-chat-field-label">Назва чату</span>
+          <input 
+            type="text" 
+            id="newContactInput" 
+            class="contact-input" 
+            placeholder="Ім'я контакту або назва групи"
+            autocomplete="off"
+          >
+        </label>
+        <label class="group-toggle new-chat-mode">
+          <input type="checkbox" id="isGroupToggle" />
+          <span class="new-chat-mode-copy">
+            <strong>Створити групу</strong>
+            <small>Увімкніть, якщо це чат на кілька учасників.</small>
+          </span>
+        </label>
+      </div>
       <div class="group-fields" id="groupFields">
-        <input
-          type="text"
-          id="groupMembersInput"
-          class="contact-input"
-          placeholder="Учасники (через кому)"
-          autocomplete="off"
-        >
+        <label class="new-chat-field">
+          <span class="new-chat-field-label">Учасники</span>
+          <input
+            type="text"
+            id="groupMembersInput"
+            class="contact-input"
+            placeholder="Наприклад: Анна, Ігор, Марта"
+            autocomplete="off"
+          >
+        </label>
+        <p class="new-chat-note">Вкажіть учасників через кому. Після створення чат відкриється автоматично.</p>
+      </div>
+      <div class="new-chat-tips" aria-hidden="true">
+        <div class="new-chat-tip">
+          <span class="new-chat-tip-index">01</span>
+          <span>Коротка назва виглядає чистіше у списку чатів.</span>
+        </div>
+        <div class="new-chat-tip">
+          <span class="new-chat-tip-index">02</span>
+          <span>Груповий режим відкриє поле для списку учасників.</span>
+        </div>
+        <div class="new-chat-tip">
+          <span class="new-chat-tip-index">03</span>
+          <span>Чат відкриється одразу після створення.</span>
+        </div>
       </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer new-chat-footer">
       <button class="btn btn-secondary" id="cancelBtn">Скасувати</button>
-      <button class="btn btn-primary" id="confirmBtn">Створити</button>
+      <button class="btn btn-primary" id="confirmBtn">
+        <span>Створити чат</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
   </div>
 </div>
@@ -368,18 +425,30 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- Custom alert/confirm modal -->
 <div class="alert-overlay" id="alertOverlay" aria-hidden="true">
   <div class="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alertTitle">
-    <div class="alert-header">
-      <h3 id="alertTitle">Повідомлення</h3>
-      <button class="alert-close" id="alertCloseBtn" aria-label="Закрити">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-    <div class="alert-body" id="alertMessage"></div>
-    <div class="alert-actions">
-      <button class="btn btn-secondary" id="alertCancelBtn">Скасувати</button>
-      <button class="btn btn-primary" id="alertOkBtn">OK</button>
+    <div class="alert-modal-inner">
+      <div class="alert-hero">
+        <div class="alert-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,152a12,12,0,1,1,12-12A12,12,0,0,1,128,176Zm16-56a16,16,0,0,1-32,0V88a16,16,0,0,1,32,0Z"></path>
+          </svg>
+        </div>
+        <div class="alert-header">
+          <span class="alert-kicker">Системне повідомлення</span>
+          <h3 id="alertTitle">Повідомлення</h3>
+        </div>
+        <button class="alert-close" id="alertCloseBtn" aria-label="Закрити">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="alert-body-frame">
+        <div class="alert-body" id="alertMessage"></div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-secondary" id="alertCancelBtn">Скасувати</button>
+        <button class="btn btn-primary" id="alertOkBtn">OK</button>
+      </div>
     </div>
   </div>
 </div>

@@ -1,8 +1,8 @@
 :root {
   --app-header-height: 56px;
-  --primary-color: #00a9ff;
-  --primary-strong: #008cff;
-  --secondary-color: #52c0ff;
+  --primary-color: #f59e0b;
+  --primary-strong: #d97706;
+  --secondary-color: #fef3c7;
   --danger-color: #ff3b30;
   --success-color: #34c759;
   --warning-color: #ff9500;
@@ -18,7 +18,7 @@
   --border-color: rgba(30, 38, 68, 0.12);
   --glass: rgba(255, 255, 255, 0.72);
   --glass-strong: rgba(255, 255, 255, 0.88);
-  --glow: rgba(0, 169, 255, 0.28);
+  --glow: rgba(245, 158, 11, 0.28);
 
   --message-user: #335bff;
   --message-other: #eef1f7;
@@ -37,7 +37,7 @@
   --border-color: rgba(130, 145, 180, 0.22);
   --glass: rgba(18, 20, 30, 0.62);
   --glass-strong: rgba(18, 20, 30, 0.78);
-  --glow: rgba(0, 169, 255, 0.35);
+  --glow: rgba(245, 158, 11, 0.35);
   --message-user: #5b7cff;
   --message-other: rgba(20, 24, 36, 0.9);
 }
