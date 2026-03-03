@@ -126,10 +126,17 @@
   #settingsContainerMobile,
   .settings-content,
   .message-input-area,
+  button {
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
   .message-input,
   input,
-  textarea,
-  button {
+  textarea {
     touch-action: pan-y;
     -webkit-user-select: text;
     -moz-user-select: text;
@@ -144,10 +151,10 @@
     overflow-x: hidden;
     padding: 12px;
     background-color: var(--bg-color);
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
   }

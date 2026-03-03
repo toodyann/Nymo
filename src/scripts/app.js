@@ -2910,50 +2910,62 @@ class ChatApp {
   }
 
   initMiniGames(settingsContainer) {
-    const list = settingsContainer.querySelector('.mini-games-list');
-    const view = settingsContainer.querySelector('#miniGameView');
-    const backBtn = settingsContainer.querySelector('#miniGameBack');
-    const titleEl = settingsContainer.querySelector('#miniGameTitle');
-    const scoreLabel = settingsContainer.querySelector('#miniGameScoreLabel');
-    const setMaxScoreLabel = (game) => {
-      if (!scoreLabel) return;
-      const max = this.getMiniGameMax(game);
-      scoreLabel.textContent = `Рекорд: ${max}`;
-    };
+    const balanceEl = settingsContainer.querySelector('#coinTapBalance');
+    const tapBtn = settingsContainer.querySelector('#coinTapBtn');
+    if (!balanceEl || !tapBtn) return;
 
-    const showGame = (game) => {
-      if (!view || !list) return;
-      list.style.display = 'none';
-      view.classList.add('active');
-      settingsContainer.classList.add('mini-games-active');
-      this.currentMiniGame = game;
-
-      const panels = settingsContainer.querySelectorAll('.mini-game-panel');
-      panels.forEach(panel => {
-        panel.classList.toggle('active', panel.dataset.game === game);
-      });
-
-      if (titleEl) {
-        titleEl.textContent = game === 'snake' ? 'Snake' : game === 'g2048' ? '2048' : 'Memory';
+    const storageKey = 'orionTapBalanceCents';
+    const readBalance = () => {
+      try {
+        const raw = window.localStorage.getItem(storageKey);
+        const value = Number.parseInt(raw || '0', 10);
+        return Number.isFinite(value) && value >= 0 ? value : 0;
+      } catch {
+        return 0;
       }
-      setMaxScoreLabel(game);
-
-      this.initSnake(settingsContainer);
-      this.init2048(settingsContainer);
-      this.initMemory(settingsContainer);
+    };
+    const writeBalance = (value) => {
+      try {
+        window.localStorage.setItem(storageKey, String(value));
+      } catch {
+        // Ignore storage failures and keep the in-memory value.
+      }
+    };
+    const formatBalance = (value) => {
+      const cents = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+      const whole = String(Math.floor(cents / 100)).padStart(8, '0');
+      const fraction = String(cents % 100).padStart(2, '0');
+      return `${whole},${fraction}`;
+    };
+    const renderBalance = () => {
+      if (!Number.isFinite(this.tapBalanceCents) || this.tapBalanceCents < 0) {
+        this.tapBalanceCents = readBalance();
+      }
+      balanceEl.textContent = formatBalance(this.tapBalanceCents);
     };
 
-    const showList = () => {
-      if (!view || !list) return;
-      view.classList.remove('active');
-      list.style.display = 'grid';
-      settingsContainer.classList.remove('mini-games-active');
-    };
+    renderBalance();
+    if (tapBtn.dataset.bound === 'true') return;
+    tapBtn.dataset.bound = 'true';
 
-    if (backBtn) backBtn.addEventListener('click', showList);
+    let tapAnimationTimer = null;
+    tapBtn.addEventListener('click', () => {
+      const currentBalance = Number.isFinite(this.tapBalanceCents) && this.tapBalanceCents >= 0
+        ? this.tapBalanceCents
+        : readBalance();
 
-    settingsContainer.querySelectorAll('.mini-game-select').forEach(btn => {
-      btn.addEventListener('click', () => showGame(btn.dataset.game));
+      this.tapBalanceCents = currentBalance + 1;
+      writeBalance(this.tapBalanceCents);
+      renderBalance();
+
+      tapBtn.classList.remove('is-tapping');
+      void tapBtn.offsetWidth;
+      tapBtn.classList.add('is-tapping');
+
+      if (tapAnimationTimer) window.clearTimeout(tapAnimationTimer);
+      tapAnimationTimer = window.setTimeout(() => {
+        tapBtn.classList.remove('is-tapping');
+      }, 180);
     });
   }
 
@@ -3691,6 +3703,10 @@ class ChatApp {
       const closeButtons = settingsContainer.querySelectorAll('.btn-secondary:not(.btn-change-avatar)');
       closeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+          if (sectionName === 'profile-settings' && btn.closest('.settings-buttons')) {
+            this.showSettings(this.settingsParentSection || 'profile');
+            return;
+          }
           settingsContainer.classList.remove('active');
         });
       });

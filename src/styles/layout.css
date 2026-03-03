@@ -177,6 +177,16 @@ html.dark-theme body {
   color: var(--text-primary);
 }
 
+@media (min-width: 769px) {
+  .app-header .chat-brand {
+    gap: 0;
+  }
+
+  .app-header .chat-brand .app-logo {
+    display: none;
+  }
+}
+
 .main-layout {
   display: flex;
   flex: 1;

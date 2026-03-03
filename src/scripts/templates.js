@@ -64,8 +64,6 @@ export const settingsTemplates = {
     <div class="profile-settings-card profile-settings-menu-card">
       <div class="profile-section-heading">
         <span class="profile-settings-kicker">Параметри</span>
-        <h3>Налаштування месенджера</h3>
-        <p>Керуйте сповіщеннями, приватністю, інтерфейсом і мовою з профілю.</p>
       </div>
       <div class="settings-menu-list">
         <div class="settings-menu-item" data-section="notifications">
@@ -159,7 +157,7 @@ export const settingsTemplates = {
           <p class="profile-settings-note">Оновіть аватар або виберіть новий градієнт для швидкої візуальної зміни.</p>
           <label class="profile-upload-btn">
             <input type="file" id="profileAvatarUpload" accept="image/*" />
-            Завантажити фото
+            Змінити фото профілю
           </label>
           <button class="btn btn-secondary btn-change-avatar">Випадковий градієнт</button>
         </div>
@@ -511,64 +509,19 @@ export const settingsTemplates = {
 
   'mini-games': `
 <div class="settings-section" id="mini-games">
-  <div class="settings-header">
-    <h2>Міні-ігри</h2>
-  </div>
+  <div class="settings-content mini-games-content coin-tapper-content">
+    <span class="coin-tapper-kicker">ORION VALUE</span>
+    <div class="coin-tapper-balance-label">Загальний баланс</div>
+    <div class="coin-tapper-balance" id="coinTapBalance">00000000,00</div>
 
-  <div class="settings-content mini-games-content">
-    <div class="mini-games-list">
-      <button class="mini-game-select" data-game="snake">
-        <span class="mini-game-icon">🐍</span>
-        <span class="mini-game-title">Snake</span>
-        <span class="mini-game-sub">Класика аркад</span>
-      </button>
-      <button class="mini-game-select" data-game="g2048">
-        <span class="mini-game-icon">🧩</span>
-        <span class="mini-game-title">2048</span>
-        <span class="mini-game-sub">Логічна головоломка</span>
-      </button>
-      <button class="mini-game-select" data-game="memory">
-        <span class="mini-game-icon">🧠</span>
-        <span class="mini-game-title">Memory</span>
-        <span class="mini-game-sub">Знайди всі пари</span>
-      </button>
-    </div>
+    <button class="coin-tapper-button" id="coinTapBtn" type="button" aria-label="Заробити монети">
+      <img class="coin-tapper-image" src="./src/Assets/Orion_value.png" alt="Orion Value" />
+    </button>
 
-    <div class="mini-game-view" id="miniGameView">
-      <div class="mini-game-view-header">
-        <button class="btn btn-secondary mini-game-back" id="miniGameBack">Назад</button>
-        <div class="mini-game-view-title" id="miniGameTitle">—</div>
-        <div class="mini-game-view-score" id="miniGameScoreLabel">Рекорд: 0</div>
-      </div>
-
-      <div class="mini-game-stage">
-        <div class="mini-game-panel" data-game="snake">
-          <div class="mini-game-score-current">Очки: <span id="snakeScore">0</span></div>
-          <div class="mini-game-canvas" id="snakeBoard"></div>
-          <div class="mini-game-controls">
-            <button class="btn btn-secondary mini-game-btn" id="snakeStart">Старт</button>
-            <div class="mini-game-hint">Керування: стрілки або WASD</div>
-          </div>
-        </div>
-
-        <div class="mini-game-panel" data-game="g2048">
-          <div class="mini-game-score-current">Очки: <span id="g2048Score">0</span></div>
-          <div class="mini-game-canvas grid-2048" id="g2048Board"></div>
-          <div class="mini-game-controls">
-            <button class="btn btn-secondary mini-game-btn" id="g2048Start">Нова гра</button>
-            <div class="mini-game-hint">Керування: стрілки або свайпи</div>
-          </div>
-        </div>
-
-        <div class="mini-game-panel" data-game="memory">
-          <div class="mini-game-score-current">Пари: <span id="memoryScore">0</span></div>
-          <div class="mini-game-canvas grid-memory" id="memoryBoard"></div>
-          <div class="mini-game-controls">
-            <button class="btn btn-secondary mini-game-btn" id="memoryStart">Нова гра</button>
-            <div class="mini-game-hint">Знайди всі пари карток</div>
-          </div>
-        </div>
-      </div>
+    <div class="coin-tapper-rate">
+      <span>1 тап</span>
+      <strong>=</strong>
+      <span>0,01 монетка</span>
     </div>
   </div>
 </div>

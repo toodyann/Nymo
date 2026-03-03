@@ -1040,7 +1040,7 @@ to {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
   flex: 1;
   min-height: 0;
   width: 100%;
@@ -1048,24 +1048,37 @@ to {
   padding-bottom: calc(var(--bottom-nav-height, 72px) + 136px);
   box-sizing: border-box;
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 76%, transparent), transparent 42%);
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--primary-color) 10%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 76%, transparent),
+      transparent 42%
+    );
 }
 
 .profile-content > * {
   width: min(100%, 980px);
   max-width: 100%;
   flex: 0 0 auto;
+  box-sizing: border-box;
 }
 
 .profile-hero-card,
 .profile-settings-card {
   width: min(100%, 980px);
   max-width: 100%;
+  box-sizing: border-box;
   border-radius: 24px;
   border: 1px solid var(--border-color);
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--bg-color) 86%, transparent), color-mix(in srgb, var(--bg-secondary) 62%, transparent));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--bg-color) 86%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 62%, transparent)
+  );
   box-shadow:
     0 14px 36px rgba(15, 19, 32, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -1074,8 +1087,11 @@ to {
 
 html.dark-theme .profile-hero-card,
 html.dark-theme .profile-settings-card {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.02)
+  );
   box-shadow:
     0 14px 36px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -1263,7 +1279,9 @@ html.dark-theme .profile-settings-card {
   padding-inline: 20px;
   border-radius: 16px;
   font-weight: 700;
-  box-shadow: 0 10px 20px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  box-shadow: 0 10px 20px
+    color-mix(in srgb, var(--primary-color) 18%, transparent);
+  box-sizing: border-box;
 }
 
 .profile-icon-btn {
@@ -1279,6 +1297,7 @@ html.dark-theme .profile-settings-card {
   color: var(--text-primary);
   cursor: pointer;
   font-weight: 600;
+  box-sizing: border-box;
 }
 
 .profile-userid {
@@ -1342,6 +1361,7 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .profile-settings-content {
@@ -1349,9 +1369,19 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 18px;
   padding: 24px !important;
+  width: 100%;
+  box-sizing: border-box;
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent 30%),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 76%, transparent), transparent 40%);
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--primary-color) 10%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 76%, transparent),
+      transparent 40%
+    );
 }
 
 .profile-settings-empty {
@@ -1363,10 +1393,17 @@ html.dark-theme .profile-settings-card {
 .profile-settings-hero-card,
 .profile-settings-form-card {
   padding: 22px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-settings-menu-card {
-  padding: 20px;
+  padding: 14px;
+}
+
+.profile-content > .profile-settings-menu-card {
+  margin-top: 10px;
 }
 
 .profile-section-heading {
@@ -1395,9 +1432,14 @@ html.dark-theme .profile-settings-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  margin: 0;
 }
 
 .profile-settings-menu-card .settings-menu-item {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: 18px;
   border: 1px solid var(--border-color);
   background: color-mix(in srgb, var(--bg-color) 86%, transparent);
@@ -1416,15 +1458,21 @@ html.dark-theme .profile-settings-card {
 .profile-upload-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  width: 100%;
   padding: 12px 15px;
+  box-sizing: border-box;
   border-radius: 14px;
   border: 1px solid var(--border-color);
   background: color-mix(in srgb, var(--bg-color) 80%, transparent);
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 13px;
+  min-height: 44px;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .profile-upload-btn input {
@@ -1434,6 +1482,8 @@ html.dark-theme .profile-settings-card {
 .btn-change-avatar {
   min-height: 44px;
   border-radius: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-settings-form,
@@ -1447,6 +1497,7 @@ html.dark-theme .profile-settings-card {
 .profile-form-grid .form-group {
   flex: 1 1 calc(50% - 8px);
   min-width: 220px;
+  max-width: 100%;
 }
 
 .profile-form-full {
@@ -1466,6 +1517,8 @@ html.dark-theme .profile-settings-card {
 
 .form-input,
 .form-textarea {
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid var(--border-color);
@@ -1488,6 +1541,16 @@ html.dark-theme .profile-settings-card {
 .form-textarea {
   min-height: 90px;
   resize: vertical;
+}
+
+#profile-settings input[type="date"].form-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 #profile-settings .settings-buttons {
@@ -1545,13 +1608,21 @@ html.dark-theme .profile-settings-card {
   .profile-settings-content {
     padding: 16px !important;
     padding-bottom: calc(var(--bottom-nav-height, 72px) + 84px) !important;
-    gap: 14px;
+    gap: 18px;
+  }
+
+  .profile-settings-content > * {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .profile-content > *,
   .profile-hero-card,
   .profile-settings-card {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .profile-hero {
@@ -1563,7 +1634,8 @@ html.dark-theme .profile-settings-card {
   .profile-settings-hero-card,
   .profile-settings-form-card,
   .profile-settings-menu-card {
-    padding: 16px;
+    padding: 12px;
+    box-sizing: border-box;
   }
 
   .profile-avatar-wrap,
@@ -1587,6 +1659,10 @@ html.dark-theme .profile-settings-card {
 
   .profile-section-heading {
     margin-bottom: 14px;
+  }
+
+  .profile-content > .profile-settings-menu-card {
+    margin-top: 14px;
   }
 
   .profile-section-heading h3 {
@@ -1618,12 +1694,24 @@ html.dark-theme .profile-settings-card {
 
   .profile-avatar-section {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     text-align: center;
   }
 
   .profile-avatar-actions {
-    align-items: stretch;
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-avatar-actions > * {
+    max-width: 100%;
+  }
+
+  .profile-upload-btn,
+  .btn-change-avatar {
+    max-width: 320px;
+    justify-content: center;
   }
 
   .profile-form-grid .form-group {
@@ -1643,6 +1731,126 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 16px;
   width: 100%;
+}
+
+.coin-tapper-content {
+  width: 100%;
+  gap: 18px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 44px 28px calc(var(--bottom-nav-height, 72px) + 44px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  text-align: center;
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      color-mix(in srgb, var(--primary-color) 10%, transparent),
+      transparent 36%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 82%, transparent),
+      color-mix(in srgb, var(--bg-color) 76%, transparent)
+    );
+}
+
+.coin-tapper-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+
+.coin-tapper-balance-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.coin-tapper-balance {
+  font-size: clamp(32px, 6vw, 54px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.coin-tapper-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.coin-tapper-button {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.14s ease,
+    filter 0.14s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.coin-tapper-button:hover {
+  filter: brightness(1.03);
+}
+
+.coin-tapper-button:active,
+.coin-tapper-button.is-tapping {
+  transform: scale(0.94);
+  filter: saturate(1.08);
+}
+
+.coin-tapper-image {
+  display: block;
+  width: min(72vw, 260px);
+  height: min(72vw, 260px);
+  max-width: 260px;
+  max-height: 260px;
+  min-width: 180px;
+  min-height: 180px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.coin-tapper-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-color) 78%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.coin-tapper-rate strong {
+  color: var(--primary-color);
+  font-size: 14px;
 }
 
 .mini-games-list {
@@ -1895,6 +2103,30 @@ html.dark-theme .profile-settings-card {
 }
 
 @media (max-width: 768px) {
+  .coin-tapper-content {
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 28px 20px calc(var(--bottom-nav-height, 72px) + 36px);
+  }
+
+  .coin-tapper-balance {
+    font-size: clamp(34px, 10vw, 48px);
+  }
+
+  .coin-tapper-image {
+    width: min(78vw, 260px);
+    height: min(78vw, 260px);
+    min-width: 190px;
+    min-height: 190px;
+  }
+
+  .coin-tapper-rate {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
   .mini-games-list {
     grid-template-columns: 1fr;
   }
