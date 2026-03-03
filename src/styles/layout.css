@@ -838,7 +838,11 @@ html.dark-theme body {
   padding: 28px;
   background:
     radial-gradient(circle at top, rgba(245, 158, 11, 0.1), transparent 36%),
-    radial-gradient(circle at 80% 20%, rgba(254, 243, 199, 0.28), transparent 28%),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(254, 243, 199, 0.28),
+      transparent 28%
+    ),
     var(--bg-gradient);
   animation: fadeIn 0.3s ease;
 }
@@ -890,7 +894,11 @@ html.dark-theme body {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), transparent 32%),
+    radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.45),
+      transparent 32%
+    ),
     var(--secondary-color);
   color: var(--primary-color);
   animation: floatEmoji 2.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
@@ -934,7 +942,11 @@ html.dark-theme body {
   padding: 12px 14px;
   border-radius: 14px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.1)),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.34),
+      rgba(255, 255, 255, 0.1)
+    ),
     var(--bg-elevated);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
@@ -1006,7 +1018,7 @@ html.dark-theme body {
   .bottom-nav {
     width: 100% !important;
     gap: 6px !important;
-    padding: 10px 12px !important;
+    padding: 12px 19px !important;
     border-radius: 50px !important;
     background: rgba(255, 255, 255, 0.78) !important;
     border: 1px solid rgba(20, 24, 36, 0.12) !important;

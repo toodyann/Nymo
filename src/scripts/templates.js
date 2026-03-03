@@ -4,55 +4,139 @@ export const settingsTemplates = {
   'profile': `
 <div class="settings-section profile-page" id="profile">
   <div class="settings-content profile-content">
-    <section class="profile-hero">
-      <div class="profile-avatar-wrap">
-        <div class="profile-avatar-glow" aria-hidden="true"></div>
-        <div class="profile-avatar-large" aria-hidden="true">
-          <img class="profile-avatar-image" alt="Фото профілю" />
-          <span class="profile-avatar-initials">KO</span>
+    <section class="profile-hero-card">
+      <div class="profile-hero">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar-glow" aria-hidden="true"></div>
+          <div class="profile-avatar-large" aria-hidden="true">
+            <img class="profile-avatar-image" alt="Фото профілю" />
+            <span class="profile-avatar-initials">KO</span>
+          </div>
         </div>
-      </div>
 
-      <div class="profile-name-row">
-        <h2 class="profile-name" id="profileName">Користувач Orion</h2>
-        <div class="profile-status" id="profileStatus">
-          <span class="status-dot" aria-hidden="true"></span>
+        <div class="profile-name-row">
+          <h2 class="profile-name" id="profileDisplayName">Користувач Orion</h2>
+          <div class="profile-status" id="profileDisplayStatus">
+            <span class="status-dot" aria-hidden="true"></span>
+          </div>
         </div>
-      </div>
-      <div class="profile-handle-row">
-        <p class="profile-handle">@orion.user</p>
-        <button class="profile-edit-inline" aria-label="Редагувати профіль">
-          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <p class="profile-bio" id="profileBio">Вітаю!</p>
+        <div class="profile-handle-row">
+          <p class="profile-handle">@orion.user</p>
+          <button class="profile-edit-inline" aria-label="Редагувати профіль">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <p class="profile-bio" id="profileDisplayBio">Вітаю!</p>
 
-      <div class="profile-hero-actions">
-        <button class="btn btn-primary profile-edit-btn">Редагувати профіль</button>
-        <button class="profile-icon-btn" aria-label="QR код">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zM15 13h2v2h-2v-2zm4 0h2v6h-2v-6zm-4 4h6v2h-6v-2z" fill="currentColor"/>
-          </svg>
-          <span>QR</span>
-        </button>
-        <button class="profile-icon-btn" aria-label="Поділитися профілем">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 5l-8 7 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Поділитися</span>
-        </button>
-      </div>
+        <div class="profile-meta-grid">
+          <div class="profile-meta-card">
+            <span class="profile-meta-label">Пошта</span>
+            <span class="profile-meta-value" id="profileDisplayEmail">user@example.com</span>
+          </div>
+          <div class="profile-meta-card">
+            <span class="profile-meta-label">Дата народження</span>
+            <span class="profile-meta-value" id="profileDisplayDob">Не вказано</span>
+          </div>
+        </div>
 
-      <div class="profile-userid">ID користувача: <span class="profile-id">OR-91A7-4F2C</span></div>
+        <div class="profile-hero-actions">
+          <button class="btn btn-primary profile-edit-btn">Редагувати профіль</button>
+          <button class="profile-icon-btn" aria-label="QR код">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zM15 13h2v2h-2v-2zm4 0h2v6h-2v-6zm-4 4h6v2h-6v-2z" fill="currentColor"/>
+            </svg>
+            <span>QR</span>
+          </button>
+          <button class="profile-icon-btn" aria-label="Поділитися профілем">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 5l-8 7 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Поділитися</span>
+          </button>
+        </div>
+
+        <div class="profile-userid">ID користувача: <span class="profile-id">OR-91A7-4F2C</span></div>
+      </div>
     </section>
 
-    <button class="profile-fab" aria-label="Редагувати профіль">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <div class="profile-settings-card profile-settings-menu-card">
+      <div class="profile-section-heading">
+        <span class="profile-settings-kicker">Параметри</span>
+        <h3>Налаштування месенджера</h3>
+        <p>Керуйте сповіщеннями, приватністю, інтерфейсом і мовою з профілю.</p>
+      </div>
+      <div class="settings-menu-list">
+        <div class="settings-menu-item" data-section="notifications">
+          <div class="settings-menu-icon settings-icon-notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Сповіщення</span>
+            <p class="settings-item-desc">Звуки, вібрація, попередній перегляд</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+
+        <div class="settings-menu-item" data-section="privacy">
+          <div class="settings-menu-icon settings-icon-privacy">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="11" width="14" height="10" rx="2" stroke="white" stroke-width="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Конфіденційність</span>
+            <p class="settings-item-desc">Статус онлайн, індикатор набору</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+
+        <div class="settings-menu-item" data-section="messages">
+          <div class="settings-menu-icon settings-icon-messages">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Повідомлення</span>
+            <p class="settings-item-desc">Відправка, автовідтворення медіа</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+
+        <div class="settings-menu-item" data-section="appearance">
+          <div class="settings-menu-icon settings-icon-appearance">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Інтерфейс</span>
+            <p class="settings-item-desc">Розмір шрифту, тема, анімації</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+
+        <div class="settings-menu-item" data-section="language">
+          <div class="settings-menu-icon settings-icon-language">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Мова</span>
+            <p class="settings-item-desc">Українська</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
   `.trim(),
@@ -63,65 +147,73 @@ export const settingsTemplates = {
     <h2>Налаштування профілю</h2>
   </div>
 
-  <div class="settings-content">
-    <div class="profile-avatar-section">
-      <div class="profile-avatar-large">
-        <img class="profile-avatar-image" alt="Фото профілю" />
-        <span class="profile-avatar-initials">KO</span>
+  <div class="settings-content profile-settings-content">
+    <div class="profile-settings-card profile-settings-hero-card">
+      <div class="profile-avatar-section">
+        <div class="profile-avatar-large">
+          <img class="profile-avatar-image" alt="Фото профілю" />
+          <span class="profile-avatar-initials">KO</span>
+        </div>
+        <div class="profile-avatar-actions">
+          <span class="profile-settings-kicker">Фото профілю</span>
+          <p class="profile-settings-note">Оновіть аватар або виберіть новий градієнт для швидкої візуальної зміни.</p>
+          <label class="profile-upload-btn">
+            <input type="file" id="profileAvatarUpload" accept="image/*" />
+            Завантажити фото
+          </label>
+          <button class="btn btn-secondary btn-change-avatar">Випадковий градієнт</button>
+        </div>
       </div>
-      <div class="profile-avatar-actions">
-        <label class="profile-upload-btn">
-          <input type="file" id="profileAvatarUpload" accept="image/*" />
-          Завантажити фото
-        </label>
-        <button class="btn btn-secondary btn-change-avatar">Випадковий градієнт</button>
+    </div>
+
+    <div class="profile-settings-card profile-settings-form-card">
+      <div class="profile-form-grid">
+        <div class="form-group">
+          <label for="profileName">Ім'я:</label>
+          <input
+            type="text"
+            id="profileName"
+            class="form-input"
+            placeholder="Введіть ваше ім'я"
+            value="Користувач Orion"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="profileEmail">Email:</label>
+          <input
+            type="email"
+            id="profileEmail"
+            class="form-input"
+            placeholder="example@email.com"
+            value="user@example.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="profileDob">Дата народження:</label>
+          <input
+            type="date"
+            id="profileDob"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group profile-form-full">
+          <label for="profileBio">Опис:</label>
+          <textarea
+            id="profileBio"
+            class="form-textarea"
+            placeholder="Коротко про себе"
+            rows="4"
+          >Вітаю!</textarea>
+        </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="profileName">Ім'я:</label>
-      <input
-        type="text"
-        id="profileName"
-        class="form-input"
-        placeholder="Введіть ваше ім'я"
-        value="Користувач Orion"
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="profileEmail">Email:</label>
-      <input
-        type="email"
-        id="profileEmail"
-        class="form-input"
-        placeholder="example@email.com"
-        value="user@example.com"
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="profileDob">Дата народження:</label>
-      <input
-        type="date"
-        id="profileDob"
-        class="form-input"
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="profileBio">Опис:</label>
-      <textarea
-        id="profileBio"
-        class="form-textarea"
-        placeholder="Коротко про себе"
-        rows="4"
-      >Вітаю!</textarea>
-    </div>
-
-    <div class="settings-buttons">
-      <button class="btn btn-primary btn-save-profile">Зберегти зміни</button>
-      <button class="btn btn-secondary">Скасувати</button>
+      <div class="settings-buttons">
+        <button class="btn btn-primary btn-save-profile">Зберегти зміни</button>
+        <button class="btn btn-secondary">Скасувати</button>
+      </div>
     </div>
   </div>
 </div>
@@ -133,77 +225,7 @@ export const settingsTemplates = {
     <h2>Налаштування</h2>
   </div>
 
-  <div class="settings-content">
-    <div class="settings-menu-list">
-      <div class="settings-menu-item" data-section="notifications">
-        <div class="settings-menu-icon settings-icon-notifications">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="settings-menu-label">
-          <span>Сповіщення</span>
-          <p class="settings-item-desc">Звуки, вібрація, попередній перегляд</p>
-        </div>
-        <span class="settings-menu-arrow">›</span>
-      </div>
-
-      <div class="settings-menu-item" data-section="privacy">
-        <div class="settings-menu-icon settings-icon-privacy">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="11" width="14" height="10" rx="2" stroke="white" stroke-width="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="settings-menu-label">
-          <span>Конфіденційність</span>
-          <p class="settings-item-desc">Статус онлайн, індикатор набору</p>
-        </div>
-        <span class="settings-menu-arrow">›</span>
-      </div>
-
-      <div class="settings-menu-item" data-section="messages">
-        <div class="settings-menu-icon settings-icon-messages">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="settings-menu-label">
-          <span>Повідомлення</span>
-          <p class="settings-item-desc">Відправка, автовідтворення медіа</p>
-        </div>
-        <span class="settings-menu-arrow">›</span>
-      </div>
-
-      <div class="settings-menu-item" data-section="appearance">
-        <div class="settings-menu-icon settings-icon-appearance">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="settings-menu-label">
-          <span>Інтерфейс</span>
-          <p class="settings-item-desc">Розмір шрифту, тема, анімації</p>
-        </div>
-        <span class="settings-menu-arrow">›</span>
-      </div>
-
-      <div class="settings-menu-item" data-section="language">
-        <div class="settings-menu-icon settings-icon-language">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
-            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="settings-menu-label">
-          <span>Мова</span>
-          <p class="settings-item-desc">Українська</p>
-        </div>
-        <span class="settings-menu-arrow">›</span>
-      </div>
-    </div>
-  </div>
+  <div class="settings-content profile-settings-empty"></div>
 </div>
   `.trim(),
 

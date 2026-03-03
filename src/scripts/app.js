@@ -42,6 +42,7 @@ class ChatApp {
     this.mobileTouchMoveLockHandler = null;
     this.bottomNavHomeAnchor = null;
     this.bottomNavInSidebarTop = false;
+    this.settingsParentSection = 'messenger-settings';
     this.loadTheme();
     this.profileMenuPlaceholder = null;
     this.init();
@@ -3297,7 +3298,7 @@ class ChatApp {
 
 
 
-  showSettingsSubsection(subsectionName, settingsContainerId) {
+  showSettingsSubsection(subsectionName, settingsContainerId, sourceSection = null) {
     const sectionMap = {
       'notifications': 'notifications-settings',
       'privacy': 'privacy-settings',
@@ -3308,6 +3309,7 @@ class ChatApp {
     
     const sectionName = sectionMap[subsectionName];
     if (sectionName) {
+      this.settingsParentSection = sourceSection || this.settingsParentSection || 'messenger-settings';
       this.showSettings(sectionName);
     }
   }
@@ -3435,12 +3437,13 @@ class ChatApp {
           right: auto !important;
           bottom: auto !important;
           width: 100% !important;
-          height: auto !important;
+          height: 100% !important;
           z-index: auto !important;
           background-color: transparent !important;
           flex-direction: column !important;
-          overflow: visible !important;
-          flex: 1;
+          overflow: hidden !important;
+          flex: 1 !important;
+          min-height: 0 !important;
         `;
       } else {
         // На ПК просто показуємо контейнер як flex item в chat-area (займає місце welcomeScreen)
@@ -3449,10 +3452,11 @@ class ChatApp {
           flex: 1 !important;
           flex-direction: column !important;
           width: auto !important;
-          height: auto !important;
+          height: 100% !important;
           position: static !important;
           overflow: hidden !important;
           background-color: var(--bg-color) !important;
+          min-height: 0 !important;
         `;
       }
       
@@ -3465,6 +3469,7 @@ class ChatApp {
         settingsSection.style.display = 'flex';
         settingsSection.style.flexDirection = 'column';
         settingsSection.style.height = '100%';
+        settingsSection.style.minHeight = '0';
         settingsSection.style.width = '100%';
       }
       
@@ -3509,15 +3514,16 @@ class ChatApp {
       }
 
       if (sectionName === 'profile') {
-        const profileName = settingsContainer.querySelector('#profileName');
-        const profileStatus = settingsContainer.querySelector('#profileStatus');
-        const profileBio = settingsContainer.querySelector('#profileBio');
-        const profileEmail = settingsContainer.querySelector('#profileEmail');
-        const profileDob = settingsContainer.querySelector('#profileDob');
+        this.settingsParentSection = 'profile';
+        const profileName = settingsContainer.querySelector('#profileDisplayName');
+        const profileStatus = settingsContainer.querySelector('#profileDisplayStatus');
+        const profileBio = settingsContainer.querySelector('#profileDisplayBio');
+        const profileEmail = settingsContainer.querySelector('#profileDisplayEmail');
+        const profileDob = settingsContainer.querySelector('#profileDisplayDob');
         const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
         const editBtn = settingsContainer.querySelector('.profile-edit-btn');
-        const fabBtn = settingsContainer.querySelector('.profile-fab');
         const inlineEditBtn = settingsContainer.querySelector('.profile-edit-inline');
+        const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
 
         if (profileName) profileName.textContent = this.user.name;
         if (profileStatus) this.renderStatusIndicator(profileStatus);
@@ -3530,8 +3536,16 @@ class ChatApp {
 
         const openProfileSettings = () => this.showSettings('profile-settings');
         if (editBtn) editBtn.addEventListener('click', openProfileSettings);
-        if (fabBtn) fabBtn.addEventListener('click', openProfileSettings);
         if (inlineEditBtn) inlineEditBtn.addEventListener('click', openProfileSettings);
+
+        menuItems.forEach(item => {
+          item.addEventListener('click', () => {
+            const subsection = item.getAttribute('data-section');
+            if (subsection) {
+              this.showSettingsSubsection(subsection, settingsContainerId, 'profile');
+            }
+          });
+        });
       }
 
       if (sectionName === 'mini-games') {
@@ -3539,13 +3553,14 @@ class ChatApp {
       }
 
       if (sectionName === 'messenger-settings') {
+        this.settingsParentSection = 'messenger-settings';
         // Додаємо обробники для кнопок-розділів
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
         menuItems.forEach(item => {
           item.addEventListener('click', () => {
             const subsection = item.getAttribute('data-section');
             if (subsection) {
-              this.showSettingsSubsection(subsection, settingsContainerId);
+              this.showSettingsSubsection(subsection, settingsContainerId, 'messenger-settings');
             }
           });
         });
@@ -3632,7 +3647,7 @@ class ChatApp {
       const backSubsectionBtn = settingsContainer.querySelector('.btn-back-subsection');
       if (backSubsectionBtn) {
         backSubsectionBtn.addEventListener('click', () => {
-          this.showSettings('messenger-settings');
+          this.showSettings(this.settingsParentSection || 'messenger-settings');
         });
       }
 
@@ -3673,7 +3688,7 @@ class ChatApp {
         });
       }
       
-      const closeButtons = settingsContainer.querySelectorAll('.btn-secondary');
+      const closeButtons = settingsContainer.querySelectorAll('.btn-secondary:not(.btn-change-avatar)');
       closeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
           settingsContainer.classList.remove('active');
@@ -3701,7 +3716,10 @@ class ChatApp {
   }
 
   async saveProfileSettings() {
-    const container = document.getElementById('profile-settings');
+    const container =
+      document.querySelector('#profile.active, #profile-settings.active')
+      || document.getElementById('profile')
+      || document.getElementById('profile-settings');
     const name = container?.querySelector('#profileName')?.value;
     const email = container?.querySelector('#profileEmail')?.value;
     const bio = container?.querySelector('#profileBio')?.value;

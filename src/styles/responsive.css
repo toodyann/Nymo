@@ -209,7 +209,8 @@
   .bridge-app.swipe-peek .profile-menu-wrapper,
   .bridge-app.swipe-peek:has(#chatContainer.active) .profile-menu-wrapper,
   .bridge-app.swipe-peek.keyboard-open .profile-menu-wrapper,
-  .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active) .profile-menu-wrapper {
+  .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active)
+    .profile-menu-wrapper {
     bottom: calc(10px + env(safe-area-inset-bottom)) !important;
     transform: translate(-50%, 0) !important;
     opacity: 1 !important;
@@ -917,7 +918,8 @@
   .bridge-app.swipe-peek .profile-menu-wrapper,
   .bridge-app.swipe-peek:has(#chatContainer.active) .profile-menu-wrapper,
   .bridge-app.swipe-peek.keyboard-open .profile-menu-wrapper,
-  .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active) .profile-menu-wrapper {
+  .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active)
+    .profile-menu-wrapper {
     display: block !important;
     bottom: calc(10px + env(safe-area-inset-bottom)) !important;
     transform: translate(-50%, 0) !important;

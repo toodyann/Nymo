@@ -216,7 +216,7 @@ export function setupSettingsSwipeBack(settingsContainer, app) {
     settingsContainer.style.transform = '';
     
     if (shouldGoBack) {
-      app.showSettings('messenger-settings');
+      app.showSettings(app.settingsParentSection || 'messenger-settings');
     }
   };
 
