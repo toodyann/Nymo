@@ -1097,6 +1097,27 @@ html.dark-theme .profile-settings-card {
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+.profile-hero-card[data-profile-aura="aurora"] {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(79, 172, 254, 0.16), transparent 34%),
+    radial-gradient(circle at 80% 0%, rgba(67, 233, 123, 0.12), transparent 32%),
+    linear-gradient(145deg, color-mix(in srgb, var(--bg-color) 86%, transparent), color-mix(in srgb, var(--bg-secondary) 62%, transparent));
+}
+
+.profile-hero-card[data-profile-aura="cosmic"] {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 15%, rgba(245, 87, 108, 0.12), transparent 36%),
+    linear-gradient(145deg, color-mix(in srgb, var(--bg-color) 86%, transparent), color-mix(in srgb, var(--bg-secondary) 62%, transparent));
+}
+
+.profile-hero-card[data-profile-aura="sunset"] {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(250, 112, 154, 0.14), transparent 34%),
+    radial-gradient(circle at 82% 12%, rgba(245, 158, 11, 0.18), transparent 36%),
+    linear-gradient(145deg, color-mix(in srgb, var(--bg-color) 86%, transparent), color-mix(in srgb, var(--bg-secondary) 62%, transparent));
+}
+
 .profile-hero-card {
   padding: 30px;
 }
@@ -1148,6 +1169,53 @@ html.dark-theme .profile-settings-card {
   box-shadow:
     0 18px 32px color-mix(in srgb, var(--primary-color) 22%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.profile-avatar-large,
+.shop-item-preview-avatar {
+  position: relative;
+}
+
+.profile-avatar-large.has-avatar-frame,
+.shop-item-preview-avatar {
+  overflow: visible;
+}
+
+.profile-avatar-large[data-avatar-frame="solar"]::after,
+.shop-item-preview-avatar[data-avatar-frame="solar"]::after,
+.profile-avatar-large[data-avatar-frame="neon"]::after,
+.shop-item-preview-avatar[data-avatar-frame="neon"]::after,
+.profile-avatar-large[data-avatar-frame="crystal"]::after,
+.shop-item-preview-avatar[data-avatar-frame="crystal"]::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.profile-avatar-large[data-avatar-frame="solar"]::after,
+.shop-item-preview-avatar[data-avatar-frame="solar"]::after {
+  border: 3px solid rgba(245, 158, 11, 0.85);
+  box-shadow:
+    0 0 0 3px rgba(245, 158, 11, 0.18),
+    0 0 18px rgba(245, 158, 11, 0.28);
+}
+
+.profile-avatar-large[data-avatar-frame="neon"]::after,
+.shop-item-preview-avatar[data-avatar-frame="neon"]::after {
+  border: 3px solid rgba(79, 172, 254, 0.92);
+  box-shadow:
+    0 0 0 3px rgba(79, 172, 254, 0.16),
+    0 0 18px rgba(79, 172, 254, 0.26);
+}
+
+.profile-avatar-large[data-avatar-frame="crystal"]::after,
+.shop-item-preview-avatar[data-avatar-frame="crystal"]::after {
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.14),
+    0 0 16px rgba(184, 228, 255, 0.24);
 }
 
 .profile-avatar-image {
@@ -1388,6 +1456,245 @@ html.dark-theme .profile-settings-card {
   display: none !important;
   padding: 0 !important;
   background: transparent !important;
+}
+
+.shop-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px !important;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-color) 10%, transparent), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 76%, transparent), transparent 42%);
+}
+
+.shop-balance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--bg-color) 88%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 68%, transparent)
+  );
+  box-shadow:
+    0 14px 32px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.shop-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+
+.shop-balance-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shop-balance-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.shop-balance-value {
+  margin-top: 4px;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.shop-balance-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 72%, transparent);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.shop-balance-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.shop-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-color) 6%, transparent), transparent 42%),
+    color-mix(in srgb, var(--bg-color) 88%, transparent);
+  box-shadow:
+    0 10px 24px rgba(15, 19, 32, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.shop-item-card.equipped {
+  border-color: color-mix(in srgb, var(--primary-color) 46%, var(--border-color));
+  box-shadow:
+    0 12px 28px rgba(15, 19, 32, 0.08),
+    inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+.shop-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shop-item-type,
+.shop-item-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.shop-item-preview {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shop-item-preview-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.shop-item-preview-card {
+  width: min(100%, 148px);
+  min-height: 86px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  box-sizing: border-box;
+}
+
+.shop-item-preview-card[data-profile-aura="aurora"] {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(79, 172, 254, 0.18), transparent 34%),
+    radial-gradient(circle at 80% 0%, rgba(67, 233, 123, 0.14), transparent 34%),
+    color-mix(in srgb, var(--bg-color) 86%, transparent);
+}
+
+.shop-item-preview-card[data-profile-aura="cosmic"] {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(102, 126, 234, 0.2), transparent 34%),
+    radial-gradient(circle at 82% 12%, rgba(245, 87, 108, 0.14), transparent 36%),
+    color-mix(in srgb, var(--bg-color) 86%, transparent);
+}
+
+.shop-item-preview-card[data-profile-aura="sunset"] {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(250, 112, 154, 0.16), transparent 34%),
+    radial-gradient(circle at 82% 12%, rgba(245, 158, 11, 0.18), transparent 36%),
+    color-mix(in srgb, var(--bg-color) 86%, transparent);
+}
+
+.shop-item-preview-card-line {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.shop-item-preview-card-line + .shop-item-preview-card-line {
+  margin-top: 10px;
+}
+
+.shop-item-preview-card-line.primary {
+  width: 58%;
+  background: color-mix(in srgb, var(--primary-color) 36%, rgba(255, 255, 255, 0.18));
+}
+
+.shop-item-preview-card-line.short {
+  width: 42%;
+}
+
+.shop-item-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.shop-item-description {
+  margin: 0;
+  min-height: 40px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.shop-item-action {
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.shop-item-action.can-buy {
+  border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+}
+
+.shop-item-action.is-owned {
+  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+}
+
+.shop-item-action.is-equipped {
+  border-color: var(--secondary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.shop-item-action.is-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .profile-settings-hero-card,
@@ -1722,6 +2029,26 @@ html.dark-theme .profile-settings-card {
   #profile-settings .settings-buttons .btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .shop-content {
+    padding: 16px !important;
+    padding-bottom: calc(var(--bottom-nav-height, 72px) + 84px) !important;
+  }
+
+  .shop-balance-card,
+  .shop-item-card {
+    padding: 16px;
+  }
+
+  .shop-balance-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .shop-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -220,10 +220,23 @@ export const settingsTemplates = {
   'messenger-settings': `
 <div class="settings-section" id="messenger-settings">
   <div class="settings-header">
-    <h2>Налаштування</h2>
+    <h2>Магазин</h2>
   </div>
 
-  <div class="settings-content profile-settings-empty"></div>
+  <div class="settings-content shop-content">
+    <div class="shop-balance-card">
+      <span class="shop-kicker">ORION VALUE</span>
+      <div class="shop-balance-meta">
+        <div>
+          <div class="shop-balance-label">Доступний баланс</div>
+          <div class="shop-balance-value" id="shopBalanceValue">00000000,00</div>
+        </div>
+      </div>
+      <p class="shop-balance-note">Прокачуйте профіль предметами, які купуються лише за монети.</p>
+    </div>
+
+    <div class="shop-grid" id="shopGrid"></div>
+  </div>
 </div>
   `.trim(),
 

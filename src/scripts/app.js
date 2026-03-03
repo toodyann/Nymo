@@ -71,7 +71,9 @@ class ChatApp {
         bio: data.bio || 'Вітаю!',
         birthDate: data.birthDate || '',
         avatarColor: data.avatarColor || '',
-        avatarImage: data.avatarImage || ''
+        avatarImage: data.avatarImage || '',
+        equippedAvatarFrame: data.equippedAvatarFrame || '',
+        equippedProfileAura: data.equippedProfileAura || ''
       };
     }
     return {
@@ -81,7 +83,9 @@ class ChatApp {
       bio: 'Вітаю!',
       birthDate: '',
       avatarColor: 'linear-gradient(135deg, #ff9500, #ff6b6b)',
-      avatarImage: ''
+      avatarImage: '',
+      equippedAvatarFrame: '',
+      equippedProfileAura: ''
     };
   }
 
@@ -90,6 +94,128 @@ class ChatApp {
     localStorage.setItem('bridge_user', JSON.stringify(userData));
     this.updateProfileMenuButton();
     this.updateProfileDisplay();
+  }
+
+  formatCoinBalance(value, wholeDigits = 8) {
+    const cents = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    const whole = String(Math.floor(cents / 100)).padStart(wholeDigits, '0');
+    const fraction = String(cents % 100).padStart(2, '0');
+    return `${whole},${fraction}`;
+  }
+
+  getTapBalanceCents() {
+    try {
+      const raw = window.localStorage.getItem('orionTapBalanceCents');
+      const value = Number.parseInt(raw || '0', 10);
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  setTapBalanceCents(value) {
+    const safeValue = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    this.tapBalanceCents = safeValue;
+    try {
+      window.localStorage.setItem('orionTapBalanceCents', String(safeValue));
+    } catch {
+      // Ignore storage failures and keep the in-memory value.
+    }
+    const balanceTargets = document.querySelectorAll('#coinTapBalance, #shopBalanceValue');
+    balanceTargets.forEach(el => {
+      el.textContent = this.formatCoinBalance(safeValue);
+    });
+  }
+
+  getShopCatalog() {
+    return [
+      {
+        id: 'frame_solar',
+        type: 'frame',
+        effect: 'solar',
+        title: 'Solar Ring',
+        description: 'Тепла золота рамка навколо аватарки.',
+        price: 250
+      },
+      {
+        id: 'frame_neon',
+        type: 'frame',
+        effect: 'neon',
+        title: 'Neon Pulse',
+        description: 'Світловий контур із холодним акцентом.',
+        price: 420
+      },
+      {
+        id: 'frame_crystal',
+        type: 'frame',
+        effect: 'crystal',
+        title: 'Crystal Edge',
+        description: 'Світлий кристалічний обідок для аватара.',
+        price: 560
+      },
+      {
+        id: 'aura_aurora',
+        type: 'aura',
+        effect: 'aurora',
+        title: 'Aurora Glow',
+        description: 'М’яке сяйво для картки профілю.',
+        price: 680
+      },
+      {
+        id: 'aura_cosmic',
+        type: 'aura',
+        effect: 'cosmic',
+        title: 'Cosmic Wave',
+        description: 'Космічний перелив у фоні профілю.',
+        price: 860
+      },
+      {
+        id: 'aura_sunset',
+        type: 'aura',
+        effect: 'sunset',
+        title: 'Sunset Mist',
+        description: 'Тепла помаранчева аура для hero-блоку.',
+        price: 990
+      }
+    ];
+  }
+
+  loadShopInventory() {
+    const stored = this.readJsonStorage('orion_shop_inventory', []);
+    return Array.isArray(stored) ? stored : [];
+  }
+
+  saveShopInventory(items) {
+    const uniqueItems = [...new Set(Array.isArray(items) ? items : [])];
+    localStorage.setItem('orion_shop_inventory', JSON.stringify(uniqueItems));
+    return uniqueItems;
+  }
+
+  getShopItem(itemId) {
+    return this.getShopCatalog().find(item => item.id === itemId) || null;
+  }
+
+  applyAvatarDecoration(avatarEl) {
+    if (!avatarEl) return;
+    const frame = this.user?.equippedAvatarFrame || '';
+    avatarEl.dataset.avatarFrame = frame;
+    avatarEl.classList.toggle('has-avatar-frame', Boolean(frame));
+  }
+
+  applyProfileAura(cardEl) {
+    if (!cardEl) return;
+    const aura = this.user?.equippedProfileAura || '';
+    cardEl.dataset.profileAura = aura;
+    cardEl.classList.toggle('has-profile-aura', Boolean(aura));
+  }
+
+  syncProfileCosmetics(root = document) {
+    root.querySelectorAll('.profile-avatar-large').forEach(avatarEl => {
+      this.applyAvatarDecoration(avatarEl);
+    });
+    root.querySelectorAll('#profile .profile-hero-card').forEach(cardEl => {
+      this.applyProfileAura(cardEl);
+    });
   }
 
   updateProfileMenuButton() {
@@ -187,6 +313,8 @@ class ChatApp {
       }
       avatarEl.style.background = this.user.avatarColor;
     }
+
+    this.applyAvatarDecoration(avatarEl);
   }
 
   updateProfileDisplay() {
@@ -207,6 +335,7 @@ class ChatApp {
     if (profileDob) profileDob.textContent = this.formatBirthDate(this.user.birthDate);
 
     this.renderProfileAvatar(avatarDiv);
+    this.applyProfileAura(profileSection.querySelector('.profile-hero-card'));
   }
 
   renderStatusIndicator(container) {
@@ -2909,54 +3038,120 @@ class ChatApp {
     }, 1200);
   }
 
+  initShop(settingsContainer) {
+    const balanceEl = settingsContainer.querySelector('#shopBalanceValue');
+    const gridEl = settingsContainer.querySelector('#shopGrid');
+    if (!balanceEl || !gridEl) return;
+
+    const inventory = new Set(this.loadShopInventory());
+    const catalog = this.getShopCatalog();
+    balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
+
+    const createPreview = (item) => {
+      if (item.type === 'frame') {
+        return `
+          <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
+            <span>${this.getInitials(this.user?.name || 'Користувач Orion')}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="shop-item-preview-card" data-profile-aura="${item.effect}">
+          <div class="shop-item-preview-card-line primary"></div>
+          <div class="shop-item-preview-card-line"></div>
+          <div class="shop-item-preview-card-line short"></div>
+        </div>
+      `;
+    };
+
+    const renderShop = () => {
+      const activeBalance = this.getTapBalanceCents();
+      balanceEl.textContent = this.formatCoinBalance(activeBalance);
+
+      gridEl.innerHTML = catalog.map(item => {
+        const owned = inventory.has(item.id);
+        const equipped = item.type === 'frame'
+          ? this.user?.equippedAvatarFrame === item.effect
+          : this.user?.equippedProfileAura === item.effect;
+        const canAfford = activeBalance >= item.price;
+        const stateLabel = owned
+          ? (equipped ? 'Встановлено' : 'Встановити')
+          : `Купити за ${this.formatCoinBalance(item.price, 1)}`;
+        const stateClass = owned
+          ? (equipped ? 'is-equipped' : 'is-owned')
+          : (canAfford ? 'can-buy' : 'is-locked');
+
+        return `
+          <article class="shop-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
+            <div class="shop-item-top">
+              <span class="shop-item-type">${item.type === 'frame' ? 'Рамка' : 'Аура'}</span>
+              <span class="shop-item-price">${this.formatCoinBalance(item.price, 1)}</span>
+            </div>
+            <div class="shop-item-preview">
+              ${createPreview(item)}
+            </div>
+            <h3 class="shop-item-title">${item.title}</h3>
+            <p class="shop-item-description">${item.description}</p>
+            <button
+              type="button"
+              class="shop-item-action ${stateClass}"
+              data-shop-item="${item.id}"
+              ${!owned && !canAfford ? 'disabled' : ''}
+            >${stateLabel}</button>
+          </article>
+        `;
+      }).join('');
+    };
+
+    renderShop();
+    if (gridEl.dataset.bound === 'true') return;
+    gridEl.dataset.bound = 'true';
+
+    gridEl.addEventListener('click', async (event) => {
+      const actionBtn = event.target.closest('[data-shop-item]');
+      if (!actionBtn) return;
+
+      const item = this.getShopItem(actionBtn.dataset.shopItem);
+      if (!item) return;
+
+      if (!inventory.has(item.id)) {
+        const balance = this.getTapBalanceCents();
+        if (balance < item.price) return;
+        this.setTapBalanceCents(balance - item.price);
+        inventory.add(item.id);
+        this.saveShopInventory([...inventory]);
+      }
+
+      if (item.type === 'frame') {
+        this.user.equippedAvatarFrame = this.user.equippedAvatarFrame === item.effect ? '' : item.effect;
+      } else {
+        this.user.equippedProfileAura = this.user.equippedProfileAura === item.effect ? '' : item.effect;
+      }
+
+      this.saveUserProfile({
+        ...this.user,
+        equippedAvatarFrame: this.user.equippedAvatarFrame || '',
+        equippedProfileAura: this.user.equippedProfileAura || ''
+      });
+      this.syncProfileCosmetics();
+      renderShop();
+    });
+  }
+
   initMiniGames(settingsContainer) {
     const balanceEl = settingsContainer.querySelector('#coinTapBalance');
     const tapBtn = settingsContainer.querySelector('#coinTapBtn');
     if (!balanceEl || !tapBtn) return;
-
-    const storageKey = 'orionTapBalanceCents';
-    const readBalance = () => {
-      try {
-        const raw = window.localStorage.getItem(storageKey);
-        const value = Number.parseInt(raw || '0', 10);
-        return Number.isFinite(value) && value >= 0 ? value : 0;
-      } catch {
-        return 0;
-      }
-    };
-    const writeBalance = (value) => {
-      try {
-        window.localStorage.setItem(storageKey, String(value));
-      } catch {
-        // Ignore storage failures and keep the in-memory value.
-      }
-    };
-    const formatBalance = (value) => {
-      const cents = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
-      const whole = String(Math.floor(cents / 100)).padStart(8, '0');
-      const fraction = String(cents % 100).padStart(2, '0');
-      return `${whole},${fraction}`;
-    };
-    const renderBalance = () => {
-      if (!Number.isFinite(this.tapBalanceCents) || this.tapBalanceCents < 0) {
-        this.tapBalanceCents = readBalance();
-      }
-      balanceEl.textContent = formatBalance(this.tapBalanceCents);
-    };
-
-    renderBalance();
+    this.setTapBalanceCents(this.getTapBalanceCents());
     if (tapBtn.dataset.bound === 'true') return;
     tapBtn.dataset.bound = 'true';
 
     let tapAnimationTimer = null;
     tapBtn.addEventListener('click', () => {
-      const currentBalance = Number.isFinite(this.tapBalanceCents) && this.tapBalanceCents >= 0
-        ? this.tapBalanceCents
-        : readBalance();
-
-      this.tapBalanceCents = currentBalance + 1;
-      writeBalance(this.tapBalanceCents);
-      renderBalance();
+      const currentBalance = this.getTapBalanceCents();
+      this.setTapBalanceCents(currentBalance + 1);
+      balanceEl.textContent = this.formatCoinBalance(this.tapBalanceCents);
 
       tapBtn.classList.remove('is-tapping');
       void tapBtn.offsetWidth;
@@ -3544,6 +3739,7 @@ class ChatApp {
         if (profileDob) profileDob.textContent = this.formatBirthDate(this.user.birthDate);
 
         this.renderProfileAvatar(avatarDiv);
+        this.applyProfileAura(settingsContainer.querySelector('.profile-hero-card'));
         this.updateProfileMenuButton();
 
         const openProfileSettings = () => this.showSettings('profile-settings');
@@ -3566,16 +3762,7 @@ class ChatApp {
 
       if (sectionName === 'messenger-settings') {
         this.settingsParentSection = 'messenger-settings';
-        // Додаємо обробники для кнопок-розділів
-        const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
-        menuItems.forEach(item => {
-          item.addEventListener('click', () => {
-            const subsection = item.getAttribute('data-section');
-            if (subsection) {
-              this.showSettingsSubsection(subsection, settingsContainerId, 'messenger-settings');
-            }
-          });
-        });
+        this.initShop(settingsContainer);
       }
       
       // Завантаження значень для підрозділів
@@ -3747,13 +3934,16 @@ class ChatApp {
     }
     
     const profileData = {
+      ...this.user,
       name: name.trim(),
       email: email?.trim() || '',
       status: this.user.status || 'online',
       bio: bio?.trim() || '',
       birthDate: birthDate?.trim() || '',
       avatarColor: this.user.avatarColor,
-      avatarImage: this.user.avatarImage || ''
+      avatarImage: this.user.avatarImage || '',
+      equippedAvatarFrame: this.user.equippedAvatarFrame || '',
+      equippedProfileAura: this.user.equippedProfileAura || ''
     };
     
     this.saveUserProfile(profileData);
