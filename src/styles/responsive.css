@@ -459,30 +459,150 @@
     display: none !important;
   }
 
-  #settingsContainerMobile #messenger-settings .settings-header {
+  #settingsContainerMobile #messenger-settings .shop-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 3 !important;
+    align-items: flex-start !important;
     background: transparent !important;
     min-height: 0 !important;
-    padding: 8px 0 6px !important;
+    padding: 10px 0 0 !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    pointer-events: none !important;
   }
 
   #settingsContainerMobile #messenger-settings {
+    position: relative !important;
     background: var(--bg-secondary) !important;
   }
 
-  #settingsContainerMobile #messenger-settings .settings-content {
-    background: transparent !important;
+  #settingsContainerMobile #messenger-settings .shop-balance-island {
+    top: 10px !important;
+    right: 12px !important;
+    gap: 8px !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
   }
 
-  #settingsContainerMobile #messenger-settings .settings-header h2 {
+  #settingsContainerMobile #messenger-settings .shop-balance-island-label {
+    font-size: 11px !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-balance-island-value {
+    font-size: 13px !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-content {
+    background: transparent !important;
+    padding-top: 70px !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open {
+    position: fixed !important;
+    top: calc(var(--app-header-height, 56px) + 28px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(var(--bottom-nav-height, 72px) + 64px + env(safe-area-inset-bottom)) !important;
+    z-index: 90 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    padding: 16px !important;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+    border-radius: 24px !important;
+    border-color: var(--border-color) !important;
+    background: var(--bg-color) !important;
+    box-shadow:
+      0 18px 42px rgba(15, 19, 32, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-gutter: stable !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: color-mix(in srgb, var(--primary-color) 56%, var(--border-color)) transparent !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-track {
+    margin: 10px 0;
+    background: transparent;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-color) 56%, var(--border-color));
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-color) 56%, var(--border-color));
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-header h2 {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     min-height: 46px !important;
     padding: 0 18px !important;
     border-radius: 999px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    pointer-events: auto !important;
+  }
+
+  #settingsContainerMobile #calls {
+    position: relative !important;
+    background: var(--bg-secondary) !important;
+  }
+
+  #settingsContainerMobile #calls .calls-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 3 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 10px 0 0 !important;
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  #settingsContainerMobile #calls .calls-header h2 {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    border-radius: 999px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    pointer-events: auto !important;
+  }
+
+  #settingsContainerMobile #calls .calls-content {
+    flex: 1 !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    background: transparent !important;
+    padding-top: 68px !important;
+    box-sizing: border-box !important;
   }
 
   #settingsContainerMobile .settings-header h2 {

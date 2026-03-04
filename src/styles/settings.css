@@ -74,25 +74,87 @@
   transform: scale(0.96);
 }
 
-#messenger-settings .settings-header {
+#messenger-settings .shop-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
   justify-content: center;
+  align-items: flex-start;
   background: transparent !important;
   min-height: 0;
-  padding: 12px 0 8px;
+  padding: 14px 0 0;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  pointer-events: none;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+#messenger-settings .shop-header.is-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 #messenger-settings {
+  position: relative;
   background: var(--bg-secondary);
 }
 
-#messenger-settings .settings-content {
+#messenger-settings .shop-balance-island {
+  position: absolute;
+  top: 14px;
+  right: 24px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+#messenger-settings .shop-balance-island.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#messenger-settings .shop-balance-island-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+#messenger-settings .shop-balance-island-value {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+#messenger-settings .shop-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
   background: transparent;
 }
 
-#messenger-settings .settings-header h2 {
+#messenger-settings .shop-header h2 {
   position: static;
   left: auto;
   transform: none;
@@ -100,13 +162,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 40px;
   margin: 0 auto;
   padding: 0 50px;
   border-radius: 999px;
+  font-size: 22px;
+  font-weight: 600;
+  pointer-events: auto;
 }
 
-html:not(.dark-theme) #messenger-settings .settings-header h2 {
+#messenger-settings .shop-header h2 svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+#messenger-settings .shop-content {
+  padding-top: 78px !important;
+}
+
+html:not(.dark-theme) #messenger-settings .shop-header h2 {
   border: 1px solid rgba(20, 24, 36, 0.1);
   background: rgba(255, 255, 255, 0.58);
   box-shadow:
@@ -116,7 +191,25 @@ html:not(.dark-theme) #messenger-settings .settings-header h2 {
   -webkit-backdrop-filter: blur(12px);
 }
 
-html.dark-theme #messenger-settings .settings-header h2 {
+html:not(.dark-theme) #messenger-settings .shop-balance-island {
+  border: 1px solid rgba(20, 24, 36, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 10px 22px rgba(15, 19, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.dark-theme #messenger-settings .shop-header h2 {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+html.dark-theme #messenger-settings .shop-balance-island {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
@@ -128,6 +221,73 @@ html.dark-theme #messenger-settings .settings-header h2 {
   flex: 1;
   overflow-y: auto;
   background-color: var(--bg-secondary);
+}
+
+#calls {
+  position: relative;
+  background: var(--bg-secondary);
+}
+
+#calls .calls-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 0 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+#calls .calls-header h2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0 auto;
+  padding: 0 38px;
+  border-radius: 999px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  pointer-events: auto;
+}
+
+#calls .calls-header h2 svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+html:not(.dark-theme) #calls .calls-header h2 {
+  border: 1px solid rgba(20, 24, 36, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 10px 22px rgba(15, 19, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.dark-theme #calls .calls-header h2 {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#calls .calls-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  background: transparent;
+  padding-top: 70px;
+  box-sizing: border-box;
 }
 
 .settings-group {
@@ -1260,6 +1420,113 @@ html.dark-theme .profile-settings-card {
 .profile-hero-card {
   position: relative;
   padding: 30px;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.profile-hero-card[data-profile-motion]::after,
+.shop-item-preview-card[data-profile-motion]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.78;
+  z-index: 0;
+}
+
+.profile-hero-card[data-profile-motion="glint"]::after,
+.shop-item-preview-card[data-profile-motion="glint"]::after {
+  background: linear-gradient(
+    115deg,
+    transparent 12%,
+    rgba(255, 255, 255, 0.02) 28%,
+    rgba(255, 255, 255, 0.3) 44%,
+    rgba(245, 158, 11, 0.18) 52%,
+    rgba(255, 255, 255, 0.02) 64%,
+    transparent 82%
+  );
+  transform: translateX(-60%) skewX(-12deg);
+  animation: profileMotionGlint 4.8s linear infinite;
+}
+
+.profile-hero-card[data-profile-motion="orbit"]::after,
+.shop-item-preview-card[data-profile-motion="orbit"]::after {
+  background:
+    radial-gradient(
+      circle at 24% 44%,
+      rgba(245, 158, 11, 0.22),
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at 76% 28%,
+      rgba(59, 130, 246, 0.18),
+      transparent 18%
+    ),
+    radial-gradient(circle at 60% 78%, rgba(34, 197, 94, 0.14), transparent 22%);
+  filter: blur(8px);
+  animation: profileMotionOrbit 8.5s ease-in-out infinite;
+}
+
+.profile-hero-card[data-profile-motion="prism"]::after,
+.shop-item-preview-card[data-profile-motion="prism"]::after {
+  background:
+    radial-gradient(
+      circle at 16% 22%,
+      rgba(168, 85, 247, 0.22),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 80% 18%,
+      rgba(245, 158, 11, 0.24),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 74% 78%,
+      rgba(59, 130, 246, 0.2),
+      transparent 32%
+    ),
+    linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.02) 12%,
+      rgba(255, 255, 255, 0.16) 28%,
+      rgba(236, 72, 153, 0.14) 46%,
+      rgba(255, 255, 255, 0.06) 64%,
+      transparent 84%
+    );
+  filter: blur(10px);
+  animation: profileMotionPrism 6.5s ease-in-out infinite;
+}
+
+@keyframes profileMotionGlint {
+  from {
+    transform: translateX(-60%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(60%) skewX(-12deg);
+  }
+}
+
+@keyframes profileMotionOrbit {
+  0%,
+  100% {
+    transform: translate3d(-3%, -2%, 0) scale(0.96);
+  }
+  50% {
+    transform: translate3d(3%, 2%, 0) scale(1.04);
+  }
+}
+
+@keyframes profileMotionPrism {
+  0%,
+  100% {
+    transform: translate3d(-6%, -3%, 0) scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: translate3d(6%, 3%, 0) scale(1.08);
+    opacity: 1;
+  }
 }
 
 .profile-hero {
@@ -1271,6 +1538,8 @@ html.dark-theme .profile-settings-card {
   padding: 0;
   width: min(100%, 700px);
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-avatar-wrap {
@@ -1407,6 +1676,7 @@ html.dark-theme .profile-settings-card {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .profile-name {
@@ -1415,6 +1685,75 @@ html.dark-theme .profile-settings-card {
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text-primary);
+}
+
+.profile-name-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.profile-name-badges[hidden],
+.profile-name-badges:empty {
+  display: none !important;
+}
+
+.profile-badge-chip {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  box-shadow:
+    0 8px 18px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.profile-badge-chip svg {
+  display: block;
+  flex-shrink: 0;
+  width: 26px;
+  height: 25px;
+}
+
+.profile-badge-chip[data-profile-badge="spark"] {
+  color: #f59e0b;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.18),
+    rgba(251, 191, 36, 0.1)
+  );
+}
+
+.profile-badge-chip[data-profile-badge="comet"] {
+  color: #60a5fa;
+  background: linear-gradient(
+    135deg,
+    rgba(96, 165, 250, 0.16),
+    rgba(59, 130, 246, 0.08)
+  );
+}
+
+.profile-badge-chip[data-profile-badge="crown"] {
+  color: #f97316;
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.16),
+    rgba(245, 158, 11, 0.1)
+  );
+}
+
+.profile-badge-chip[data-profile-badge="orbit"] {
+  color: #34d399;
+  background: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.16),
+    rgba(16, 185, 129, 0.08)
+  );
 }
 
 .profile-handle-row {
@@ -1481,6 +1820,14 @@ html.dark-theme .profile-settings-card {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-meta-label svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .profile-meta-value {
@@ -1732,6 +2079,7 @@ html.dark-theme .profile-settings-card {
 .shop-filter-trigger svg {
   display: block;
   flex-shrink: 0;
+  transition: transform 0.22s ease;
 }
 
 .shop-filter-trigger.is-open {
@@ -1749,6 +2097,10 @@ html.dark-theme .profile-settings-card {
   box-shadow:
     0 12px 24px color-mix(in srgb, var(--primary-color) 18%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.shop-filter-trigger.is-open svg {
+  transform: rotate(90deg);
 }
 
 .shop-filter-summary {
@@ -1770,9 +2122,7 @@ html.dark-theme .profile-settings-card {
 }
 
 .shop-filter-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: block;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
@@ -1789,6 +2139,12 @@ html.dark-theme .profile-settings-card {
     transform 0.22s ease,
     padding 0.22s ease,
     border-color 0.22s ease;
+}
+
+.shop-filter-panel-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .shop-filter-panel.is-open {
@@ -1816,16 +2172,21 @@ html.dark-theme .profile-settings-card {
 }
 
 .shop-filter-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
   border-radius: 12px;
   border: 1px solid var(--border-color);
   background: color-mix(in srgb, var(--bg-color) 82%, transparent);
   color: var(--text-secondary);
-  font-size: 22px;
-  line-height: 1;
-  font-family: inherit;
   cursor: pointer;
+}
+
+.shop-filter-close svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .shop-filter-section {
@@ -2074,6 +2435,9 @@ html.dark-theme .profile-settings-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: color-mix(in srgb, var(--bg-color) 86%, transparent);
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .shop-item-preview-card[data-profile-aura="aurora"] {
@@ -2166,6 +2530,8 @@ html.dark-theme .profile-settings-card {
   height: 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
+  position: relative;
+  z-index: 1;
 }
 
 .shop-item-preview-card-line + .shop-item-preview-card-line {
@@ -2183,6 +2549,37 @@ html.dark-theme .profile-settings-card {
 
 .shop-item-preview-card-line.short {
   width: 42%;
+}
+
+.shop-item-preview-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  box-sizing: border-box;
+}
+
+.shop-item-preview-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.shop-item-preview-badge-chip {
+  width: 30px;
+  height: 30px;
+  box-shadow:
+    0 10px 20px rgba(15, 19, 32, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.shop-item-preview-badge-chip svg {
+  width: 17px;
+  height: 17px;
 }
 
 .shop-item-title {

@@ -73,7 +73,9 @@ class ChatApp {
         avatarColor: data.avatarColor || '',
         avatarImage: data.avatarImage || '',
         equippedAvatarFrame: data.equippedAvatarFrame || '',
-        equippedProfileAura: data.equippedProfileAura || ''
+        equippedProfileAura: data.equippedProfileAura || '',
+        equippedProfileMotion: data.equippedProfileMotion || '',
+        equippedProfileBadge: data.equippedProfileBadge || ''
       };
     }
     return {
@@ -85,7 +87,9 @@ class ChatApp {
       avatarColor: 'linear-gradient(135deg, #ff9500, #ff6b6b)',
       avatarImage: '',
       equippedAvatarFrame: '',
-      equippedProfileAura: ''
+      equippedProfileAura: '',
+      equippedProfileMotion: '',
+      equippedProfileBadge: ''
     };
   }
 
@@ -99,6 +103,14 @@ class ChatApp {
   formatCoinBalance(value, wholeDigits = 8) {
     const cents = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
     const whole = String(Math.floor(cents / 100)).padStart(wholeDigits, '0');
+    const fraction = String(cents % 100).padStart(2, '0');
+    return `${whole},${fraction}`;
+  }
+
+  formatShopIslandBalance(value) {
+    const cents = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    const wholeNumber = Math.floor(cents / 100);
+    const whole = wholeNumber === 0 ? '0' : `0${wholeNumber}`;
     const fraction = String(cents % 100).padStart(2, '0');
     return `${whole},${fraction}`;
   }
@@ -124,6 +136,9 @@ class ChatApp {
     const balanceTargets = document.querySelectorAll('#coinTapBalance, #shopBalanceValue');
     balanceTargets.forEach(el => {
       el.textContent = this.formatCoinBalance(safeValue);
+    });
+    document.querySelectorAll('#shopIslandBalance').forEach(el => {
+      el.textContent = this.formatShopIslandBalance(safeValue);
     });
   }
 
@@ -224,6 +239,62 @@ class ChatApp {
         title: 'Midnight Flow',
         description: 'Глибокий нічний перелив з темним акцентом.',
         price: 1320
+      },
+      {
+        id: 'motion_glint',
+        type: 'motion',
+        effect: 'glint',
+        title: 'Silver Drift',
+        description: 'Світловий перелив, що м’яко проходить по картці профілю.',
+        price: 940
+      },
+      {
+        id: 'motion_orbit',
+        type: 'motion',
+        effect: 'orbit',
+        title: 'Orbit Pulse',
+        description: 'Плаваючі світлові хвилі для живого фону hero-блоку.',
+        price: 1180
+      },
+      {
+        id: 'motion_prism',
+        type: 'motion',
+        effect: 'prism',
+        title: 'Prism Flow',
+        description: 'Повільний призматичний рух із переливом по всій картці.',
+        price: 1410
+      },
+      {
+        id: 'badge_spark',
+        type: 'badge',
+        effect: 'spark',
+        title: 'Spark Dot',
+        description: 'Яскравий акцент-іскра, що з’являється після імені.',
+        price: 360
+      },
+      {
+        id: 'badge_comet',
+        type: 'badge',
+        effect: 'comet',
+        title: 'Comet Tag',
+        description: 'Мініатюрна комета праворуч від ніка в стилі Orion.',
+        price: 430
+      },
+      {
+        id: 'badge_crown',
+        type: 'badge',
+        effect: 'crown',
+        title: 'Crown Mark',
+        description: 'Стримана корона, яка додає статусу біля імені.',
+        price: 540
+      },
+      {
+        id: 'badge_orbit',
+        type: 'badge',
+        effect: 'orbit',
+        title: 'Orbit Mark',
+        description: 'Планетарний значок для впізнаваного вигляду профілю.',
+        price: 620
       }
     ];
   }
@@ -257,12 +328,67 @@ class ChatApp {
     cardEl.classList.toggle('has-profile-aura', Boolean(aura));
   }
 
+  applyProfileMotion(cardEl) {
+    if (!cardEl) return;
+    const motion = this.user?.equippedProfileMotion || '';
+    cardEl.dataset.profileMotion = motion;
+    cardEl.classList.toggle('has-profile-motion', Boolean(motion));
+  }
+
+  getProfileBadgeDefinition(effect) {
+    const definitions = {
+      spark: {
+        label: 'Spark',
+        path: 'M144 24l14 50 50 14-50 14-14 50-14-50-50-14 50-14 14-50zm-72 120l9 31 31 9-31 9-9 31-9-31-31-9 31-9 9-31z'
+      },
+      comet: {
+        label: 'Comet',
+        path: 'M208 112a72 72 0 11-72-72 8 8 0 010 16 56 56 0 1056 56 8 8 0 0116 0zM48 208l44-12-32-32-12 44zm54.34-65.66l11.32 11.32 82.34-82.34a8 8 0 00-11.32-11.32z'
+      },
+      crown: {
+        label: 'Crown',
+        path: 'M40 184l16-96 48 40 24-56 24 56 48-40 16 96H40zm18.88-16h138.24l-8.77-52.6-42.23 35.2a8 8 0 01-12.31-2.6L128 99.75 122.19 148a8 8 0 01-12.31 2.6l-42.23-35.2z'
+      },
+      orbit: {
+        label: 'Orbit',
+        path: 'M128 56a40 40 0 110 80 40 40 0 010-80zm0 16a24 24 0 100 48 24 24 0 000-48zm0-40c55.23 0 100 17.91 100 40s-44.77 40-100 40-100-17.91-100-40 44.77-40 100-40zm0 16c-51.34 0-84 16.18-84 24s32.66 24 84 24 84-16.18 84-24-32.66-24-84-24zm56 88c24.3 7.31 40 19.1 40 32 0 22.09-44.77 40-100 40s-100-17.91-100-40c0-12.9 15.7-24.69 40-32a8 8 0 114.61 15.32C51.14 156.58 40 162.66 40 168c0 7.82 32.66 24 84 24s84-16.18 84-24c0-5.34-11.14-11.42-28.61-16.68A8 8 0 11184 136z'
+      }
+    };
+    return definitions[effect] || null;
+  }
+
+  getProfileBadgeMarkup(effect, extraClass = '') {
+    const badge = this.getProfileBadgeDefinition(effect);
+    if (!badge) return '';
+    const className = ['profile-badge-chip', extraClass].filter(Boolean).join(' ');
+    const safeLabel = this.escapeAttr(badge.label);
+    return `
+      <span class="${className}" data-profile-badge="${this.escapeAttr(effect)}" title="${safeLabel}" aria-label="${safeLabel}">
+        <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="${badge.path}"></path>
+        </svg>
+      </span>
+    `.trim();
+  }
+
+  applyProfileBadge(containerEl) {
+    if (!containerEl) return;
+    const badge = this.user?.equippedProfileBadge || '';
+    containerEl.innerHTML = badge ? this.getProfileBadgeMarkup(badge) : '';
+    containerEl.classList.toggle('has-badge', Boolean(badge));
+    containerEl.toggleAttribute('hidden', !badge);
+  }
+
   syncProfileCosmetics(root = document) {
     root.querySelectorAll('.profile-avatar-large').forEach(avatarEl => {
       this.applyAvatarDecoration(avatarEl);
     });
     root.querySelectorAll('#profile .profile-hero-card').forEach(cardEl => {
       this.applyProfileAura(cardEl);
+      this.applyProfileMotion(cardEl);
+    });
+    root.querySelectorAll('#profile .profile-name-badges').forEach(containerEl => {
+      this.applyProfileBadge(containerEl);
     });
   }
 
@@ -369,10 +495,10 @@ class ChatApp {
     const profileSection = document.getElementById('profile');
     if (!profileSection) return;
 
-    const profileName = profileSection.querySelector('#profileName');
-    const profileBio = profileSection.querySelector('#profileBio');
-    const profileEmail = profileSection.querySelector('#profileEmail');
-    const profileDob = profileSection.querySelector('#profileDob');
+    const profileName = profileSection.querySelector('#profileDisplayName');
+    const profileBio = profileSection.querySelector('#profileDisplayBio');
+    const profileEmail = profileSection.querySelector('#profileDisplayEmail');
+    const profileDob = profileSection.querySelector('#profileDisplayDob');
     const avatarDiv = profileSection.querySelector('.profile-avatar-large');
 
     if (profileName) profileName.textContent = this.user.name;
@@ -382,6 +508,8 @@ class ChatApp {
 
     this.renderProfileAvatar(avatarDiv);
     this.applyProfileAura(profileSection.querySelector('.profile-hero-card'));
+    this.applyProfileMotion(profileSection.querySelector('.profile-hero-card'));
+    this.applyProfileBadge(profileSection.querySelector('#profileNameBadges'));
   }
 
   formatBirthDate(value) {
@@ -3074,9 +3202,15 @@ class ChatApp {
 
   initShop(settingsContainer) {
     const balanceEl = settingsContainer.querySelector('#shopBalanceValue');
+    const islandBalanceEl = settingsContainer.querySelector('#shopIslandBalance');
+    const shopHeaderEl = settingsContainer.querySelector('.shop-header');
+    const balanceIslandEl = settingsContainer.querySelector('.shop-balance-island');
+    const shopContentEl = settingsContainer.querySelector('.shop-content');
+    const balanceCardEl = settingsContainer.querySelector('.shop-balance-card');
     const filterToggleEl = settingsContainer.querySelector('#shopFilterToggle');
     const filterSummaryEl = settingsContainer.querySelector('#shopFilterSummary');
     const filterPanelEl = settingsContainer.querySelector('#shopFilterPanel');
+    const filterPanelScrollEl = settingsContainer.querySelector('.shop-filter-panel-scroll');
     const minPriceEl = settingsContainer.querySelector('#shopPriceMin');
     const maxPriceEl = settingsContainer.querySelector('#shopPriceMax');
     const minPriceValueEl = settingsContainer.querySelector('#shopPriceMinValue');
@@ -3085,7 +3219,7 @@ class ChatApp {
     const filterApplyEl = settingsContainer.querySelector('#shopFilterApply');
     const filterCloseEl = settingsContainer.querySelector('#shopFilterClose');
     const gridEl = settingsContainer.querySelector('#shopGrid');
-    if (!balanceEl || !gridEl) return;
+    if (!balanceEl || !gridEl || !shopContentEl) return;
 
     const inventory = new Set(this.loadShopInventory());
     const catalog = this.getShopCatalog();
@@ -3099,8 +3233,11 @@ class ChatApp {
       minPrice: minCatalogPrice,
       maxPrice: maxCatalogPrice
     };
-    const shouldOpenByDefault = window.innerWidth >= 769;
+    const shouldOpenByDefault = false;
     balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
+    if (islandBalanceEl) {
+      islandBalanceEl.textContent = this.formatShopIslandBalance(this.getTapBalanceCents());
+    }
 
     if (minPriceEl && maxPriceEl) {
       minPriceEl.min = String(minCatalogPrice);
@@ -3120,8 +3257,17 @@ class ChatApp {
         `;
       }
 
+      if (item.type === 'badge') {
+        return `
+          <div class="shop-item-preview-badges">
+            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Orion')}</span>
+            ${this.getProfileBadgeMarkup(item.effect, 'shop-item-preview-badge-chip')}
+          </div>
+        `;
+      }
+
       return `
-        <div class="shop-item-preview-card" data-profile-aura="${item.effect}">
+        <div class="shop-item-preview-card" ${item.type === 'motion' ? `data-profile-motion="${item.effect}"` : `data-profile-aura="${item.effect}"`}>
           <div class="shop-item-preview-card-line primary"></div>
           <div class="shop-item-preview-card-line"></div>
           <div class="shop-item-preview-card-line short"></div>
@@ -3129,10 +3275,20 @@ class ChatApp {
       `;
     };
 
+    const isEquipped = (item) => {
+      if (item.type === 'frame') return this.user?.equippedAvatarFrame === item.effect;
+      if (item.type === 'aura') return this.user?.equippedProfileAura === item.effect;
+      if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
+      if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
+      return false;
+    };
+
     const getFilterSummary = () => {
       const parts = [];
       if (filterState.category === 'frame') parts.push('Аватар');
       if (filterState.category === 'aura') parts.push('Профіль');
+      if (filterState.category === 'motion') parts.push('Анімація');
+      if (filterState.category === 'badge') parts.push('Значки');
       if (filterState.ownership === 'owned') parts.push('Куплені');
       if (filterState.ownership === 'unowned') parts.push('Не куплені');
       if (filterState.availability === 'equipped') parts.push('Встановлені');
@@ -3165,19 +3321,39 @@ class ChatApp {
       filterPanelEl.classList.toggle('is-open', isOpen);
       filterToggleEl.classList.toggle('is-open', isOpen);
       filterToggleEl.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen && filterPanelScrollEl) {
+        filterPanelScrollEl.scrollTop = 0;
+      }
+    };
+
+    const syncShopFloatingIslands = () => {
+      const currentScrollTop = shopContentEl.scrollTop || 0;
+      const balanceCardReached = balanceCardEl
+        ? currentScrollTop >= Math.max(0, balanceCardEl.offsetTop - 18)
+        : false;
+
+      if (shopHeaderEl) {
+        shopHeaderEl.classList.toggle('is-hidden', balanceCardReached);
+      }
+
+      if (balanceIslandEl && balanceCardEl) {
+        const balanceCardPassed = currentScrollTop > (balanceCardEl.offsetTop + balanceCardEl.offsetHeight - 56);
+        balanceIslandEl.classList.toggle('is-visible', balanceCardPassed);
+      }
     };
 
     const renderShop = () => {
       const activeBalance = this.getTapBalanceCents();
       balanceEl.textContent = this.formatCoinBalance(activeBalance);
+      if (islandBalanceEl) {
+        islandBalanceEl.textContent = this.formatShopIslandBalance(activeBalance);
+      }
       syncFilterControls();
 
       const visibleItems = catalog
         .filter(item => {
           const owned = inventory.has(item.id);
-          const equipped = item.type === 'frame'
-            ? this.user?.equippedAvatarFrame === item.effect
-            : this.user?.equippedProfileAura === item.effect;
+          const equipped = isEquipped(item);
           const canBuy = !owned && activeBalance >= item.price;
 
           if (filterState.category !== 'all' && item.type !== filterState.category) return false;
@@ -3206,9 +3382,7 @@ class ChatApp {
 
       gridEl.innerHTML = visibleItems.map(item => {
         const owned = inventory.has(item.id);
-        const equipped = item.type === 'frame'
-          ? this.user?.equippedAvatarFrame === item.effect
-          : this.user?.equippedProfileAura === item.effect;
+        const equipped = isEquipped(item);
         const canAfford = activeBalance >= item.price;
         const stateLabel = owned
           ? (equipped ? 'Встановлено' : 'Встановити')
@@ -3241,6 +3415,14 @@ class ChatApp {
 
     renderShop();
     setFilterPanelOpen(shouldOpenByDefault);
+    syncShopFloatingIslands();
+
+    if (shopContentEl.dataset.shopScrollBound !== 'true') {
+      shopContentEl.dataset.shopScrollBound = 'true';
+      shopContentEl.addEventListener('scroll', () => {
+        syncShopFloatingIslands();
+      }, { passive: true });
+    }
 
     if (filterToggleEl && filterToggleEl.dataset.bound !== 'true') {
       filterToggleEl.dataset.bound = 'true';
@@ -3336,14 +3518,20 @@ class ChatApp {
 
       if (item.type === 'frame') {
         this.user.equippedAvatarFrame = this.user.equippedAvatarFrame === item.effect ? '' : item.effect;
-      } else {
+      } else if (item.type === 'aura') {
         this.user.equippedProfileAura = this.user.equippedProfileAura === item.effect ? '' : item.effect;
+      } else if (item.type === 'motion') {
+        this.user.equippedProfileMotion = this.user.equippedProfileMotion === item.effect ? '' : item.effect;
+      } else if (item.type === 'badge') {
+        this.user.equippedProfileBadge = this.user.equippedProfileBadge === item.effect ? '' : item.effect;
       }
 
       this.saveUserProfile({
         ...this.user,
         equippedAvatarFrame: this.user.equippedAvatarFrame || '',
-        equippedProfileAura: this.user.equippedProfileAura || ''
+        equippedProfileAura: this.user.equippedProfileAura || '',
+        equippedProfileMotion: this.user.equippedProfileMotion || '',
+        equippedProfileBadge: this.user.equippedProfileBadge || ''
       });
       this.syncProfileCosmetics();
       renderShop();
@@ -3949,6 +4137,8 @@ class ChatApp {
 
         this.renderProfileAvatar(avatarDiv);
         this.applyProfileAura(settingsContainer.querySelector('.profile-hero-card'));
+        this.applyProfileMotion(settingsContainer.querySelector('.profile-hero-card'));
+        this.applyProfileBadge(settingsContainer.querySelector('#profileNameBadges'));
         this.updateProfileMenuButton();
 
         const openProfileSettings = () => this.showSettings('profile-settings');
@@ -4152,7 +4342,9 @@ class ChatApp {
       avatarColor: this.user.avatarColor,
       avatarImage: this.user.avatarImage || '',
       equippedAvatarFrame: this.user.equippedAvatarFrame || '',
-      equippedProfileAura: this.user.equippedProfileAura || ''
+      equippedProfileAura: this.user.equippedProfileAura || '',
+      equippedProfileMotion: this.user.equippedProfileMotion || '',
+      equippedProfileBadge: this.user.equippedProfileBadge || ''
     };
     
     this.saveUserProfile(profileData);
