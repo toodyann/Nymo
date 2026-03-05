@@ -25,6 +25,14 @@
 
   --shadow: 0 12px 24px rgba(15, 19, 32, 0.08);
   --shadow-dark: 0 18px 40px rgba(15, 19, 32, 0.12);
+
+  /* Shared UI tokens */
+  --radius-card: 22px;
+  --radius-inner: 18px;
+  --radius-control: 14px;
+  --radius-pill: 999px;
+  --surface-soft: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  --surface-strong: color-mix(in srgb, var(--bg-color) 88%, transparent);
 }
 
 .dark-theme {

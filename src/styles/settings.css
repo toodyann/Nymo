@@ -1277,12 +1277,56 @@ to {
   box-sizing: border-box;
 }
 
+/* Unified design system for profile/shop surfaces and controls */
+.profile-hero-card,
+.profile-settings-card,
+.shop-balance-card,
+.shop-filter-panel,
+.shop-item-card,
+.shop-empty-state {
+  border-radius: var(--radius-card);
+}
+
+.profile-meta-card,
+.profile-settings-menu-card .settings-menu-item,
+.shop-item-preview-card {
+  border-radius: var(--radius-inner);
+}
+
+.profile-edit-btn,
+.profile-icon-btn,
+.profile-upload-btn,
+.btn-change-avatar,
+.shop-filter-trigger,
+.shop-filter-summary,
+.shop-filter-close,
+.shop-filter-btn,
+.shop-filter-reset,
+.shop-filter-apply,
+.shop-item-action {
+  border-radius: var(--radius-control);
+}
+
+.profile-meta-card,
+.profile-settings-menu-card .settings-menu-item,
+.profile-userid,
+.profile-icon-btn,
+.profile-upload-btn,
+.btn-change-avatar,
+.shop-filter-summary,
+.shop-filter-panel,
+.shop-empty-state,
+.shop-item-preview-card,
+.shop-item-action.is-owned {
+  background: var(--surface-soft);
+}
+
 .profile-hero-card,
 .profile-settings-card {
   width: min(100%, 980px);
   max-width: 100%;
   box-sizing: border-box;
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--border-color);
   background: linear-gradient(
     145deg,
@@ -1808,10 +1852,10 @@ html.dark-theme .profile-settings-card {
   align-items: flex-start;
   gap: 6px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: var(--radius-inner);
   text-align: left;
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 74%, transparent);
+  background: var(--surface-soft);
 }
 
 .profile-meta-label {
@@ -1849,7 +1893,7 @@ html.dark-theme .profile-settings-card {
 .profile-edit-btn {
   min-height: 46px;
   padding-inline: 20px;
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   font-weight: 700;
   box-shadow: 0 10px 20px
     color-mix(in srgb, var(--primary-color) 18%, transparent);
@@ -1863,9 +1907,9 @@ html.dark-theme .profile-settings-card {
   gap: 6px;
   min-height: 46px;
   padding: 10px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 80%, transparent);
+  background: var(--surface-soft);
   color: var(--text-primary);
   cursor: pointer;
   font-weight: 600;
@@ -1876,9 +1920,9 @@ html.dark-theme .profile-settings-card {
   color: var(--text-secondary);
   font-size: 12px;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
-  background: color-mix(in srgb, var(--bg-color) 68%, transparent);
+  background: var(--surface-soft);
 }
 
 .profile-summary-grid {
@@ -1889,7 +1933,7 @@ html.dark-theme .profile-settings-card {
 
 .profile-summary-card {
   padding: 20px;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--border-color);
   background: color-mix(in srgb, var(--bg-color) 84%, transparent);
   display: flex;
@@ -1986,7 +2030,7 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 10px;
   padding: 20px;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--border-color);
   background: linear-gradient(
     145deg,
@@ -2030,9 +2074,9 @@ html.dark-theme .profile-settings-card {
 
 .shop-balance-badge {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
-  background: color-mix(in srgb, var(--bg-color) 72%, transparent);
+  background: var(--surface-soft);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
@@ -2061,9 +2105,9 @@ html.dark-theme .profile-settings-card {
   gap: 8px;
   min-height: 42px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  background: var(--surface-soft);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 700;
@@ -2110,9 +2154,9 @@ html.dark-theme .profile-settings-card {
   display: flex;
   align-items: center;
   padding: 0 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 76%, transparent);
+  background: var(--surface-soft);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -2129,9 +2173,9 @@ html.dark-theme .profile-settings-card {
   pointer-events: none;
   transform: translateY(-10px);
   padding: 0 20px;
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   border: 1px solid transparent;
-  background: color-mix(in srgb, var(--bg-color) 78%, transparent);
+  background: var(--surface-soft);
   box-sizing: border-box;
   transition:
     max-height 0.28s ease,
@@ -2177,9 +2221,9 @@ html.dark-theme .profile-settings-card {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  background: var(--surface-soft);
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -2247,7 +2291,7 @@ html.dark-theme .profile-settings-card {
 .shop-filter-apply {
   min-height: 42px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   font-size: 13px;
   font-weight: 700;
   font-family: inherit;
@@ -2256,7 +2300,7 @@ html.dark-theme .profile-settings-card {
 
 .shop-filter-reset {
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  background: var(--surface-soft);
   color: var(--text-secondary);
 }
 
@@ -2293,9 +2337,9 @@ html.dark-theme .profile-settings-card {
 
 .shop-filter-btn {
   border: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  background: var(--surface-soft);
   color: var(--text-secondary);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   min-height: 38px;
   padding: 0 14px;
   font-size: 13px;
@@ -2347,9 +2391,9 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 8px;
   padding: 24px;
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   border: 1px dashed color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  background: var(--surface-soft);
   text-align: center;
   color: var(--text-secondary);
 }
@@ -2364,7 +2408,7 @@ html.dark-theme .profile-settings-card {
   flex-direction: column;
   gap: 12px;
   padding: 18px;
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--border-color);
   background:
     radial-gradient(
@@ -2431,9 +2475,9 @@ html.dark-theme .profile-settings-card {
   width: min(100%, 148px);
   min-height: 86px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-inner);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  background: var(--surface-soft);
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -2557,9 +2601,9 @@ html.dark-theme .profile-settings-card {
   gap: 8px;
   min-height: 42px;
   padding: 10px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-control);
   border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  background: var(--surface-soft);
   box-sizing: border-box;
 }
 
@@ -2600,7 +2644,7 @@ html.dark-theme .profile-settings-card {
 
 .shop-item-action {
   min-height: 42px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-primary);

@@ -117,7 +117,7 @@ html:not(.dark-theme) .profile-menu-wrapper .bottom-nav-item.active {
   min-width: 0;
   padding: 10px 14px;
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: var(--radius-control);
   font-size: 13px;
   color: var(--text-primary);
   background-color: var(--bg-elevated);
@@ -218,7 +218,7 @@ html:not(.dark-theme) .profile-menu-wrapper .bottom-nav-item.active {
 .chat-item {
   padding: 12px 12px;
   margin: 4px 8px;
-  border-radius: 12px;
+  border-radius: var(--radius-inner);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -229,7 +229,7 @@ html:not(.dark-theme) .profile-menu-wrapper .bottom-nav-item.active {
   width: calc(100% - 16px);
   text-align: left;
   position: relative;
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--surface-soft);
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(6px);
