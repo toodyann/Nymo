@@ -341,18 +341,70 @@ export class ChatAppFeaturesMethods {
   }
 
   initMiniGames(settingsContainer) {
+    const miniGamesSection = settingsContainer.querySelector('#mini-games');
     const balanceEl = settingsContainer.querySelector('#coinTapBalance');
     const tapBtn = settingsContainer.querySelector('#coinTapBtn');
+    const levelIslandEl = settingsContainer.querySelector('.coin-level-island');
+    const levelValueEl = settingsContainer.querySelector('#coinTapLevelValue');
+    const rewardValueEl = settingsContainer.querySelector('#coinTapRewardValue');
     if (!balanceEl || !tapBtn) return;
+
+    if (miniGamesSection && miniGamesSection.dataset.zoomLockBound !== 'true') {
+      miniGamesSection.dataset.zoomLockBound = 'true';
+
+      const preventMultiTouchZoom = (event) => {
+        if (event.touches && event.touches.length > 1) {
+          event.preventDefault();
+        }
+      };
+      const preventGestureZoom = (event) => {
+        event.preventDefault();
+      };
+      const preventCtrlWheelZoom = (event) => {
+        if (event.ctrlKey) {
+          event.preventDefault();
+        }
+      };
+
+      miniGamesSection.addEventListener('touchstart', preventMultiTouchZoom, { passive: false });
+      miniGamesSection.addEventListener('touchmove', preventMultiTouchZoom, { passive: false });
+      miniGamesSection.addEventListener('gesturestart', preventGestureZoom);
+      miniGamesSection.addEventListener('gesturechange', preventGestureZoom);
+      miniGamesSection.addEventListener('gestureend', preventGestureZoom);
+      miniGamesSection.addEventListener('wheel', preventCtrlWheelZoom, { passive: false });
+    }
+
+    const syncTapperStats = () => {
+      const stats = this.getTapLevelStats();
+      balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
+
+      if (levelValueEl) {
+        levelValueEl.textContent = String(stats.level);
+      }
+      if (levelIslandEl) {
+        const progressPercent = Math.max(0, Math.min(100, Math.round(stats.levelProgress * 100)));
+        levelIslandEl.style.setProperty('--coin-level-progress', `${progressPercent}%`);
+      }
+      if (rewardValueEl) {
+        rewardValueEl.textContent = `${this.formatCoinBalance(stats.rewardPerTapCents, 1)} монетки`;
+      }
+    };
+
     this.setTapBalanceCents(this.getTapBalanceCents());
+    this.setTapTotalClicks(this.getTapTotalClicks());
+    syncTapperStats();
+
     if (tapBtn.dataset.bound === 'true') return;
     tapBtn.dataset.bound = 'true';
 
     let tapAnimationTimer = null;
     tapBtn.addEventListener('click', () => {
+      const levelStats = this.getTapLevelStats();
+      const rewardCents = levelStats.rewardPerTapCents;
       const currentBalance = this.getTapBalanceCents();
-      this.setTapBalanceCents(currentBalance + 1);
-      balanceEl.textContent = this.formatCoinBalance(this.tapBalanceCents);
+      this.setTapBalanceCents(currentBalance + rewardCents);
+      this.setTapTotalClicks(levelStats.totalClicks + 1);
+      syncTapperStats();
 
       tapBtn.classList.remove('is-tapping');
       void tapBtn.offsetWidth;
@@ -364,13 +416,221 @@ export class ChatAppFeaturesMethods {
       }, 180);
     });
   }
+
+  initProfileItems(settingsContainer) {
+    const balanceEl = settingsContainer.querySelector('#profileItemsBalance');
+    const itemsCountEl = settingsContainer.querySelector('#profileItemsCount');
+    const gridEl = settingsContainer.querySelector('#profileItemsGrid');
+    const viewButtons = settingsContainer.querySelectorAll('[data-profile-items-view]');
+    if (!balanceEl || !itemsCountEl || !gridEl) return;
+
+    const inventory = new Set(this.loadShopInventory());
+    const catalogById = new Map(this.getShopCatalog().map(item => [item.id, item]));
+    const SELL_MULTIPLIER = 0.6;
+    const PROFILE_ITEMS_VIEW_KEY = 'orionProfileItemsView';
+    const normalizeView = (value) => (value === 'list' ? 'list' : 'cards');
+    let currentView = 'cards';
+
+    try {
+      currentView = normalizeView(window.localStorage.getItem(PROFILE_ITEMS_VIEW_KEY));
+    } catch {
+      currentView = 'cards';
+    }
+
+    const setView = (view) => {
+      currentView = normalizeView(view);
+      gridEl.classList.toggle('is-list', currentView === 'list');
+      viewButtons.forEach(btn => {
+        const isActive = btn.dataset.profileItemsView === currentView;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      });
+      try {
+        window.localStorage.setItem(PROFILE_ITEMS_VIEW_KEY, currentView);
+      } catch {
+        // Ignore storage failures.
+      }
+    };
+
+    const getSellPrice = (item) => Math.max(1, Math.floor(item.price * SELL_MULTIPLIER));
+
+    const getTypeLabel = (type) => {
+      if (type === 'frame') return 'Рамка';
+      if (type === 'aura') return 'Фон';
+      if (type === 'motion') return 'Анімація';
+      if (type === 'badge') return 'Бейдж';
+      return 'Предмет';
+    };
+
+    const createPreview = (item) => {
+      if (item.type === 'frame') {
+        return `
+          <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
+            <span>${this.getInitials(this.user?.name || 'Користувач Orion')}</span>
+          </div>
+        `;
+      }
+
+      if (item.type === 'badge') {
+        return `
+          <div class="shop-item-preview-badges">
+            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Orion')}</span>
+            ${this.getProfileBadgeMarkup(item.effect, 'shop-item-preview-badge-chip')}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="shop-item-preview-card" ${item.type === 'motion' ? `data-profile-motion="${item.effect}"` : `data-profile-aura="${item.effect}"`}>
+          <div class="shop-item-preview-card-line primary"></div>
+          <div class="shop-item-preview-card-line"></div>
+          <div class="shop-item-preview-card-line short"></div>
+        </div>
+      `;
+    };
+
+    const isEquipped = (item) => {
+      if (item.type === 'frame') return this.user?.equippedAvatarFrame === item.effect;
+      if (item.type === 'aura') return this.user?.equippedProfileAura === item.effect;
+      if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
+      if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
+      return false;
+    };
+
+    const setEquippedValue = (item, value) => {
+      if (item.type === 'frame') this.user.equippedAvatarFrame = value;
+      if (item.type === 'aura') this.user.equippedProfileAura = value;
+      if (item.type === 'motion') this.user.equippedProfileMotion = value;
+      if (item.type === 'badge') this.user.equippedProfileBadge = value;
+    };
+
+    const saveCosmetics = () => {
+      this.saveUserProfile({
+        ...this.user,
+        equippedAvatarFrame: this.user.equippedAvatarFrame || '',
+        equippedProfileAura: this.user.equippedProfileAura || '',
+        equippedProfileMotion: this.user.equippedProfileMotion || '',
+        equippedProfileBadge: this.user.equippedProfileBadge || ''
+      });
+      this.syncProfileCosmetics();
+    };
+
+    const renderInventory = () => {
+      const ownedItems = [...inventory]
+        .map(id => catalogById.get(id))
+        .filter(Boolean);
+
+      balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
+      itemsCountEl.textContent = String(ownedItems.length);
+
+      if (!ownedItems.length) {
+        gridEl.innerHTML = `
+          <div class="profile-items-empty">
+            <strong>Інвентар порожній</strong>
+            <span>Купи предмети в магазині, щоб керувати ними тут.</span>
+          </div>
+        `;
+        return;
+      }
+
+      gridEl.innerHTML = ownedItems.map(item => {
+        const equipped = isEquipped(item);
+        const sellPrice = getSellPrice(item);
+
+        return `
+          <article class="shop-item-card profile-item-card ${equipped ? 'equipped' : ''}">
+            <div class="shop-item-top profile-item-top">
+              <span class="shop-item-type profile-item-type">${getTypeLabel(item.type)}</span>
+              <span class="shop-item-price profile-item-price">Продаж: ${this.formatCoinBalance(sellPrice, 1)}</span>
+            </div>
+            <div class="shop-item-preview">
+              ${createPreview(item)}
+            </div>
+            <h3 class="shop-item-title profile-item-title">${escapeHtml(item.title)}</h3>
+            <p class="shop-item-description profile-item-description">${escapeHtml(item.description)}</p>
+            <div class="profile-item-actions">
+              <button
+                type="button"
+                class="shop-item-action profile-item-action profile-item-action-equip ${equipped ? 'is-equipped' : 'is-owned'}"
+                data-profile-item-action="toggle-equip"
+                data-profile-item-id="${item.id}"
+              >${equipped ? 'Зняти з профілю' : 'Встановити в профіль'}</button>
+              <button
+                type="button"
+                class="shop-item-action profile-item-action profile-item-action-sell can-buy"
+                data-profile-item-action="sell"
+                data-profile-item-id="${item.id}"
+              >Продати за ${this.formatCoinBalance(sellPrice, 1)}</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    };
+
+    renderInventory();
+    setView(currentView);
+
+    viewButtons.forEach(btn => {
+      if (btn.dataset.bound === 'true') return;
+      btn.dataset.bound = 'true';
+      btn.addEventListener('click', () => {
+        const nextView = btn.dataset.profileItemsView;
+        setView(nextView);
+      });
+    });
+
+    if (gridEl.dataset.bound === 'true') return;
+    gridEl.dataset.bound = 'true';
+
+    gridEl.addEventListener('click', async (event) => {
+      const actionBtn = event.target.closest('[data-profile-item-action]');
+      if (!actionBtn) return;
+
+      const itemId = actionBtn.dataset.profileItemId;
+      const action = actionBtn.dataset.profileItemAction;
+      if (!itemId || !action) return;
+
+      const item = catalogById.get(itemId);
+      if (!item || !inventory.has(item.id)) return;
+
+      if (action === 'toggle-equip') {
+        const equipped = isEquipped(item);
+        setEquippedValue(item, equipped ? '' : item.effect);
+        saveCosmetics();
+        renderInventory();
+        return;
+      }
+
+      if (action === 'sell') {
+        const sellPrice = getSellPrice(item);
+        const confirmed = await this.showConfirm(
+          `Продати "${item.title}" за ${this.formatCoinBalance(sellPrice, 1)}?`,
+          'Продаж предмета'
+        );
+        if (!confirmed) return;
+
+        inventory.delete(item.id);
+        this.saveShopInventory([...inventory]);
+
+        if (isEquipped(item)) {
+          setEquippedValue(item, '');
+          saveCosmetics();
+        }
+
+        this.setTapBalanceCents(this.getTapBalanceCents() + sellPrice);
+        renderInventory();
+      }
+    });
+  }
+
   showSettingsSubsection(subsectionName, settingsContainerId, sourceSection = null) {
     const sectionMap = {
       'notifications': 'notifications-settings',
       'privacy': 'privacy-settings',
       'messages': 'messages-settings',
       'appearance': 'appearance-settings',
-      'language': 'language-settings'
+      'language': 'language-settings',
+      'profile-items': 'profile-items'
     };
     
     const sectionName = sectionMap[subsectionName];
@@ -586,8 +846,8 @@ export class ChatAppFeaturesMethods {
         const profileEmail = settingsContainer.querySelector('#profileDisplayEmail');
         const profileDob = settingsContainer.querySelector('#profileDisplayDob');
         const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
-        const editBtn = settingsContainer.querySelector('.profile-edit-btn');
         const inlineEditBtn = settingsContainer.querySelector('.profile-edit-inline');
+        const profileMyItemsBtn = settingsContainer.querySelector('#profileMyItemsBtn');
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
 
         if (profileName) profileName.textContent = this.user.name;
@@ -602,8 +862,13 @@ export class ChatAppFeaturesMethods {
         this.updateProfileMenuButton();
 
         const openProfileSettings = () => this.showSettings('profile-settings');
-        if (editBtn) editBtn.addEventListener('click', openProfileSettings);
         if (inlineEditBtn) inlineEditBtn.addEventListener('click', openProfileSettings);
+        if (profileMyItemsBtn) {
+          profileMyItemsBtn.addEventListener('click', () => {
+            this.settingsParentSection = 'profile';
+            this.showSettings('profile-items');
+          });
+        }
 
         menuItems.forEach(item => {
           item.addEventListener('click', () => {
@@ -622,6 +887,11 @@ export class ChatAppFeaturesMethods {
       if (sectionName === 'messenger-settings') {
         this.settingsParentSection = 'messenger-settings';
         this.initShop(settingsContainer);
+      }
+
+      if (sectionName === 'profile-items') {
+        this.settingsParentSection = 'profile';
+        this.initProfileItems(settingsContainer);
       }
       
       // Завантаження значень для підрозділів

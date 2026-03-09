@@ -454,7 +454,7 @@ export class ChatAppInteractionMethods {
   }
 
   // Методи-обгортки для імпортованих UI функцій
-  showAlert(message, title = 'Повідомлення') {
+  showAlert(message, title = 'Помилка') {
     return showAlert(message, title);
   }
 

@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         autocomplete="off"
       >
       <button class="btn-new-chat" id="newChatBtn" aria-label="Новий чат">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256">
-          <path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"></path>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+          <path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z"></path>
         </svg>
       </button>
       <svg class="search-icon" width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -408,25 +408,15 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="alert-overlay" id="alertOverlay" aria-hidden="true">
   <div class="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alertTitle">
     <div class="alert-modal-inner">
-      <div class="alert-hero">
-        <div class="alert-icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,152a12,12,0,1,1,12-12A12,12,0,0,1,128,176Zm16-56a16,16,0,0,1-32,0V88a16,16,0,0,1,32,0Z"></path>
-          </svg>
-        </div>
-        <div class="alert-header">
-          <span class="alert-kicker">Системне повідомлення</span>
-          <h3 id="alertTitle">Повідомлення</h3>
-        </div>
+      <div class="alert-header">
+        <h3 id="alertTitle">Помилка</h3>
         <button class="alert-close" id="alertCloseBtn" aria-label="Закрити">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </button>
       </div>
-      <div class="alert-body-frame">
-        <div class="alert-body" id="alertMessage"></div>
-      </div>
+      <div class="alert-body" id="alertMessage"></div>
       <div class="alert-actions">
         <button class="btn btn-secondary" id="alertCancelBtn">Скасувати</button>
         <button class="btn btn-primary" id="alertOkBtn">OK</button>

@@ -7,6 +7,12 @@ export const settingsTemplates = {
 <div class="settings-section profile-page" id="profile">
   <div class="settings-content profile-content">
     <section class="profile-hero-card">
+      <button class="profile-edit-inline" aria-label="Редагувати профіль">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
       <div class="profile-hero">
         <div class="profile-avatar-wrap">
           <div class="profile-avatar-glow" aria-hidden="true"></div>
@@ -27,11 +33,6 @@ export const settingsTemplates = {
         </div>
         <div class="profile-handle-row">
           <p class="profile-handle">@orion.user</p>
-          <button class="profile-edit-inline" aria-label="Редагувати профіль">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
         </div>
         <p class="profile-bio" id="profileDisplayBio">Вітаю!</p>
 
@@ -52,22 +53,20 @@ export const settingsTemplates = {
         </div>
 
         <div class="profile-hero-actions">
-          <button class="btn btn-primary profile-edit-btn">Редагувати профіль</button>
-          <button class="profile-icon-btn" aria-label="QR код">
+          <button class="profile-action-btn" id="profileMyItemsBtn" aria-label="Мої предмети">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"></path>
+            </svg>
+            <span>Мої предмети</span>
+          </button>
+          <button class="profile-action-btn" aria-label="QR код">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zM15 13h2v2h-2v-2zm4 0h2v6h-2v-6zm-4 4h6v2h-6v-2z" fill="currentColor"/>
             </svg>
             <span>QR</span>
           </button>
-          <button class="profile-icon-btn" aria-label="Поділитися профілем">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 5l-8 7 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Поділитися</span>
-          </button>
         </div>
 
-        <div class="profile-userid">ID користувача: <span class="profile-id">OR-91A7-4F2C</span></div>
       </div>
     </section>
 
@@ -140,6 +139,19 @@ export const settingsTemplates = {
           <div class="settings-menu-label">
             <span>Мова</span>
             <p class="settings-item-desc">Українська</p>
+          </div>
+          <span class="settings-menu-arrow">›</span>
+        </div>
+
+        <div class="settings-menu-item" data-section="profile-items">
+          <div class="settings-menu-icon settings-icon-appearance settings-icon-profile-items">
+            <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"></path>
+            </svg>
+          </div>
+          <div class="settings-menu-label">
+            <span>Мої предмети</span>
+            <p class="settings-item-desc">Керування інвентарем та продаж</p>
           </div>
           <span class="settings-menu-arrow">›</span>
         </div>
@@ -236,6 +248,48 @@ export const settingsTemplates = {
         <button class="btn btn-secondary">Скасувати</button>
       </div>
     </div>
+  </div>
+</div>
+  `.trim(),
+
+  'profile-items': `
+<div class="settings-section" id="profile-items">
+  <div class="profile-items-header">
+    <button type="button" class="btn-back-subsection profile-items-back-island" aria-label="Назад">
+      <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+      </svg>
+    </button>
+    <h2>Мої предмети</h2>
+  </div>
+
+  <div class="settings-content profile-items-content">
+    <div class="profile-items-balance-card">
+      <span class="profile-items-kicker">ІНВЕНТАР</span>
+      <div class="profile-items-balance-row">
+        <span>Баланс</span>
+        <strong id="profileItemsBalance">00000000,00</strong>
+      </div>
+      <div class="profile-items-balance-row">
+        <span>Куплено предметів</span>
+        <strong id="profileItemsCount">0</strong>
+      </div>
+    </div>
+
+    <div class="profile-items-view-toolbar" aria-label="Вигляд списку предметів">
+      <button type="button" class="profile-items-view-btn is-active" data-profile-items-view="cards" aria-pressed="true" aria-label="Картки">
+        <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="M184,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V88A16,16,0,0,0,184,72Zm0,128H40V88H184V200ZM232,56V176a8,8,0,0,1-16,0V56H64a8,8,0,0,1,0-16H216A16,16,0,0,1,232,56Z"></path>
+        </svg>
+      </button>
+      <button type="button" class="profile-items-view-btn" data-profile-items-view="list" aria-pressed="false" aria-label="Рядки">
+        <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+          <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="profile-items-grid" id="profileItemsGrid"></div>
   </div>
 </div>
   `.trim(),
@@ -638,6 +692,13 @@ export const settingsTemplates = {
   'mini-games': `
 <div class="settings-section" id="mini-games">
   <div class="settings-content mini-games-content coin-tapper-content">
+    <div class="coin-level-island" aria-label="Рівень гравця">
+      <div class="coin-level-island-body">
+        <span class="coin-level-island-label">Рівень</span>
+        <strong class="coin-level-island-value" id="coinTapLevelValue">1</strong>
+      </div>
+    </div>
+
     <span class="coin-tapper-kicker">ORION VALUE</span>
     <div class="coin-tapper-balance-label">Загальний баланс</div>
     <div class="coin-tapper-balance" id="coinTapBalance">00000000,00</div>
@@ -649,7 +710,7 @@ export const settingsTemplates = {
     <div class="coin-tapper-rate">
       <span>1 тап</span>
       <strong>=</strong>
-      <span>0,01 монетка</span>
+      <span id="coinTapRewardValue">0,01 монетки</span>
     </div>
   </div>
 </div>

@@ -6,7 +6,7 @@
  * @param {string} title - Заголовок
  * @returns {Promise<void>}
  */
-export function showAlert(message, title = 'Повідомлення') {
+export function showAlert(message, title = 'Помилка') {
   const overlay = document.getElementById('alertOverlay');
   const titleEl = document.getElementById('alertTitle');
   const messageEl = document.getElementById('alertMessage');

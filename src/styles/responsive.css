@@ -613,10 +613,18 @@
 
   #settingsContainerMobile #mini-games .mini-games-content.coin-tapper-content {
     gap: 36px !important;
-    padding-top: 64px !important;
+    padding-top: 94px !important;
     padding-right: 24px !important;
     padding-bottom: calc(var(--bottom-nav-height, 72px) + 70px) !important;
     padding-left: 24px !important;
+  }
+
+  #settingsContainerMobile #mini-games .coin-level-island {
+    top: 22px !important;
+    right: 16px !important;
+    left: auto !important;
+    min-width: 132px !important;
+    padding: 9px 12px !important;
   }
 
   #settingsContainerMobile #mini-games .coin-tapper-kicker {
@@ -1003,14 +1011,15 @@
   }
 
   #newChatModal.modal {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    max-height: 88vh;
-    border-radius: 24px 24px 0 0;
+    top: 50% !important;
+    bottom: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(94vw, 520px);
+    max-width: 520px;
+    max-height: 84vh;
+    border-radius: 22px;
   }
 
   #newChatModal .contact-input {

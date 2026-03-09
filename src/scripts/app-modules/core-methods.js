@@ -69,6 +69,57 @@ export class ChatAppCoreMethods {
     return `${whole},${fraction}`;
   }
 
+  getTapLevelThreshold(level = 1) {
+    const safeLevel = Number.isFinite(level) && level >= 1 ? Math.floor(level) : 1;
+    return Math.floor(100 * Math.pow(1.25, safeLevel - 1));
+  }
+
+  getTapTotalClicks() {
+    try {
+      const raw = window.localStorage.getItem('orionTapTotalClicks');
+      const value = Number.parseInt(raw || '0', 10);
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  setTapTotalClicks(value) {
+    const safeValue = Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    this.tapTotalClicks = safeValue;
+    try {
+      window.localStorage.setItem('orionTapTotalClicks', String(safeValue));
+    } catch {
+      // Ignore storage failures and keep the in-memory value.
+    }
+  }
+
+  getTapLevelStats(totalClicks = this.getTapTotalClicks()) {
+    const safeClicks = Number.isFinite(totalClicks) && totalClicks >= 0 ? Math.floor(totalClicks) : 0;
+    let remainingClicks = safeClicks;
+    let level = 1;
+    let tapsPerLevel = this.getTapLevelThreshold(level);
+
+    while (remainingClicks >= tapsPerLevel) {
+      remainingClicks -= tapsPerLevel;
+      level += 1;
+      tapsPerLevel = this.getTapLevelThreshold(level);
+    }
+
+    const rewardPerTapCents = level;
+    const currentLevelClicks = remainingClicks;
+    const levelProgress = tapsPerLevel > 0 ? currentLevelClicks / tapsPerLevel : 0;
+
+    return {
+      level,
+      tapsPerLevel,
+      totalClicks: safeClicks,
+      currentLevelClicks,
+      levelProgress,
+      rewardPerTapCents
+    };
+  }
+
   getTapBalanceCents() {
     try {
       const raw = window.localStorage.getItem('orionTapBalanceCents');
