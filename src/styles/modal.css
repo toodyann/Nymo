@@ -952,6 +952,455 @@ html:not(.dark-theme) .alert-actions .btn {
   border-color: color-mix(in srgb, var(--border-color) 84%, transparent);
 }
 
+.contact-profile-view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.bridge-app:has(#chatContainer.profile-view-active) .app-header .app-header-left .btn-back,
+.bridge-app:has(#chatContainer.profile-view-active) .app-header .app-chat-info,
+.bridge-app:has(#chatContainer.profile-view-active) .app-header .app-header-right {
+  display: none !important;
+}
+
+.chat-container.profile-view-active .contact-profile-view {
+  display: flex;
+  animation: contactProfileSlideIn 0.22s ease;
+}
+
+.chat-container.profile-view-active .messages-container,
+.chat-container.profile-view-active .message-input-area,
+.chat-container.profile-view-active .chat-modal-header {
+  display: none !important;
+}
+
+@keyframes contactProfileSlideIn {
+  from {
+    transform: translateX(18px);
+    opacity: 0.78;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+#contactProfileView .settings-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px 4px;
+  padding-top: calc(env(safe-area-inset-top) + 6px);
+  min-height: calc(52px + env(safe-area-inset-top));
+  background: transparent;
+  pointer-events: auto;
+}
+
+#contactProfileView .settings-subsection-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 240px;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  border-radius: 14px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  position: static;
+  transform: none;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#contactProfileView .settings-subsection-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#contactProfileBackBtn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 6px);
+  left: 10px;
+  transform: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  color: var(--text-primary);
+  border: none !important;
+  background: var(--surface-soft);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 12;
+  cursor: pointer;
+}
+
+#contactProfileBackBtn svg {
+  display: block;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+#contactProfileBackBtn svg * {
+  cursor: pointer;
+}
+
+#contactProfileView .settings-subsection-title {
+  background: var(--surface-soft);
+  border: 1px solid var(--border-color);
+}
+
+@media (min-width: 769px) {
+  #contactProfileView .settings-header {
+    top: 12px;
+    padding: 0 16px;
+    min-height: 56px;
+  }
+
+  #contactProfileBackBtn {
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+  }
+
+  .contact-profile-view-body {
+    padding-top: 80px;
+  }
+}
+
+.contact-profile-view-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: calc(env(safe-area-inset-top) + 64px) 18px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+#contactProfileView .profile-hero-card {
+  width: min(100%, 980px);
+  margin: 0;
+  min-height: clamp(320px, 46vh, 460px);
+  box-shadow:
+    0 16px 34px rgba(15, 19, 32, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+html.dark-theme #contactProfileView .profile-hero-card {
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#contactProfileView .profile-hero {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  justify-content: center;
+}
+
+#contactProfileView .profile-avatar-wrap,
+#contactProfileView .profile-avatar-large {
+  width: 124px;
+  height: 124px;
+}
+
+.contact-profile-view .profile-avatar-image[hidden] {
+  display: none !important;
+}
+
+.contact-profile-actions .profile-action-btn,
+.contact-profile-more {
+  flex: 0 1 180px;
+  max-width: 180px;
+  min-width: 0;
+}
+
+.contact-profile-actions {
+  width: min(100%, 980px);
+  max-width: 100%;
+  margin-top: 0;
+}
+
+.contact-profile-media-section {
+  width: min(100%, 980px);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.contact-profile-media-filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.contact-profile-media-filter {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s ease, opacity 0.18s ease;
+}
+
+.contact-profile-media-filter:hover {
+  color: var(--text-primary);
+}
+
+.contact-profile-media-filter.is-active {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.contact-profile-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.contact-profile-media-item {
+  min-width: 0;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+}
+
+.contact-profile-media-item--image {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  display: block;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+
+.contact-profile-media-item--image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  transform: scale(1);
+  transition: transform 0.22s ease;
+}
+
+.contact-profile-media-item--image:hover img {
+  transform: scale(1.03);
+}
+
+.contact-profile-media-caption,
+.contact-profile-media-item--image .contact-profile-media-meta {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  z-index: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.contact-profile-media-caption {
+  bottom: 24px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contact-profile-media-item--image .contact-profile-media-meta {
+  bottom: 8px;
+  font-size: 11px;
+  opacity: 0.88;
+}
+
+.contact-profile-media-item--image::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 52%;
+  background: linear-gradient(180deg, transparent 8%, rgba(7, 10, 18, 0.74) 100%);
+  pointer-events: none;
+}
+
+.contact-profile-media-item--voice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  border-radius: 0;
+  overflow: visible;
+  grid-column: 1 / -1;
+}
+
+.contact-profile-voice-shell.message-content.has-voice {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 16px 16px 4px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-primary);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+.contact-profile-media-item--voice .message-voice {
+  width: 100%;
+  max-width: 100%;
+}
+
+html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
+  color: #000000;
+}
+
+.contact-profile-media-meta {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.contact-profile-media-empty {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.contact-profile-media-item--file {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.contact-profile-media-file-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  color: var(--text-secondary);
+}
+
+.contact-profile-media-file-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+
+.contact-profile-media-file-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.contact-profile-more {
+  position: relative;
+  display: flex;
+}
+
+.contact-profile-more-btn {
+  width: 100%;
+}
+
+.contact-profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(255, 255, 255, 0.24), transparent 52%),
+    color-mix(in srgb, var(--bg-color) 86%, transparent);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px) saturate(150%);
+  z-index: 20;
+  display: none;
+}
+
+.contact-profile-menu.active {
+  display: block;
+  animation: popupAppear 0.2s ease;
+}
+
+.contact-profile-menu-item {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  padding: 9px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.contact-profile-menu-item:hover {
+  background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+
+.contact-profile-menu-item.is-danger {
+  color: #ef4444;
+}
+
+html:not(.dark-theme) .contact-profile-menu {
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 56%),
+    color-mix(in srgb, white 82%, var(--bg-secondary));
+  border-color: rgba(20, 24, 36, 0.16);
+}
+
 .group-info-header {
   display: flex;
   align-items: center;
@@ -1158,6 +1607,50 @@ html:not(.dark-theme) .alert-overlay {
   .alert-actions .btn {
     flex: 1 1 0;
     min-width: 0;
+  }
+
+  .contact-profile-view-body {
+    padding: calc(env(safe-area-inset-top) + 64px) 12px 14px;
+    gap: 10px;
+  }
+
+  #contactProfileView .settings-header {
+    min-height: calc(52px + env(safe-area-inset-top));
+    padding: 6px 10px 4px;
+    padding-top: calc(env(safe-area-inset-top) + 6px);
+  }
+
+  #contactProfileBackBtn {
+    top: calc(env(safe-area-inset-top) + 6px);
+    left: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
+
+  #contactProfileView .profile-hero-card {
+    padding: 22px 16px;
+    width: 100%;
+    min-height: 288px;
+  }
+
+  .contact-profile-actions .profile-action-btn,
+  .contact-profile-more {
+    flex: 1 1 calc(50% - 5px);
+    max-width: none;
+  }
+
+  .contact-profile-media-section {
+    gap: 8px;
+  }
+
+  .contact-profile-media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .contact-profile-menu {
+    min-width: 176px;
   }
 }
 

@@ -1793,7 +1793,8 @@ export class ChatAppMessagingMethods {
 
   ensureBottomNavHomeAnchor() {
     const profileMenu = document.querySelector('.profile-menu-wrapper');
-    const appRoot = document.querySelector('.bridge-app') || document.getElementById('app');
+    const chatsList = document.getElementById('chatsList');
+    const appRoot = chatsList || document.querySelector('.bridge-app') || document.getElementById('app');
     if (!profileMenu || !appRoot) return;
 
     if (!this.bottomNavHomeAnchor) {

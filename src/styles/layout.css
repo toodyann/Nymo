@@ -398,7 +398,7 @@ html:not(.dark-theme) .bridge-app.chat-active .app-chat-info {
   background: transparent;
   color: #000;
   cursor: pointer;
-  border-radius: 24px;
+  border-radius: 14px;
   transition:
     color 0.2s ease,
     background 0.2s ease,

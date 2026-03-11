@@ -185,6 +185,91 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       </div>
+      <section class="contact-profile-view settings-subsection" id="contactProfileView" aria-hidden="true">
+        <div class="settings-header settings-subsection-header">
+          <button type="button" class="btn-back-subsection settings-subsection-back" id="contactProfileBackBtn" aria-label="Назад до чату">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+            </svg>
+          </button>
+          <h2 class="settings-subsection-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+            </svg>
+            <span>Дані</span>
+          </h2>
+        </div>
+        <div class="contact-profile-view-body">
+          <section class="profile-hero-card" id="contactProfileHeroCard">
+            <div class="profile-hero contact-profile-hero">
+              <div class="profile-avatar-wrap">
+                <div class="profile-avatar-glow" aria-hidden="true"></div>
+                <div class="profile-avatar-large" id="contactProfileAvatar" aria-hidden="true">
+                  <img class="profile-avatar-image" id="contactProfileAvatarImage" alt="" hidden draggable="false" />
+                  <span class="profile-avatar-initials" id="contactProfileInitials">OR</span>
+                </div>
+              </div>
+
+              <div class="profile-name-row">
+                <h2 class="profile-name" id="contactProfileName">Контакт</h2>
+              </div>
+              <div class="profile-handle-row">
+                <p class="profile-handle" id="contactProfileHandle">@contact</p>
+              </div>
+              <p class="profile-bio" id="contactProfileBio">Профіль контакту</p>
+
+              <div class="profile-meta-grid">
+                <div class="profile-meta-card">
+                  <span class="profile-meta-label">Дата народження</span>
+                  <span class="profile-meta-value" id="contactProfileDob">Не вказано</span>
+                </div>
+                <div class="profile-meta-card">
+                  <span class="profile-meta-label">Статус</span>
+                  <span class="profile-meta-value" id="contactProfileStatus">Онлайн</span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div class="profile-hero-actions contact-profile-actions">
+            <button class="profile-action-btn" id="contactProfileCallBtn" aria-label="Подзвонити">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="2" fill="none"/>
+              </svg>
+              <span>Дзвінок</span>
+            </button>
+            <button class="profile-action-btn" id="contactProfileMessageBtn" aria-label="Написати">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Написати</span>
+            </button>
+            <div class="contact-profile-more">
+              <button class="profile-action-btn contact-profile-more-btn" id="contactProfileMoreBtn" aria-label="Більше дій" aria-haspopup="true" aria-expanded="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                  <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+                </svg>
+                <span>Ще</span>
+              </button>
+              <div class="contact-profile-menu" id="contactProfileMenu" aria-hidden="true">
+                <button class="contact-profile-menu-item" data-action="mute">Вимкнути звук</button>
+                <button class="contact-profile-menu-item" data-action="hide">Приховати чат</button>
+                <button class="contact-profile-menu-item is-danger" data-action="block">Заблокувати</button>
+              </div>
+            </div>
+          </div>
+          <section class="contact-profile-media-section" aria-label="Медіа контакту">
+            <div class="contact-profile-media-filters" id="contactProfileMediaFilters" role="tablist" aria-label="Фільтр медіа">
+              <button type="button" class="contact-profile-media-filter is-active" data-media-filter="media" data-label="Медіа" aria-pressed="true">Медіа</button>
+              <button type="button" class="contact-profile-media-filter" data-media-filter="voice" data-label="Голосові" aria-pressed="false">Голосові</button>
+              <button type="button" class="contact-profile-media-filter" data-media-filter="files" data-label="Файли" aria-pressed="false">Файли</button>
+            </div>
+            <div class="contact-profile-media-grid" id="contactProfileMediaGrid"></div>
+            <p class="contact-profile-media-empty" id="contactProfileMediaEmpty">У цьому чаті ще немає медіа.</p>
+          </section>
+        </div>
+      </section>
       <!-- Область повідомлень -->
       <div class="messages-container" id="messagesContainer">
         <!-- Повідомлення будуть додаватися динамічно -->

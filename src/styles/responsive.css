@@ -471,7 +471,7 @@
     border-radius: 14px !important;
     position: static !important;
     transform: none !important;
-    pointer-events: auto !important;
+    pointer-events: none !important;
     font-size: 18px !important;
   }
 

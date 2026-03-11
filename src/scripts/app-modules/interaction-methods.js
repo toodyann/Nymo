@@ -13,7 +13,17 @@ export class ChatAppInteractionMethods {
     document.getElementById('closeModalBtn').addEventListener('click', () => this.closeNewChatModal());
     document.getElementById('cancelBtn').addEventListener('click', () => this.closeNewChatModal());
     document.getElementById('confirmBtn').addEventListener('click', () => this.createNewChat());
-    document.getElementById('modalOverlay').addEventListener('click', () => this.closeNewChatModal());
+    const modalOverlay = document.getElementById('modalOverlay');
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', () => {
+        const newChatModal = document.getElementById('newChatModal');
+        const groupInfoModal = document.getElementById('groupInfoModal');
+        const addToGroupModal = document.getElementById('addToGroupModal');
+        if (newChatModal?.classList.contains('active')) this.closeNewChatModal();
+        if (groupInfoModal?.classList.contains('active')) this.closeGroupInfoModal();
+        if (addToGroupModal?.classList.contains('active')) this.closeAddToGroupModal();
+      });
+    }
     
     const navProfile = document.getElementById('navProfile');
     const navSettings = document.getElementById('navSettings');
@@ -206,6 +216,10 @@ export class ChatAppInteractionMethods {
       if (e.key === 'Escape') {
         this.closeAttachSheet();
         this.closeCameraCapture();
+        this.closeContactProfileActionsMenu();
+        if (this.isContactProfileSectionActive()) {
+          this.closeContactProfileSection();
+        }
       }
     });
     this.setupImageViewerEvents();
@@ -214,9 +228,25 @@ export class ChatAppInteractionMethods {
     document.getElementById('searchInput').addEventListener('input', (e) => this.filterChats(e.target.value));
 
     const backBtn = document.getElementById('backBtn');
-    if (backBtn) backBtn.addEventListener('click', () => this.closeChat());
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        if (this.isContactProfileSectionActive()) {
+          this.closeContactProfileSection();
+          return;
+        }
+        this.closeChat();
+      });
+    }
     const chatBackBtn = document.getElementById('chatBackBtn');
-    if (chatBackBtn) chatBackBtn.addEventListener('click', () => this.closeChat());
+    if (chatBackBtn) {
+      chatBackBtn.addEventListener('click', () => {
+        if (this.isContactProfileSectionActive()) {
+          this.closeContactProfileSection();
+          return;
+        }
+        this.closeChat();
+      });
+    }
 
     document.getElementById('newContactInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -442,6 +472,230 @@ export class ChatAppInteractionMethods {
     if (closeGroupInfoBtn) closeGroupInfoBtn.addEventListener('click', () => this.closeGroupInfoModal());
     if (closeGroupInfoBtn2) closeGroupInfoBtn2.addEventListener('click', () => this.closeGroupInfoModal());
     if (saveGroupInfoBtn) saveGroupInfoBtn.addEventListener('click', () => this.saveGroupInfo());
+
+    const contactProfileBackBtn = document.getElementById('contactProfileBackBtn');
+    const contactProfileCallBtn = document.getElementById('contactProfileCallBtn');
+    const contactProfileMessageBtn = document.getElementById('contactProfileMessageBtn');
+    const contactProfileMoreBtn = document.getElementById('contactProfileMoreBtn');
+    const contactProfileMenu = document.getElementById('contactProfileMenu');
+    const contactProfileMoreWrap = contactProfileMoreBtn?.closest('.contact-profile-more');
+
+    if (contactProfileBackBtn) {
+      contactProfileBackBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.closeContactProfileSection();
+      });
+    }
+    if (contactProfileCallBtn) {
+      contactProfileCallBtn.addEventListener('click', () => {
+        if (!this.currentChat) {
+          this.showAlert('Спочатку оберіть чат.');
+          return;
+        }
+        this.showAlert(`Дзвінок з ${this.currentChat.name} поки недоступний.`, 'Дзвінок');
+      });
+    }
+    if (contactProfileMessageBtn) {
+      contactProfileMessageBtn.addEventListener('click', () => {
+        this.closeContactProfileSection();
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput && typeof messageInput.focus === 'function') {
+          messageInput.focus({ preventScroll: true });
+        }
+      });
+    }
+    if (contactProfileMoreBtn) {
+      contactProfileMoreBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.toggleContactProfileActionsMenu();
+      });
+    }
+    if (contactProfileMenu) {
+      contactProfileMenu.addEventListener('click', (event) => {
+        const actionItem = event.target.closest('.contact-profile-menu-item');
+        if (!actionItem) return;
+        event.preventDefault();
+        const action = actionItem.dataset.action || '';
+        this.handleContactProfileMenuAction(action);
+      });
+    }
+    const contactProfileMediaGrid = document.getElementById('contactProfileMediaGrid');
+    if (contactProfileMediaGrid && contactProfileMediaGrid.dataset.bound !== 'true') {
+      contactProfileMediaGrid.dataset.bound = 'true';
+      contactProfileMediaGrid.addEventListener('click', (event) => {
+        const playBtn = event.target.closest('.voice-play-btn');
+        if (playBtn) {
+          const voiceEl = playBtn.closest('.message-voice');
+          if (!voiceEl) return;
+          event.preventDefault();
+          event.stopPropagation();
+          this.toggleVoiceMessagePlayback(voiceEl);
+          return;
+        }
+
+        const trackEl = event.target.closest('.voice-track');
+        if (trackEl) {
+          const voiceEl = trackEl.closest('.message-voice');
+          if (!voiceEl) return;
+          event.preventDefault();
+          event.stopPropagation();
+          const progress = this.getVoiceTrackProgressFromEvent(trackEl, event);
+          this.seekVoiceMessageToProgress(voiceEl, progress);
+          const targetAudioEl = voiceEl.querySelector('.voice-audio');
+          const shouldStartTarget = Boolean(
+            targetAudioEl
+            && this.activeVoiceAudio
+            && this.activeVoiceAudio !== targetAudioEl
+          );
+          if (shouldStartTarget) {
+            this.playVoiceMessage(voiceEl, { showError: true });
+          }
+          this.updateVoiceTrackHoverPreview(voiceEl, progress);
+          return;
+        }
+
+        const imageItem = event.target.closest('[data-contact-media-kind="image"]');
+        if (!imageItem) return;
+        const src = imageItem.dataset.mediaSrc || '';
+        if (!src) return;
+        event.preventDefault();
+        this.openImageViewer(src, 'Фото з чату', {
+          messageId: Number.parseInt(imageItem.dataset.messageId || '0', 10) || 0,
+          messageFrom: imageItem.dataset.messageFrom || ''
+        });
+      });
+
+      contactProfileMediaGrid.addEventListener('pointermove', (event) => {
+        if (event.pointerType && event.pointerType !== 'mouse') return;
+        const trackEl = event.target.closest('.voice-track');
+        if (!trackEl) {
+          if (this.hoveredVoiceMessageEl) {
+            this.clearVoiceTrackHoverPreview(this.hoveredVoiceMessageEl);
+            this.hoveredVoiceMessageEl = null;
+          }
+          return;
+        }
+
+        const voiceEl = trackEl.closest('.message-voice');
+        if (!voiceEl) return;
+        if (this.hoveredVoiceMessageEl && this.hoveredVoiceMessageEl !== voiceEl) {
+          this.clearVoiceTrackHoverPreview(this.hoveredVoiceMessageEl);
+        }
+        this.hoveredVoiceMessageEl = voiceEl;
+        const progress = this.getVoiceTrackProgressFromEvent(trackEl, event);
+        this.updateVoiceTrackHoverPreview(voiceEl, progress);
+      });
+
+      contactProfileMediaGrid.addEventListener('pointerleave', () => {
+        if (!this.hoveredVoiceMessageEl) return;
+        this.clearVoiceTrackHoverPreview(this.hoveredVoiceMessageEl);
+        this.hoveredVoiceMessageEl = null;
+      });
+    }
+    const contactProfileMediaFilters = document.getElementById('contactProfileMediaFilters');
+    if (contactProfileMediaFilters && contactProfileMediaFilters.dataset.bound !== 'true') {
+      contactProfileMediaFilters.dataset.bound = 'true';
+      contactProfileMediaFilters.addEventListener('click', (event) => {
+        const filterBtn = event.target.closest('[data-media-filter]');
+        if (!filterBtn) return;
+        event.preventDefault();
+        const nextFilter = String(filterBtn.dataset.mediaFilter || '').trim();
+        this.contactProfileMediaFilter = nextFilter || 'media';
+        this.renderContactProfileMedia();
+      });
+    }
+    const findBackButtonAtPoint = (x, y) => {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+      const buttons = Array.from(document.querySelectorAll('.settings-subsection-back'));
+      for (const button of buttons) {
+        if (!(button instanceof HTMLElement)) continue;
+        const rect = button.getBoundingClientRect();
+        if (!rect.width || !rect.height) continue;
+        const style = window.getComputedStyle(button);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none') continue;
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          return button;
+        }
+      }
+      return null;
+    };
+    let isBackCursorForced = false;
+    const setBackCursorByPoint = (x, y) => {
+      const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+      if (!hasFinePointer) return;
+      const shouldForce = Boolean(findBackButtonAtPoint(x, y));
+      if (shouldForce === isBackCursorForced) return;
+      isBackCursorForced = shouldForce;
+      document.documentElement.style.cursor = shouldForce ? 'pointer' : '';
+      document.body.style.cursor = shouldForce ? 'pointer' : '';
+    };
+    // Some browsers can miss button clicks when the pointer lands on SVG/path.
+    // Capture icon clicks and route them to the same back action explicitly.
+    document.addEventListener('click', (event) => {
+      const targetEl = event.target instanceof Element ? event.target : null;
+      if (!targetEl) return;
+      const backIconEl = targetEl.closest('.settings-subsection-back svg, .settings-subsection-back svg *');
+      if (!backIconEl) return;
+      const backButton = backIconEl.closest('.settings-subsection-back');
+      if (!backButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (backButton.id === 'contactProfileBackBtn') {
+        this.closeContactProfileSection();
+        return;
+      }
+      this.showSettings(this.settingsParentSection || 'messenger-settings');
+    }, true);
+    // Fallback for hit-testing quirks: resolve click by pointer coordinates.
+    document.addEventListener('click', (event) => {
+      const targetEl = event.target instanceof Element ? event.target : null;
+      if (targetEl?.closest('.settings-subsection-back')) return;
+      if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return;
+      const backButton = findBackButtonAtPoint(event.clientX, event.clientY);
+      if (!backButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (backButton.id === 'contactProfileBackBtn') {
+        this.closeContactProfileSection();
+        return;
+      }
+      this.showSettings(this.settingsParentSection || 'messenger-settings');
+    }, true);
+    document.addEventListener('mousemove', (event) => {
+      setBackCursorByPoint(event.clientX, event.clientY);
+    }, true);
+    document.addEventListener('mouseout', () => {
+      if (!isBackCursorForced) return;
+      isBackCursorForced = false;
+      document.documentElement.style.cursor = '';
+      document.body.style.cursor = '';
+    }, true);
+    window.addEventListener('blur', () => {
+      if (!isBackCursorForced) return;
+      isBackCursorForced = false;
+      document.documentElement.style.cursor = '';
+      document.body.style.cursor = '';
+    });
+    document.addEventListener('click', (event) => {
+      const targetEl = event.target instanceof Element ? event.target : null;
+      if (!targetEl) return;
+      const backBtnEl = targetEl.closest('#contactProfileBackBtn');
+      if (backBtnEl) {
+        event.preventDefault();
+        this.closeContactProfileSection();
+        return;
+      }
+      if (!contactProfileMoreWrap) return;
+      if (!contactProfileMoreWrap.contains(targetEl)) {
+        this.closeContactProfileActionsMenu();
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        this.closeContactProfileActionsMenu();
+      }
+    });
 
     const menuToggleBtn = document.getElementById('menuToggleBtn');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -804,6 +1058,21 @@ export class ChatAppInteractionMethods {
 
   renderChatsList() {
     const chatsList = document.getElementById('chatsList');
+    const preservedNavWrapper = chatsList?.querySelector?.(':scope > .profile-menu-wrapper') || null;
+    const preservedNavAnchor = (
+      this.bottomNavHomeAnchor && this.bottomNavHomeAnchor.parentNode === chatsList
+    )
+      ? this.bottomNavHomeAnchor
+      : (chatsList?.querySelector?.(':scope > .bottom-nav-home-anchor') || null);
+    const restoreChatsListNav = () => {
+      if (!chatsList) return;
+      if (preservedNavAnchor) {
+        chatsList.appendChild(preservedNavAnchor);
+      }
+      if (preservedNavWrapper) {
+        chatsList.appendChild(preservedNavWrapper);
+      }
+    };
     
     // On mobile, show chats list when rendering
     chatsList.classList.remove('hidden-on-settings');
@@ -829,6 +1098,7 @@ export class ChatAppInteractionMethods {
         </div>
       `;
       chatsList.appendChild(emptyState);
+      restoreChatsListNav();
       this.renderSidebarAvatarsStrip();
       return;
     }
@@ -875,6 +1145,7 @@ export class ChatAppInteractionMethods {
       chatsList.appendChild(chatItem);
     });
 
+    restoreChatsListNav();
     this.renderSidebarAvatarsStrip();
   }
 
@@ -1021,6 +1292,7 @@ export class ChatAppInteractionMethods {
   }
 
   selectChat(chatId) {
+    this.closeContactProfileSection();
     if (typeof this.stopVoiceRecording === 'function') {
       this.stopVoiceRecording({ discard: true, silent: true });
     }
@@ -1150,6 +1422,7 @@ export class ChatAppInteractionMethods {
   }
 
   finalizeCloseChatState() {
+    this.closeContactProfileSection();
     if (typeof this.stopVoiceRecording === 'function') {
       this.stopVoiceRecording({ discard: true, silent: true });
     }
@@ -1570,6 +1843,333 @@ export class ChatAppInteractionMethods {
     window.addEventListener('resize', closeMenu);
   }
 
+  buildContactHandle(name = '') {
+    const cleanName = String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/['`’]/g, '')
+      .replace(/[^a-z0-9а-яіїєґ]+/gi, '.')
+      .replace(/\.+/g, '.')
+      .replace(/^\.|\.$/g, '');
+    return `@${cleanName || 'contact'}`;
+  }
+
+  formatContactBirthDate(rawDate = '') {
+    const value = String(rawDate || '').trim();
+    if (!value) return 'Не вказано';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const date = new Date(`${value}T00:00:00`);
+      if (!Number.isNaN(date.getTime())) {
+        return new Intl.DateTimeFormat('uk-UA', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }).format(date);
+      }
+    }
+    return value;
+  }
+
+  isContactProfileSectionActive() {
+    const chatContainer = document.getElementById('chatContainer');
+    return Boolean(chatContainer?.classList.contains('profile-view-active'));
+  }
+
+  formatContactMediaMeta(message = {}, { includeTime = true } = {}) {
+    const parts = [];
+    if (includeTime && message.time) {
+      parts.push(String(message.time));
+    }
+    if (message.date) {
+      const dateObj = new Date(`${message.date}T00:00:00`);
+      if (!Number.isNaN(dateObj.getTime())) {
+        const dateParts = new Intl.DateTimeFormat('uk-UA', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }).formatToParts(dateObj);
+        const day = dateParts.find((part) => part.type === 'day')?.value || '';
+        const month = dateParts.find((part) => part.type === 'month')?.value || '';
+        const year = dateParts.find((part) => part.type === 'year')?.value || '';
+        const longDate = [day, month, year].filter(Boolean).join(' ');
+        if (longDate) parts.push(longDate);
+      }
+    }
+    return parts.join(' • ');
+  }
+
+  renderContactProfileMedia() {
+    const grid = document.getElementById('contactProfileMediaGrid');
+    const emptyEl = document.getElementById('contactProfileMediaEmpty');
+    const filtersWrap = document.getElementById('contactProfileMediaFilters');
+    if (!grid || !emptyEl || !filtersWrap) return;
+
+    const messages = Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : [];
+    const mediaItems = [];
+
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (!message || typeof message !== 'object') continue;
+
+      const hasImage = Boolean(message.imageUrl);
+      const hasVoice = Boolean(message.audioUrl);
+      const fileUrl = message.fileUrl || message.attachmentUrl || message.documentUrl || '';
+      const hasFile = Boolean(fileUrl)
+        || (message.type === 'file' && Boolean(message.fileName || message.name || message.text));
+
+      if (hasImage) mediaItems.push({ group: 'media', kind: 'image', message });
+      if (hasVoice) mediaItems.push({ group: 'voice', kind: 'voice', message });
+      if (hasFile) mediaItems.push({ group: 'files', kind: 'file', message });
+    }
+
+    const filterOrder = ['media', 'voice', 'files'];
+    const counts = {
+      media: mediaItems.filter(item => item.group === 'media').length,
+      voice: mediaItems.filter(item => item.group === 'voice').length,
+      files: mediaItems.filter(item => item.group === 'files').length
+    };
+
+    const firstNonEmptyFilter = filterOrder.find((key) => (counts[key] ?? 0) > 0) || 'media';
+    const activeFilter = filterOrder.includes(this.contactProfileMediaFilter)
+      ? this.contactProfileMediaFilter
+      : firstNonEmptyFilter;
+    this.contactProfileMediaFilter = activeFilter;
+
+    const filterButtons = filtersWrap.querySelectorAll('[data-media-filter]');
+    filterButtons.forEach((button) => {
+      const key = button.dataset.mediaFilter || '';
+      const baseLabel = button.dataset.label || button.textContent || '';
+      const count = counts[key] ?? 0;
+      button.textContent = `${baseLabel} (${count})`;
+      const isActive = key === activeFilter;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    const visibleItems = mediaItems.filter(item => item.group === activeFilter);
+
+    if (!visibleItems.length) {
+      grid.innerHTML = '';
+      emptyEl.textContent = 'Немає елементів у цьому розділі.';
+      emptyEl.style.display = '';
+      return;
+    }
+
+    emptyEl.style.display = 'none';
+    grid.innerHTML = visibleItems.map(({ kind, message }) => {
+      const messageId = Number.isFinite(Number(message.id)) ? Number(message.id) : 0;
+      const messageFrom = this.escapeAttr(String(message.from || ''));
+      const defaultMeta = this.formatContactMediaMeta(message);
+      const defaultMetaHtml = defaultMeta ? `<span class="contact-profile-media-meta">${this.escapeHtml(defaultMeta)}</span>` : '';
+
+      if (kind === 'image') {
+        const safeSrc = this.escapeAttr(String(message.imageUrl || ''));
+        const caption = String(message.text || '').trim();
+        const captionHtml = caption
+          ? `<span class="contact-profile-media-caption">${this.escapeHtml(caption)}</span>`
+          : '';
+
+        return `
+          <button
+            type="button"
+            class="contact-profile-media-item contact-profile-media-item--image"
+            data-contact-media-kind="image"
+            data-media-src="${safeSrc}"
+            data-message-id="${messageId}"
+            data-message-from="${messageFrom}"
+            aria-label="Відкрити фото"
+          >
+            <img src="${safeSrc}" alt="Фото з чату" loading="lazy" />
+            ${captionHtml}
+            ${defaultMetaHtml}
+          </button>
+        `;
+      }
+
+      if (kind === 'file') {
+        const fileSrcRaw = message.fileUrl || message.attachmentUrl || message.documentUrl || '';
+        const safeSrc = this.escapeAttr(String(fileSrcRaw));
+        const fileName = String(
+          message.fileName
+          || message.name
+          || message.text
+          || 'Файл'
+        ).trim();
+        const safeName = this.escapeHtml(fileName || 'Файл');
+
+        return `
+          <a
+            class="contact-profile-media-item contact-profile-media-item--file"
+            href="${safeSrc}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Відкрити файл ${safeName}"
+          >
+            <span class="contact-profile-media-file-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"></path>
+              </svg>
+            </span>
+            <span class="contact-profile-media-file-meta">
+              <span class="contact-profile-media-file-name">${safeName}</span>
+              ${defaultMetaHtml}
+            </span>
+          </a>
+        `;
+      }
+
+      const safeAudio = this.escapeAttr(String(message.audioUrl || ''));
+      const durationValue = Number.isFinite(Number(message.audioDuration))
+        ? Number(message.audioDuration)
+        : 0;
+      const voiceMeta = this.formatContactMediaMeta(message, { includeTime: false });
+      const voiceMetaHtml = voiceMeta ? `<span class="contact-profile-media-meta">${this.escapeHtml(voiceMeta)}</span>` : '';
+      return `
+        <article class="contact-profile-media-item contact-profile-media-item--voice">
+          <div class="message-content has-voice contact-profile-voice-shell">
+            <div class="message-voice" data-duration="${durationValue}">
+              <button type="button" class="voice-play-btn" aria-label="Відтворити голосове повідомлення">
+                <span class="voice-play-icon voice-play-icon--play" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256">
+                    <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
+                  </svg>
+                </span>
+                <span class="voice-play-icon voice-play-icon--pause" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256">
+                    <path d="M200,32H160a16,16,0,0,0-16,16V208a16,16,0,0,0,16,16h40a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm0,176H160V48h40ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Zm0,176H56V48H96Z"></path>
+                  </svg>
+                </span>
+              </button>
+              <div class="voice-track" aria-hidden="true">
+                <span class="voice-track-progress"></span>
+                ${this.buildVoiceWaveBarsHtml()}
+              </div>
+              <span class="voice-duration">${this.formatVoiceDuration(durationValue)}</span>
+              <audio class="voice-audio" preload="metadata" src="${safeAudio}"></audio>
+            </div>
+          </div>
+          ${voiceMetaHtml}
+        </article>
+      `;
+    }).join('');
+    this.initVoiceMessageElements(grid);
+  }
+
+  openContactProfileSection() {
+    if (!this.currentChat || this.currentChat.isGroup) {
+      this.showAlert('Картка контакту доступна лише для особистого чату');
+      return;
+    }
+
+    const section = document.getElementById('contactProfileView');
+    const chatContainer = document.getElementById('chatContainer');
+    const heroCard = document.getElementById('contactProfileHeroCard');
+    const avatar = document.getElementById('contactProfileAvatar');
+    const avatarImage = document.getElementById('contactProfileAvatarImage');
+    const initials = document.getElementById('contactProfileInitials');
+    const name = document.getElementById('contactProfileName');
+    const handle = document.getElementById('contactProfileHandle');
+    const bio = document.getElementById('contactProfileBio');
+    const dob = document.getElementById('contactProfileDob');
+    const status = document.getElementById('contactProfileStatus');
+
+    if (!section || !chatContainer || !avatar || !name || !handle || !bio || !dob || !status || !initials) return;
+
+    const chatName = this.currentChat.name || 'Контакт';
+    const chatStatus = this.currentChat.status || 'online';
+    const isOnline = chatStatus !== 'offline';
+    const chatDob = this.currentChat.dob || this.currentChat.birthDate || this.currentChat.dateOfBirth || '';
+
+    name.textContent = chatName;
+    handle.textContent = this.currentChat.handle || this.buildContactHandle(chatName);
+    bio.textContent = this.currentChat.bio || 'Опис профілю відсутній.';
+    dob.textContent = this.formatContactBirthDate(chatDob);
+    status.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
+
+    avatar.style.background = this.currentChat.avatarColor || this.getContactColor(chatName);
+    const customAvatarSrc = typeof this.currentChat.avatarImage === 'string'
+      ? this.currentChat.avatarImage.trim()
+      : '';
+    const hasCustomAvatar = customAvatarSrc.length > 0;
+    if (avatarImage) {
+      avatarImage.onerror = () => {
+        avatarImage.hidden = true;
+        avatarImage.removeAttribute('src');
+        initials.hidden = false;
+      };
+      avatarImage.onload = () => {
+        initials.hidden = false;
+        if (hasCustomAvatar) {
+          initials.hidden = true;
+        }
+      };
+      if (hasCustomAvatar) {
+        avatarImage.src = customAvatarSrc;
+        avatarImage.hidden = false;
+      } else {
+        avatarImage.hidden = true;
+        avatarImage.removeAttribute('src');
+      }
+    }
+    initials.textContent = this.getInitials(chatName);
+    initials.hidden = hasCustomAvatar;
+    avatar.dataset.avatarFrame = '';
+    avatar.classList.remove('has-avatar-frame');
+
+    if (heroCard && typeof this.applyProfileAura === 'function') {
+      this.applyProfileAura(heroCard);
+    }
+    if (heroCard && typeof this.applyProfileMotion === 'function') {
+      this.applyProfileMotion(heroCard);
+    }
+    this.contactProfileMediaFilter = '';
+    this.renderContactProfileMedia();
+
+    chatContainer.classList.add('profile-view-active');
+    section.setAttribute('aria-hidden', 'false');
+    this.closeContactProfileActionsMenu();
+  }
+
+  closeContactProfileSection() {
+    const section = document.getElementById('contactProfileView');
+    const chatContainer = document.getElementById('chatContainer');
+    if (section) section.setAttribute('aria-hidden', 'true');
+    if (chatContainer) chatContainer.classList.remove('profile-view-active');
+    this.closeContactProfileActionsMenu();
+  }
+
+  toggleContactProfileActionsMenu(forceOpen = null) {
+    const menu = document.getElementById('contactProfileMenu');
+    const button = document.getElementById('contactProfileMoreBtn');
+    if (!menu || !button) return;
+    const shouldOpen = forceOpen == null ? !menu.classList.contains('active') : Boolean(forceOpen);
+    menu.classList.toggle('active', shouldOpen);
+    menu.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+    button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  }
+
+  closeContactProfileActionsMenu() {
+    this.toggleContactProfileActionsMenu(false);
+  }
+
+  async handleContactProfileMenuAction(action) {
+    if (!this.currentChat) return;
+
+    const contactName = this.currentChat.name || 'контакту';
+    if (action === 'mute') {
+      await this.showNotice(`Сповіщення для ${contactName} вимкнено (демо).`, 'Профіль контакту');
+    } else if (action === 'hide') {
+      await this.showNotice(`Чат з ${contactName} приховано (демо).`, 'Профіль контакту');
+    } else if (action === 'block') {
+      const ok = await this.showConfirm(`Заблокувати ${contactName}?`, 'Профіль контакту');
+      if (ok) {
+        await this.showNotice(`${contactName} заблоковано (демо).`, 'Профіль контакту');
+      }
+    }
+
+    this.closeContactProfileActionsMenu();
+  }
+
   openGroupInfoModal() {
     if (!this.currentChat || !this.currentChat.isGroup) {
       this.showAlert('Це не груповий чат');
@@ -1667,6 +2267,9 @@ export class ChatAppInteractionMethods {
     this.saveChats();
     this.renderChat();
     this.renderChatsList();
+    if (this.isContactProfileSectionActive()) {
+      this.renderContactProfileMedia();
+    }
   }
 
   formatMessageDateTime(dateStr, timeStr) {
@@ -1714,12 +2317,13 @@ export class ChatAppInteractionMethods {
         }
 
         if (contactDetails) {
-          contactDetails.style.cursor = this.currentChat.isGroup ? 'pointer' : 'default';
+          contactDetails.style.cursor = 'pointer';
           contactDetails.onclick = this.currentChat.isGroup
             ? () => this.openGroupInfoModal()
-            : null;
+            : () => this.openContactProfileSection();
         }
       } else {
+        this.closeContactProfileSection();
         if (contactName) contactName.textContent = 'Виберіть контакт';
         if (contactStatus) {
           contactStatus.textContent = '';

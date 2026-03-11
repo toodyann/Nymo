@@ -401,7 +401,7 @@ html.dark-theme #profile-items .profile-items-back-island {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.3px;
-  pointer-events: auto;
+  pointer-events: none;
   position: static;
   transform: none;
 }
@@ -430,11 +430,19 @@ html.dark-theme #profile-items .profile-items-back-island {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  z-index: 10;
+  touch-action: manipulation;
+  cursor: pointer;
 }
 
 .settings-subsection .settings-subsection-back svg {
   display: block;
   flex-shrink: 0;
+  cursor: pointer;
+}
+
+.settings-subsection .settings-subsection-back svg * {
+  cursor: pointer;
 }
 
 html:not(.dark-theme) .settings-subsection .settings-subsection-title {
