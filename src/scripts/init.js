@@ -615,7 +615,14 @@ document.addEventListener('DOMContentLoaded', () => {
       <img class="image-viewer-image" id="imageViewerImage" alt="Перегляд зображення" draggable="false" />
     </div>
     <div class="image-viewer-toolbar">
-      <div class="image-viewer-actions image-viewer-actions-left">
+      <div class="image-viewer-sender" id="imageViewerSender" hidden>
+        <span class="image-viewer-sender-avatar" id="imageViewerSenderAvatar" aria-hidden="true">
+          <img class="image-viewer-sender-avatar-image" id="imageViewerSenderAvatarImage" alt="" hidden />
+          <span class="image-viewer-sender-initials" id="imageViewerSenderAvatarInitials">OR</span>
+        </span>
+        <span class="image-viewer-sender-name" id="imageViewerSenderName">Користувач</span>
+      </div>
+      <div class="image-viewer-actions image-viewer-actions-right">
         <button type="button" class="image-viewer-btn" id="imageViewerZoomOutBtn" aria-label="Зменшити">
           <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path d="M208,128a8,8,0,0,1-8,8H56a8,8,0,0,1,0-16H200A8,8,0,0,1,208,128Z"></path>
@@ -626,8 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <path d="M208,128a8,8,0,0,1-8,8H136v64a8,8,0,0,1-16,0V136H56a8,8,0,0,1,0-16h64V56a8,8,0,0,1,16,0v64h64A8,8,0,0,1,208,128Z"></path>
           </svg>
         </button>
-      </div>
-      <div class="image-viewer-actions image-viewer-actions-right">
         <button type="button" class="image-viewer-btn" id="imageViewerForwardBtn" aria-label="Переслати">
           <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path d="M237.66,106.35l-80-80A8,8,0,0,0,144,32V72.35c-25.94,2.22-54.59,14.92-78.16,34.91-28.38,24.08-46.05,55.11-49.76,87.37a12,12,0,0,0,20.68,9.58h0c11-11.71,50.14-48.74,107.24-52V192a8,8,0,0,0,13.66,5.65l80-80A8,8,0,0,0,237.66,106.35ZM160,172.69V144a8,8,0,0,0-8-8c-28.08,0-55.43,7.33-81.29,21.8a196.17,196.17,0,0,0-36.57,26.52c5.8-23.84,20.42-46.51,42.05-64.86C99.41,99.77,127.75,88,152,88a8,8,0,0,0,8-8V51.32L220.69,112Z"></path>

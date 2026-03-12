@@ -8,6 +8,28 @@ import {
 } from '../ui-helpers.js';
 
 export class ChatAppInteractionMethods {
+  enforcePlainChatModalHeader() {
+    const header = document.querySelector('#chatContainer .chat-modal-header');
+    if (!header) return;
+
+    const styleTargets = [
+      header,
+      header.querySelector('#chatBackBtn'),
+      header.querySelector('#chatModalInfo'),
+      header.querySelector('#chatModalMenuBtn'),
+      ...header.querySelectorAll('.chat-modal-header-right .btn-icon')
+    ].filter(Boolean);
+
+    styleTargets.forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      el.style.setProperty('background', 'transparent', 'important');
+      el.style.setProperty('border', 'none', 'important');
+      el.style.setProperty('box-shadow', 'none', 'important');
+      el.style.setProperty('backdrop-filter', 'none', 'important');
+      el.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
+    });
+  }
+
   setupEventListeners() {
     document.getElementById('newChatBtn').addEventListener('click', () => this.openNewChatModal());
     document.getElementById('closeModalBtn').addEventListener('click', () => this.closeNewChatModal());
@@ -1324,6 +1346,7 @@ export class ChatAppInteractionMethods {
     this.renderChatsList();
     this.renderChat();
     this.updateChatHeader();
+    this.enforcePlainChatModalHeader();
     this.hideWelcomeScreen();
     this.hideBottomNavForChat();
     const appEl = document.querySelector('.bridge-app');
@@ -1875,6 +1898,33 @@ export class ChatAppInteractionMethods {
     return Boolean(chatContainer?.classList.contains('profile-view-active'));
   }
 
+  syncContactProfileMediaFiltersOffset() {
+    const filtersWrap = document.getElementById('contactProfileMediaFilters');
+    const actionsWrap = document.querySelector('#contactProfileView .contact-profile-actions');
+    if (!filtersWrap || !actionsWrap) return;
+
+    if (window.innerWidth > 768) {
+      filtersWrap.style.removeProperty('--contact-profile-media-offset');
+      return;
+    }
+
+    const actionButtons = Array.from(actionsWrap.children).filter((child) => {
+      return child instanceof HTMLElement && child.offsetParent !== null;
+    });
+
+    if (!actionButtons.length) {
+      filtersWrap.style.removeProperty('--contact-profile-media-offset');
+      return;
+    }
+
+    const firstActionLeft = Math.min(
+      ...actionButtons.map((button) => button.getBoundingClientRect().left)
+    );
+    const filtersLeft = filtersWrap.getBoundingClientRect().left;
+    const offset = Math.max(0, Math.round(firstActionLeft - filtersLeft));
+    filtersWrap.style.setProperty('--contact-profile-media-offset', `${offset}px`);
+  }
+
   formatContactMediaMeta(message = {}, { includeTime = true } = {}) {
     const parts = [];
     if (includeTime && message.time) {
@@ -1952,6 +2002,7 @@ export class ChatAppInteractionMethods {
       grid.innerHTML = '';
       emptyEl.textContent = 'Немає елементів у цьому розділі.';
       emptyEl.style.display = '';
+      requestAnimationFrame(() => this.syncContactProfileMediaFiltersOffset());
       return;
     }
 
@@ -2053,6 +2104,7 @@ export class ChatAppInteractionMethods {
       `;
     }).join('');
     this.initVoiceMessageElements(grid);
+    requestAnimationFrame(() => this.syncContactProfileMediaFiltersOffset());
   }
 
   openContactProfileSection() {
@@ -2122,11 +2174,11 @@ export class ChatAppInteractionMethods {
     if (heroCard && typeof this.applyProfileMotion === 'function') {
       this.applyProfileMotion(heroCard);
     }
-    this.contactProfileMediaFilter = '';
-    this.renderContactProfileMedia();
-
     chatContainer.classList.add('profile-view-active');
     section.setAttribute('aria-hidden', 'false');
+    this.contactProfileMediaFilter = '';
+    this.renderContactProfileMedia();
+    requestAnimationFrame(() => this.syncContactProfileMediaFiltersOffset());
     this.closeContactProfileActionsMenu();
   }
 
@@ -2134,7 +2186,10 @@ export class ChatAppInteractionMethods {
     const section = document.getElementById('contactProfileView');
     const chatContainer = document.getElementById('chatContainer');
     if (section) section.setAttribute('aria-hidden', 'true');
-    if (chatContainer) chatContainer.classList.remove('profile-view-active');
+    if (chatContainer) {
+      chatContainer.classList.remove('profile-view-active');
+      chatContainer.classList.remove('profile-view-peek');
+    }
     this.closeContactProfileActionsMenu();
   }
 
@@ -2322,6 +2377,7 @@ export class ChatAppInteractionMethods {
             ? () => this.openGroupInfoModal()
             : () => this.openContactProfileSection();
         }
+        this.enforcePlainChatModalHeader();
       } else {
         this.closeContactProfileSection();
         if (contactName) contactName.textContent = 'Виберіть контакт';
@@ -2337,6 +2393,7 @@ export class ChatAppInteractionMethods {
           contactDetails.style.cursor = 'default';
           contactDetails.onclick = null;
         }
+        this.enforcePlainChatModalHeader();
       }
     });
   }

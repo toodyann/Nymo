@@ -1455,6 +1455,11 @@ export class ChatAppMessagingMethods {
         this.resetImageViewerZoom();
       }
     });
+
+    window.addEventListener('resize', () => {
+      if (!this.isImageViewerOpen()) return;
+      this.scheduleImageViewerToolbarLayout();
+    });
   }
 
   getImageViewerState() {
@@ -1469,12 +1474,17 @@ export class ChatAppMessagingMethods {
       imageAlt: '',
       messageId: null,
       messageFrom: '',
+      senderName: '',
+      senderAvatarImage: '',
+      senderAvatarColor: '',
+      senderInitials: '',
       movedDuringPointer: false,
       dragging: false,
       lastPointerX: 0,
       lastPointerY: 0,
       pinchStartDistance: 0,
       pinchStartScale: 1,
+      toolbarLayoutScheduled: false,
       pointers: new Map()
     };
     return this.imageViewerState;
@@ -1484,13 +1494,134 @@ export class ChatAppMessagingMethods {
     return {
       overlay: document.getElementById('imageViewerOverlay'),
       stage: document.getElementById('imageViewerStage'),
-      image: document.getElementById('imageViewerImage')
+      image: document.getElementById('imageViewerImage'),
+      toolbar: document.querySelector('.image-viewer-toolbar'),
+      sender: document.getElementById('imageViewerSender'),
+      senderAvatar: document.getElementById('imageViewerSenderAvatar'),
+      senderAvatarImage: document.getElementById('imageViewerSenderAvatarImage'),
+      senderAvatarInitials: document.getElementById('imageViewerSenderAvatarInitials'),
+      senderName: document.getElementById('imageViewerSenderName')
     };
   }
 
   isImageViewerOpen() {
     const { overlay } = this.getImageViewerElements();
     return Boolean(overlay?.classList.contains('active'));
+  }
+
+  getImageViewerSenderMeta(messageFrom = '') {
+    const isOwn = String(messageFrom || '').trim() === 'own';
+    if (isOwn) {
+      const name = this.user?.name || 'Ви';
+      const avatarImage = typeof this.user?.avatarImage === 'string'
+        ? this.user.avatarImage.trim()
+        : '';
+      const avatarColor = this.user?.avatarColor || this.getContactColor(name);
+      return {
+        name,
+        avatarImage,
+        avatarColor,
+        initials: this.getInitials(name)
+      };
+    }
+
+    const contactName = this.currentChat?.name || 'Контакт';
+    const avatarImage = typeof this.currentChat?.avatarImage === 'string'
+      ? this.currentChat.avatarImage.trim()
+      : '';
+    const avatarColor = this.currentChat?.avatarColor || this.getContactColor(contactName);
+    return {
+      name: contactName,
+      avatarImage,
+      avatarColor,
+      initials: this.getInitials(contactName)
+    };
+  }
+
+  renderImageViewerSender() {
+    const {
+      sender,
+      senderAvatar,
+      senderAvatarImage,
+      senderAvatarInitials,
+      senderName
+    } = this.getImageViewerElements();
+    if (!sender || !senderAvatar || !senderAvatarImage || !senderAvatarInitials || !senderName) return;
+
+    const state = this.getImageViewerState();
+    const displayName = String(state.senderName || '').trim();
+    if (!displayName) {
+      sender.hidden = true;
+      senderName.textContent = '';
+      senderAvatarImage.hidden = true;
+      senderAvatarImage.removeAttribute('src');
+      senderAvatarInitials.hidden = false;
+      senderAvatarInitials.textContent = '';
+      senderAvatar.style.removeProperty('background');
+      return;
+    }
+
+    sender.hidden = false;
+    senderName.textContent = displayName;
+    senderAvatar.style.background = state.senderAvatarColor || this.getContactColor(displayName);
+
+    const avatarImageSrc = String(state.senderAvatarImage || '').trim();
+    if (avatarImageSrc) {
+      senderAvatarImage.onerror = () => {
+        senderAvatarImage.hidden = true;
+        senderAvatarImage.removeAttribute('src');
+        senderAvatarInitials.hidden = false;
+      };
+      senderAvatarImage.onload = () => {
+        senderAvatarInitials.hidden = true;
+      };
+      senderAvatarImage.src = avatarImageSrc;
+      senderAvatarImage.hidden = false;
+    } else {
+      senderAvatarImage.hidden = true;
+      senderAvatarImage.removeAttribute('src');
+    }
+
+    senderAvatarInitials.textContent = state.senderInitials || this.getInitials(displayName);
+    senderAvatarInitials.hidden = Boolean(avatarImageSrc);
+  }
+
+  scheduleImageViewerToolbarLayout() {
+    const state = this.getImageViewerState();
+    if (state.toolbarLayoutScheduled) return;
+    state.toolbarLayoutScheduled = true;
+    window.requestAnimationFrame(() => {
+      state.toolbarLayoutScheduled = false;
+      this.updateImageViewerToolbarLayout();
+    });
+  }
+
+  updateImageViewerToolbarLayout() {
+    const { overlay, stage, image, toolbar } = this.getImageViewerElements();
+    if (!overlay || !stage || !image || !toolbar || !overlay.classList.contains('active')) return;
+
+    const stageRect = stage.getBoundingClientRect();
+    const imageRect = image.getBoundingClientRect();
+    if (!stageRect.width || !stageRect.height) return;
+
+    const isMobile = window.innerWidth <= 768;
+    const minBottom = isMobile ? 10 : 14;
+    const edgeGap = isMobile ? 8 : 12;
+    const toolbarHeight = toolbar.offsetHeight || (isMobile ? 38 : 44);
+    const visibleImageBottom = Number.isFinite(imageRect.bottom) ? imageRect.bottom : stageRect.bottom;
+    const gapToImage = Math.max(0, stageRect.bottom - visibleImageBottom);
+    // Place toolbar outside (below) the image whenever there is room.
+    const desiredBottom = gapToImage - toolbarHeight - edgeGap;
+    const maxBottom = Math.max(minBottom, stageRect.height - toolbarHeight - edgeGap);
+    const nextBottom = Math.min(maxBottom, Math.max(minBottom, desiredBottom));
+
+    const widthPadding = isMobile ? 16 : 24;
+    const minWidth = isMobile ? 220 : 320;
+    const imageWidth = imageRect.width > 1 ? imageRect.width : stageRect.width - widthPadding;
+    const nextWidth = Math.max(minWidth, Math.min(imageWidth, stageRect.width - widthPadding));
+
+    toolbar.style.setProperty('--image-viewer-toolbar-bottom', `${Math.round(nextBottom)}px`);
+    toolbar.style.setProperty('--image-viewer-toolbar-width', `${Math.round(nextWidth)}px`);
   }
 
   openImageViewer(src, alt = 'Надіслане фото', options = {}) {
@@ -1509,21 +1640,30 @@ export class ChatAppMessagingMethods {
     state.imageAlt = alt;
     state.messageId = Number.isFinite(options.messageId) && options.messageId > 0 ? options.messageId : null;
     state.messageFrom = options.messageFrom || '';
+    const senderMeta = this.getImageViewerSenderMeta(state.messageFrom);
+    state.senderName = senderMeta.name || '';
+    state.senderAvatarImage = senderMeta.avatarImage || '';
+    state.senderAvatarColor = senderMeta.avatarColor || '';
+    state.senderInitials = senderMeta.initials || '';
     state.movedDuringPointer = false;
     state.pointers.clear();
     state.dragging = false;
     state.pinchStartDistance = 0;
     state.pinchStartScale = state.minScale;
+    state.toolbarLayoutScheduled = false;
     this.applyImageViewerTransform();
+    this.renderImageViewerSender();
 
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
     document.documentElement.classList.add('image-viewer-open');
     document.body.classList.add('image-viewer-open');
+    this.scheduleImageViewerToolbarLayout();
 
     const applyInitialFit = () => {
       if (!this.isImageViewerOpen()) return;
       this.resetImageViewerZoom();
+      this.scheduleImageViewerToolbarLayout();
     };
 
     if (image.complete && image.naturalWidth > 0) {
@@ -1535,7 +1675,7 @@ export class ChatAppMessagingMethods {
   }
 
   closeImageViewer() {
-    const { overlay, stage, image } = this.getImageViewerElements();
+    const { overlay, stage, image, toolbar } = this.getImageViewerElements();
     if (!overlay || !stage || !image) return;
 
     overlay.classList.remove('active');
@@ -1553,13 +1693,23 @@ export class ChatAppMessagingMethods {
     state.imageAlt = '';
     state.messageId = null;
     state.messageFrom = '';
+    state.senderName = '';
+    state.senderAvatarImage = '';
+    state.senderAvatarColor = '';
+    state.senderInitials = '';
     state.movedDuringPointer = false;
     state.dragging = false;
     state.pointers.clear();
     state.pinchStartDistance = 0;
     state.pinchStartScale = state.minScale;
+    state.toolbarLayoutScheduled = false;
     image.style.removeProperty('transform');
     image.removeAttribute('src');
+    if (toolbar) {
+      toolbar.style.removeProperty('--image-viewer-toolbar-bottom');
+      toolbar.style.removeProperty('--image-viewer-toolbar-width');
+    }
+    this.renderImageViewerSender();
   }
 
   resetImageViewerZoom() {
@@ -1654,6 +1804,7 @@ export class ChatAppMessagingMethods {
     const state = this.getImageViewerState();
     image.style.transform = `translate3d(${state.translateX}px, ${state.translateY}px, 0) scale(${state.scale})`;
     stage.classList.toggle('is-zoomed', state.scale > state.minScale + 0.001);
+    this.scheduleImageViewerToolbarLayout();
   }
 
   async deleteImageFromViewer() {
@@ -1794,7 +1945,10 @@ export class ChatAppMessagingMethods {
   ensureBottomNavHomeAnchor() {
     const profileMenu = document.querySelector('.profile-menu-wrapper');
     const chatsList = document.getElementById('chatsList');
-    const appRoot = chatsList || document.querySelector('.bridge-app') || document.getElementById('app');
+    const isMobile = window.innerWidth <= 768;
+    const appRoot = isMobile
+      ? (document.querySelector('.bridge-app') || document.getElementById('app'))
+      : (chatsList || document.querySelector('.bridge-app') || document.getElementById('app'));
     if (!profileMenu || !appRoot) return;
 
     if (!this.bottomNavHomeAnchor) {

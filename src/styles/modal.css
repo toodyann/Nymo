@@ -969,6 +969,9 @@ html:not(.dark-theme) .alert-actions .btn {
 
 .chat-container.profile-view-active .contact-profile-view {
   display: flex;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
   animation: contactProfileSlideIn 0.22s ease;
 }
 
@@ -976,6 +979,23 @@ html:not(.dark-theme) .alert-actions .btn {
 .chat-container.profile-view-active .message-input-area,
 .chat-container.profile-view-active .chat-modal-header {
   display: none !important;
+}
+
+.chat-container.profile-view-active.profile-view-peek .messages-container {
+  display: flex !important;
+}
+
+.chat-container.profile-view-active.profile-view-peek .message-input-area {
+  display: block !important;
+}
+
+.chat-container.profile-view-active.profile-view-peek .chat-modal-header {
+  display: flex !important;
+}
+
+.chat-container.profile-view-active.profile-view-peek .contact-profile-view {
+  opacity: 1 !important;
+  background: var(--bg-color);
 }
 
 @keyframes contactProfileSlideIn {
@@ -999,7 +1019,7 @@ html:not(.dark-theme) .alert-actions .btn {
   align-items: center;
   justify-content: center;
   padding: 6px 10px 4px;
-  padding-top: calc(env(safe-area-inset-top) + 6px);
+  padding-top: env(safe-area-inset-top);
   min-height: calc(52px + env(safe-area-inset-top));
   background: transparent;
   pointer-events: auto;
@@ -1017,7 +1037,7 @@ html:not(.dark-theme) .alert-actions .btn {
   max-width: calc(100% - 24px);
   box-sizing: border-box;
   border-radius: 14px;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.3px;
@@ -1036,7 +1056,7 @@ html:not(.dark-theme) .alert-actions .btn {
 
 #contactProfileBackBtn {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 6px);
+  top: calc(env(safe-area-inset-top) + 10px);
   left: 10px;
   transform: none;
   width: 32px;
@@ -1069,8 +1089,8 @@ html:not(.dark-theme) .alert-actions .btn {
 }
 
 #contactProfileView .settings-subsection-title {
-  background: var(--surface-soft);
-  border: 1px solid var(--border-color);
+  background: transparent;
+  border: none;
 }
 
 @media (min-width: 769px) {
@@ -1097,7 +1117,7 @@ html:not(.dark-theme) .alert-actions .btn {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: calc(env(safe-area-inset-top) + 64px) 18px 18px;
+  padding: calc(env(safe-area-inset-top) + 36px) 18px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1111,6 +1131,10 @@ html:not(.dark-theme) .alert-actions .btn {
   box-shadow:
     0 16px 34px rgba(15, 19, 32, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+#contactProfileView .profile-hero-card.has-profile-motion {
+  margin-top: 0;
 }
 
 html.dark-theme #contactProfileView .profile-hero-card {
@@ -1610,38 +1634,75 @@ html:not(.dark-theme) .alert-overlay {
   }
 
   .contact-profile-view-body {
-    padding: calc(env(safe-area-inset-top) + 64px) 12px 14px;
+    padding: calc(env(safe-area-inset-top) + 30px) 12px 14px;
     gap: 10px;
+  }
+
+  #contactProfileView .profile-hero-card,
+  #contactProfileView .profile-hero-card.has-profile-motion {
+    margin-top: 0 !important;
   }
 
   #contactProfileView .settings-header {
     min-height: calc(52px + env(safe-area-inset-top));
     padding: 6px 10px 4px;
-    padding-top: calc(env(safe-area-inset-top) + 6px);
+    padding-top: env(safe-area-inset-top);
   }
 
   #contactProfileBackBtn {
-    top: calc(env(safe-area-inset-top) + 6px);
+    top: calc(env(safe-area-inset-top) + 10px);
     left: 10px;
+    transform: none;
     width: 32px;
     height: 32px;
     border-radius: 12px;
+    color: #fff !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   #contactProfileView .profile-hero-card {
     padding: 22px 16px;
     width: 100%;
-    min-height: 288px;
+    min-height: 336px;
+    flex-shrink: 0;
+  }
+
+  #contactProfileView .profile-hero.contact-profile-hero {
+    min-height: auto;
+    justify-content: flex-start;
+  }
+
+  .contact-profile-actions {
+    gap: 8px;
+    justify-content: center;
   }
 
   .contact-profile-actions .profile-action-btn,
-  .contact-profile-more {
-    flex: 1 1 calc(50% - 5px);
+  .contact-profile-actions .contact-profile-more {
+    flex: 0 1 auto;
     max-width: none;
+  }
+
+  .contact-profile-actions .profile-action-btn {
+    min-width: 102px;
+    padding: 9px 12px;
   }
 
   .contact-profile-media-section {
     gap: 8px;
+  }
+
+  .contact-profile-media-filters {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: var(--contact-profile-media-offset, 0px);
+    box-sizing: border-box;
   }
 
   .contact-profile-media-grid {
@@ -2022,15 +2083,73 @@ body.image-viewer-open {
 
 .image-viewer-toolbar {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  left: 50%;
+  right: auto;
+  bottom: var(
+    --image-viewer-toolbar-bottom,
+    calc(14px + env(safe-area-inset-bottom))
+  );
   z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 18px;
+  width: min(var(--image-viewer-toolbar-width, 560px), calc(100% - 24px));
+  transform: translateX(-50%);
+  padding: 0 6px;
   pointer-events: none;
+}
+
+.image-viewer-sender {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: min(52vw, 320px);
+  pointer-events: auto;
+}
+
+.image-viewer-sender[hidden] {
+  display: none !important;
+}
+
+.image-viewer-sender-avatar {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+.image-viewer-sender-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-viewer-sender-initials {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.image-viewer-sender-name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .image-viewer-actions {
@@ -2072,6 +2191,7 @@ body.image-viewer-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 0 calc(76px + env(safe-area-inset-bottom));
   touch-action: none;
   cursor: default;
   overflow: hidden;
@@ -2115,14 +2235,37 @@ html:not(.dark-theme) .image-viewer-btn {
   color: rgba(18, 24, 36, 0.84);
 }
 
+html:not(.dark-theme) .image-viewer-sender-name {
+  color: rgba(18, 24, 36, 0.95);
+}
+
 html:not(.dark-theme) .image-viewer-btn:hover {
   color: rgba(18, 24, 36, 1);
 }
 
 @media (max-width: 768px) {
   .image-viewer-toolbar {
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    padding: 0 12px;
+    bottom: var(
+      --image-viewer-toolbar-bottom,
+      calc(10px + env(safe-area-inset-bottom))
+    );
+    width: min(var(--image-viewer-toolbar-width, 420px), calc(100% - 16px));
+    padding: 0 4px;
+  }
+
+  .image-viewer-sender {
+    max-width: min(54vw, 220px);
+    gap: 8px;
+  }
+
+  .image-viewer-sender-avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .image-viewer-sender-name {
+    font-size: 13px;
   }
 
   .image-viewer-actions {
@@ -2132,5 +2275,9 @@ html:not(.dark-theme) .image-viewer-btn:hover {
   .image-viewer-btn {
     width: 38px;
     height: 38px;
+  }
+
+  .image-viewer-stage {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
 }

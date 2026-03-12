@@ -385,6 +385,20 @@ html.dark-theme #profile-items .profile-items-back-island {
   pointer-events: none;
 }
 
+.settings-header.settings-subsection-header {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.settings-header.settings-subsection-header .settings-subsection-title {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .settings-subsection .settings-header .settings-subsection-title {
   display: inline-flex;
   align-items: center;
@@ -397,7 +411,7 @@ html.dark-theme #profile-items .profile-items-back-island {
   max-width: calc(100% - 24px);
   box-sizing: border-box;
   border-radius: 14px;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.3px;
@@ -446,7 +460,6 @@ html.dark-theme #profile-items .profile-items-back-island {
 }
 
 html:not(.dark-theme) .settings-subsection .settings-subsection-title {
-  border: 1px solid rgba(20, 24, 36, 0.1);
   background: rgba(255, 255, 255, 0.58);
   box-shadow:
     0 10px 22px rgba(15, 19, 32, 0.06),
@@ -465,7 +478,6 @@ html:not(.dark-theme) .settings-subsection .settings-subsection-back {
 }
 
 html.dark-theme .settings-subsection .settings-subsection-title {
-  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
   backdrop-filter: blur(6px);
@@ -489,6 +501,10 @@ html.dark-theme .settings-subsection .settings-subsection-back {
 .settings-subsection .settings-subsection-back {
   background: var(--surface-soft) !important;
   border: 1px solid var(--border-color) !important;
+}
+
+.settings-subsection .settings-header .settings-subsection-title {
+  border: none !important;
 }
 
 .settings-subsection .settings-content {
@@ -1739,6 +1755,10 @@ html.dark-theme .profile-settings-card {
   padding: 30px;
   isolation: isolate;
   overflow: hidden;
+}
+
+.profile-hero-card.has-profile-motion {
+  margin-top: 8px;
 }
 
 .profile-hero-card[data-profile-motion]::after,

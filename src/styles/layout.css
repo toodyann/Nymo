@@ -148,13 +148,13 @@ html:not(.dark-theme) .app-header {
 }
 
 .bridge-app.chat-open .app-header-left .btn-back,
-.bridge-app.chat-open .app-chat-info,
+.bridge-app.chat-open #appChatInfo,
 .bridge-app.chat-open .app-header-right {
   display: flex !important;
 }
 
 .bridge-app.chat-active .app-header-left .btn-back,
-.bridge-app.chat-active .app-chat-info,
+.bridge-app.chat-active #appChatInfo,
 .bridge-app.chat-active .app-header-right {
   display: flex !important;
 }
@@ -171,8 +171,8 @@ html:not(.dark-theme) .app-header {
   min-width: 0;
 }
 
-.bridge-app.chat-open .app-chat-info,
-.bridge-app.chat-active .app-chat-info {
+.bridge-app.chat-open #appChatInfo,
+.bridge-app.chat-active #appChatInfo {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -189,8 +189,8 @@ html:not(.dark-theme) .app-header {
   -webkit-backdrop-filter: blur(14px);
 }
 
-html:not(.dark-theme) .bridge-app.chat-open .app-chat-info,
-html:not(.dark-theme) .bridge-app.chat-active .app-chat-info {
+html:not(.dark-theme) .bridge-app.chat-open #appChatInfo,
+html:not(.dark-theme) .bridge-app.chat-active #appChatInfo {
   background: var(--surface-soft);
   border-color: var(--border-color);
   box-shadow:
@@ -234,15 +234,15 @@ html:not(.dark-theme) .bridge-app.chat-active .app-chat-info {
   text-overflow: ellipsis;
 }
 
-.bridge-app.chat-open .app-chat-info .app-chat-name,
-.bridge-app.chat-active .app-chat-info .app-chat-name {
+.bridge-app.chat-open #appChatInfo .app-chat-name,
+.bridge-app.chat-active #appChatInfo .app-chat-name {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.bridge-app.chat-open .app-chat-info .app-chat-status,
-.bridge-app.chat-active .app-chat-info .app-chat-status {
+.bridge-app.chat-open #appChatInfo .app-chat-status,
+.bridge-app.chat-active #appChatInfo .app-chat-status {
   width: 7px;
   height: 7px;
 }
@@ -661,6 +661,16 @@ html:not(.dark-theme) .bridge-app.chat-active .app-chat-info {
 
 .chat-modal-header {
   display: none;
+}
+
+.chat-modal-header,
+.chat-modal-header .app-chat-info,
+.chat-modal-header .btn-back,
+.chat-modal-header-right .btn-icon,
+.chat-modal-header-right #chatModalMenuBtn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .chat-container.active {

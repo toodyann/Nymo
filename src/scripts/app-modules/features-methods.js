@@ -342,12 +342,29 @@ export class ChatAppFeaturesMethods {
 
   initMiniGames(settingsContainer) {
     const miniGamesSection = settingsContainer.querySelector('#mini-games');
+    const tapperContentEl = settingsContainer.querySelector('.coin-tapper-content');
     const balanceEl = settingsContainer.querySelector('#coinTapBalance');
     const tapBtn = settingsContainer.querySelector('#coinTapBtn');
     const levelIslandEl = settingsContainer.querySelector('.coin-level-island');
+    const rateEl = settingsContainer.querySelector('.coin-tapper-rate');
     const levelValueEl = settingsContainer.querySelector('#coinTapLevelValue');
     const rewardValueEl = settingsContainer.querySelector('#coinTapRewardValue');
     if (!balanceEl || !tapBtn) return;
+
+    if (window.innerWidth <= 768 && tapperContentEl && levelIslandEl) {
+      if (rateEl && rateEl.parentElement === tapperContentEl) {
+        tapperContentEl.insertBefore(levelIslandEl, rateEl);
+      } else {
+        tapperContentEl.appendChild(levelIslandEl);
+      }
+      levelIslandEl.style.setProperty('position', 'static', 'important');
+      levelIslandEl.style.setProperty('top', 'auto', 'important');
+      levelIslandEl.style.setProperty('right', 'auto', 'important');
+      levelIslandEl.style.setProperty('left', 'auto', 'important');
+      levelIslandEl.style.setProperty('transform', 'none', 'important');
+      levelIslandEl.style.setProperty('margin-top', '8px', 'important');
+      levelIslandEl.style.setProperty('align-self', 'center', 'important');
+    }
 
     if (miniGamesSection && miniGamesSection.dataset.zoomLockBound !== 'true') {
       miniGamesSection.dataset.zoomLockBound = 'true';
@@ -846,6 +863,9 @@ export class ChatAppFeaturesMethods {
     if (chatContainer) chatContainer.classList.remove('active');
     if (welcomeScreen) welcomeScreen.classList.add('hidden');
     const appEl = document.querySelector('.bridge-app');
+    if (isMobile && document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     if (typeof this.stopVoiceRecording === 'function') {
       this.stopVoiceRecording({ discard: true, silent: true });
     }
@@ -857,7 +877,12 @@ export class ChatAppFeaturesMethods {
     if (appEl) {
       appEl.classList.remove('chat-open');
       appEl.classList.remove('chat-active');
+      appEl.classList.remove('mobile-chat-open');
+      appEl.classList.remove('keyboard-open');
+      appEl.classList.remove('composer-focus');
+      appEl.style.setProperty('--keyboard-inset', '0px');
     }
+    this.setMobilePageScrollLock(false);
     
     // Hide chats list header when showing settings
     if (chatsListHeader) chatsListHeader.style.display = 'none';
