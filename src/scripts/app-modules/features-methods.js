@@ -415,7 +415,14 @@ export class ChatAppFeaturesMethods {
     tapBtn.dataset.bound = 'true';
 
     let tapAnimationTimer = null;
-    tapBtn.addEventListener('click', () => {
+    let lastTapTimestamp = Number.NEGATIVE_INFINITY;
+    const TAP_DEDUPE_MS = 40;
+
+    tapBtn.addEventListener('click', (event) => {
+      const eventTimestamp = typeof event.timeStamp === 'number' ? event.timeStamp : performance.now();
+      if (eventTimestamp - lastTapTimestamp < TAP_DEDUPE_MS) return;
+      lastTapTimestamp = eventTimestamp;
+
       const levelStats = this.getTapLevelStats();
       const rewardCents = levelStats.rewardPerTapCents;
       const currentBalance = this.getTapBalanceCents();

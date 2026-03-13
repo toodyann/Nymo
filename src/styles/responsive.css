@@ -198,11 +198,13 @@
 
   .profile-menu-wrapper {
     position: fixed;
-    left: 50%;
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    transform: translate(-50%, 0);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
     z-index: 80;
-    width: min(430px, calc(100vw - 24px));
+    width: 100%;
+    max-width: none;
     opacity: 1;
     pointer-events: auto;
     transition: none !important;
@@ -212,7 +214,7 @@
   .bridge-app.chat-active .profile-menu-wrapper,
   .bridge-app.mobile-chat-open .profile-menu-wrapper,
   .bridge-app:has(#chatContainer.active) .profile-menu-wrapper {
-    transform: translate(-50%, 120%);
+    transform: translateY(120%);
     opacity: 0;
     pointer-events: none;
   }
@@ -222,8 +224,8 @@
   .bridge-app.swipe-peek.keyboard-open .profile-menu-wrapper,
   .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active)
     .profile-menu-wrapper {
-    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
-    transform: translate(-50%, 0) !important;
+    bottom: 0 !important;
+    transform: none !important;
     opacity: 1 !important;
     pointer-events: auto !important;
     display: block !important;
@@ -233,9 +235,10 @@
   }
 
   .bridge-app:not(.chat-open):not(.chat-active) .profile-menu-wrapper {
-    left: 50% !important;
-    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
-    transform: translateX(-50%) !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
   }
 
   .bridge-app.swipe-peek .app-header .chat-brand .app-title,
@@ -254,37 +257,68 @@
   }
 
   .bottom-nav {
-    width: 100%;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 50px;
-    box-sizing: border-box;
-    background: var(--surface-soft);
-    border: 1px solid var(--border-color);
-    box-shadow:
-      var(--shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.26),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
+    width: 100% !important;
+    gap: 0 !important;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+    background: color-mix(in srgb, var(--bg-color) 92%, #0c111a 8%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   .bottom-nav-item {
-    flex: 1;
-    min-width: 0;
-    min-height: 52px;
-    padding: 8px 6px;
-    gap: 4px;
-    border-radius: 24px;
+    flex: 1 !important;
+    min-width: 0 !important;
+    min-height: 58px !important;
+    padding: 5px 2px 7px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: color-mix(in srgb, var(--text-secondary) 88%, #ffffff 12%) !important;
+    font-weight: 500 !important;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease !important;
   }
 
-  .bottom-nav-item svg {
-    width: 21px;
-    height: 21px;
+  .bottom-nav-item:hover {
+    background: rgba(42, 171, 238, 0.08) !important;
+    border-color: transparent !important;
   }
 
-  .bottom-nav-item span {
+  .bottom-nav-item:active {
+    transform: none !important;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--text-primary) !important;
+    background: rgba(148, 163, 184, 0.24) !important;
+    border-color: transparent !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+  }
+
+  .bottom-nav-item > svg,
+  .bottom-nav-item > .nav-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    flex: 0 0 30px !important;
+  }
+
+  .bottom-nav-item .nav-avatar {
+    font-size: 12px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+  }
+
+  .bottom-nav-item > span:not(.nav-avatar) {
     font-size: 11px !important;
-    line-height: 1.1;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -781,15 +815,21 @@
   }
 
   .chats-list .chat-item {
-    width: calc(100% - 24px);
+    width: calc(100% - 12px);
     min-width: auto;
-    padding: 12px;
-    margin: 6px 12px;
+    padding: 10px 12px 10px 6px;
+    margin: 6px 6px;
     border-radius: 12px;
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     text-align: left;
+  }
+
+  .chats-list .chat-item .chat-avatar {
+    width: 58px;
+    height: 58px;
+    font-size: 22px;
   }
 
   .chats-list .chat-item:active {
@@ -879,11 +919,11 @@
     margin: 0 !important;
     min-width: 0;
     max-width: calc(100% - 96px);
-    gap: 8px;
+    gap: 12px;
     align-items: center;
     visibility: visible;
     opacity: 1;
-    padding: 6px 10px;
+    padding: 9px 14px;
     border-radius: 14px;
     border: none;
     background: none;
@@ -908,14 +948,24 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
 
   .chat-modal-header .app-chat-status {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
+  }
+
+  .chat-modal-header .app-chat-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .chat-modal-header .app-chat-meta {
+    gap: 12px;
   }
 
   .chat-modal-header-right {
@@ -1049,7 +1099,7 @@
 
   .bridge-app.chat-active .input-wrapper,
   .bridge-app:has(#chatContainer.active) .input-wrapper {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
 
   .message-input-area {
@@ -1134,8 +1184,14 @@
   }
 
   .message-content {
-    font-size: 15px;
+    font-size: 16px;
     padding: 8px 44px 20px 12px;
+  }
+
+  .message-meta,
+  .message-meta .message-time,
+  .message-meta .message-edited {
+    font-size: 12px;
   }
 
   .date-separator {
@@ -1144,7 +1200,7 @@
 
   .date-separator-text {
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: 13px;
     max-width: 70%;
   }
 
@@ -1269,8 +1325,8 @@
   .bridge-app.swipe-peek.keyboard-open:has(#chatContainer.active)
     .profile-menu-wrapper {
     display: block !important;
-    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
-    transform: translate(-50%, 0) !important;
+    bottom: 0 !important;
+    transform: none !important;
     opacity: 1 !important;
     pointer-events: auto !important;
     visibility: visible !important;
@@ -1476,28 +1532,66 @@
 
 @media (max-width: 480px) {
   .profile-menu-wrapper {
-    width: calc(100vw - 16px);
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
   }
 
   .bottom-nav {
-    gap: 3px;
-    padding: 9px 8px;
-    border-radius: 50px;
+    gap: 0 !important;
+    padding: 7px 4px calc(7px + env(safe-area-inset-bottom)) !important;
+    border-radius: 0 !important;
   }
 
   .bottom-nav-item {
-    min-height: 48px;
-    padding: 7px 4px;
+    min-height: 56px !important;
+    padding: 5px 2px 7px !important;
   }
 
-  .bottom-nav-item svg {
-    width: 20px;
-    height: 20px;
+  .bottom-nav-item > svg,
+  .bottom-nav-item > .nav-avatar {
+    width: 27px !important;
+    height: 27px !important;
+    flex: 0 0 27px !important;
   }
 
-  .bottom-nav-item span {
+  .bottom-nav-item .nav-avatar {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .bottom-nav-item > span:not(.nav-avatar) {
     font-size: 10px !important;
+  }
+
+  .chat-modal-header .app-chat-info {
+    gap: 11px;
+    padding: 8px 12px;
+  }
+
+  .chat-modal-header .app-chat-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .chat-modal-header .app-chat-name {
+    font-size: 15px;
+  }
+
+  .chats-list .chat-item {
+    width: calc(100% - 8px);
+    padding: 9px 10px 9px 4px;
+    margin: 6px 4px;
+    gap: 9px;
+  }
+
+  .chats-list .chat-item .chat-avatar {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
   }
 
   .bottom-nav-indicator {
@@ -1543,7 +1637,7 @@
 
   .message-content {
     max-width: 94%;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .message-input {
