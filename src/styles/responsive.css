@@ -1253,7 +1253,7 @@
     box-sizing: border-box !important;
   }
 
-  #settingsContainerMobile #mini-games .mini-games-content.coin-tapper-content {
+  #settingsContainerMobile #mini-games .coin-tapper-content {
     gap: 36px !important;
     padding-top: 94px !important;
     padding-right: 24px !important;

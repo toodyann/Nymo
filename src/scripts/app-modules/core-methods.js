@@ -24,6 +24,7 @@ export class ChatAppCoreMethods {
         status: data.status || 'online',
         bio: data.bio || 'Вітаю!',
         birthDate: data.birthDate || '',
+        createdAt: data.createdAt || new Date().toISOString(),
         avatarColor: data.avatarColor || '',
         avatarImage: data.avatarImage || '',
         equippedAvatarFrame: data.equippedAvatarFrame || '',
@@ -38,6 +39,7 @@ export class ChatAppCoreMethods {
       status: 'online',
       bio: 'Вітаю!',
       birthDate: '',
+      createdAt: new Date().toISOString(),
       avatarColor: 'linear-gradient(135deg, #6b7280, #9ca3af)',
       avatarImage: '',
       equippedAvatarFrame: '',
@@ -498,15 +500,69 @@ export class ChatAppCoreMethods {
     if (!profileSection) return;
 
     const profileName = profileSection.querySelector('#profileDisplayName');
+    const profileHandle = profileSection.querySelector('#profileDisplayHandle');
+    const profileStatus = profileSection.querySelector('#profileDisplayStatus');
     const profileBio = profileSection.querySelector('#profileDisplayBio');
     const profileEmail = profileSection.querySelector('#profileDisplayEmail');
     const profileDob = profileSection.querySelector('#profileDisplayDob');
+    const profileUserId = profileSection.querySelector('#profileDisplayUserId');
+    const profileStatChats = profileSection.querySelector('#profileStatChats');
+    const profileStatMessages = profileSection.querySelector('#profileStatMessages');
+    const profileStatCompletion = profileSection.querySelector('#profileStatCompletion');
+    const profileStatMemberSince = profileSection.querySelector('#profileStatMemberSince');
     const avatarDiv = profileSection.querySelector('.profile-avatar-large');
+    const handleValue = `@${String(this.user?.name || 'orion.user')
+      .trim()
+      .toLowerCase()
+      .replace(/['`’]/g, '')
+      .replace(/[^a-z0-9а-яіїєґ]+/gi, '.')
+      .replace(/\.+/g, '.')
+      .replace(/^\.|\.$/g, '') || 'orion.user'}`;
+    const statusLabelMap = {
+      online: 'Онлайн',
+      away: 'Не на місці',
+      dnd: 'Не турбувати',
+      offline: 'Офлайн'
+    };
+    const statusValue = String(this.user?.status || 'online').toLowerCase();
+    const profileIdSource = `${this.user?.email || ''}|${this.user?.name || ''}`;
+    let profileIdHash = 0;
+    for (let i = 0; i < profileIdSource.length; i += 1) {
+      profileIdHash = (profileIdHash * 31 + profileIdSource.charCodeAt(i)) >>> 0;
+    }
+    const profileId = `OR-${String(profileIdHash % 1000000).padStart(6, '0')}`;
+    const chatsCount = Array.isArray(this.chats) ? this.chats.length : 0;
+    const messagesCount = Array.isArray(this.chats)
+      ? this.chats.reduce((total, chat) => total + (Array.isArray(chat?.messages) ? chat.messages.length : 0), 0)
+      : 0;
+    const completenessFilled = [
+      Boolean(String(this.user?.name || '').trim()),
+      Boolean(String(this.user?.email || '').trim()),
+      Boolean(String(this.user?.bio || '').trim()),
+      Boolean(String(this.user?.birthDate || '').trim()),
+      Boolean(String(this.user?.avatarImage || '').trim()) || Boolean(String(this.user?.avatarColor || '').trim())
+    ].filter(Boolean).length;
+    const completeness = Math.round((completenessFilled / 5) * 100);
+    const createdAt = String(this.user?.createdAt || '').trim();
+    const createdAtDate = createdAt ? new Date(createdAt) : null;
+    const memberSince = createdAtDate && !Number.isNaN(createdAtDate.getTime())
+      ? new Intl.DateTimeFormat('uk-UA', { month: 'long', year: 'numeric' }).format(createdAtDate)
+      : 'цього місяця';
 
     if (profileName) profileName.textContent = this.user.name;
+    if (profileHandle) profileHandle.textContent = handleValue;
+    if (profileStatus) {
+      profileStatus.textContent = statusLabelMap[statusValue] || statusLabelMap.online;
+      profileStatus.dataset.status = statusValue || 'online';
+    }
     if (profileBio) profileBio.textContent = this.user.bio || '';
     if (profileEmail) profileEmail.textContent = this.user.email || '';
     if (profileDob) profileDob.textContent = this.formatBirthDate(this.user.birthDate);
+    if (profileUserId) profileUserId.textContent = profileId;
+    if (profileStatChats) profileStatChats.textContent = String(chatsCount);
+    if (profileStatMessages) profileStatMessages.textContent = String(messagesCount);
+    if (profileStatCompletion) profileStatCompletion.textContent = `${completeness}%`;
+    if (profileStatMemberSince) profileStatMemberSince.textContent = memberSince;
 
     this.renderProfileAvatar(avatarDiv);
     this.applyProfileAura(profileSection.querySelector('.profile-hero-card'));

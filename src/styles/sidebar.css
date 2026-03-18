@@ -53,11 +53,15 @@
     display: none;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-menu-header {
+  .sidebar.compact
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-header {
     display: none;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-menu-list--chats {
+  .sidebar.compact
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-list--chats {
     padding: 8px 0 !important;
   }
 
@@ -72,7 +76,9 @@
     gap: 0;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-avatar {
+  .sidebar.compact
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-avatar {
     width: 40px;
     height: 40px;
     flex: 0 0 40px;
@@ -295,7 +301,7 @@ html.dark-theme .search-box .btn-new-chat {
 }
 
 .chat-item + .chat-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 12px;
@@ -1133,15 +1139,22 @@ html.dark-theme .search-input:focus {
 html.dark-theme .profile-menu-wrapper .bottom-nav,
 html.dark-theme .profile-menu-wrapper.in-sidebar-slot .bottom-nav,
 html.dark-theme .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav,
-html.dark-theme .profile-menu-wrapper[data-nav-mode="sidebar-vertical"] .bottom-nav {
+html.dark-theme
+  .profile-menu-wrapper[data-nav-mode="sidebar-vertical"]
+  .bottom-nav {
   background: #080808 !important;
   border-color: rgba(148, 148, 148, 0.34) !important;
   box-shadow: none !important;
 }
 
 html.dark-theme .profile-menu-wrapper .bottom-nav-item,
-html.dark-theme .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item,
-html.dark-theme .profile-menu-wrapper[data-nav-mode="sidebar-vertical"] .bottom-nav-item {
+html.dark-theme
+  .sidebar.nav-menu-vertical
+  .profile-menu-wrapper
+  .bottom-nav-item,
+html.dark-theme
+  .profile-menu-wrapper[data-nav-mode="sidebar-vertical"]
+  .bottom-nav-item {
   background: #0d0d0d !important;
   border-color: rgba(122, 122, 122, 0.26) !important;
   border-left-color: transparent !important;
@@ -1150,16 +1163,26 @@ html.dark-theme .profile-menu-wrapper[data-nav-mode="sidebar-vertical"] .bottom-
 }
 
 html.dark-theme .profile-menu-wrapper .bottom-nav-item:hover,
-html.dark-theme .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item:hover,
-html.dark-theme .profile-menu-wrapper[data-nav-mode="sidebar-vertical"] .bottom-nav-item:hover {
+html.dark-theme
+  .sidebar.nav-menu-vertical
+  .profile-menu-wrapper
+  .bottom-nav-item:hover,
+html.dark-theme
+  .profile-menu-wrapper[data-nav-mode="sidebar-vertical"]
+  .bottom-nav-item:hover {
   background: #141414 !important;
   border-color: rgba(178, 178, 178, 0.44) !important;
   color: #ffffff !important;
 }
 
 html.dark-theme .profile-menu-wrapper .bottom-nav-item.active,
-html.dark-theme .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item.active,
-html.dark-theme .profile-menu-wrapper[data-nav-mode="sidebar-vertical"] .bottom-nav-item.active {
+html.dark-theme
+  .sidebar.nav-menu-vertical
+  .profile-menu-wrapper
+  .bottom-nav-item.active,
+html.dark-theme
+  .profile-menu-wrapper[data-nav-mode="sidebar-vertical"]
+  .bottom-nav-item.active {
   background: #191919 !important;
   border-color: rgba(198, 198, 198, 0.56) !important;
   border-left-color: rgba(220, 220, 220, 0.72) !important;
@@ -1214,15 +1237,18 @@ html.dark-theme .bottom-nav-indicator {
     display: none !important;
   }
 
-  .desktop-secondary-menu.active[data-menu-root='navChats'] .desktop-secondary-menu-header-actions {
+  .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-menu-header-actions {
     display: flex !important;
   }
 
-  .desktop-secondary-menu.active[data-menu-root='navChats'] .desktop-secondary-menu-header-btn--new-chat {
+  .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-menu-header-btn--new-chat {
     display: inline-flex !important;
   }
 
-  .desktop-secondary-menu.active[data-menu-root='navChats'] .desktop-secondary-menu-header {
+  .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-menu-header {
     justify-content: space-between;
     padding: 0 10px !important;
   }
@@ -1237,17 +1263,17 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-secondary-menu.active::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background-image:
-      linear-gradient(rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.66)),
-      url('../Assets/Background-sidebar.jpg');
+      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+      url("../Assets/Background-sidebar.jpg");
     background-size: cover;
     background-position: left center;
     background-repeat: no-repeat;
-    opacity: 0.72;
-    filter: blur(24px) brightness(0.55) saturate(0.85);
+    opacity: 0.74;
+    filter: blur(18px) brightness(0.72) saturate(0.95);
     transform: scale(1.08);
     transform-origin: center;
     pointer-events: none;
@@ -1256,47 +1282,73 @@ html.dark-theme .bottom-nav-indicator {
 
   html:not(.dark-theme) .desktop-secondary-menu.active::before {
     background-image:
-      linear-gradient(
-        rgba(252, 253, 255, 0.9),
-        rgba(246, 248, 252, 0.88)
-      ),
-      url('../Assets/Background-sidebar.jpg');
-    opacity: 0.96;
-    filter: blur(26px) brightness(1.18) saturate(0.78) contrast(0.82);
+      linear-gradient(rgba(252, 253, 255, 0.78), rgba(246, 248, 252, 0.76)),
+      url("../Assets/Background-sidebar.jpg");
+    opacity: 0.9;
+    filter: blur(22px) brightness(1.12) saturate(0.84) contrast(0.86);
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-header h3 {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-header
+    h3 {
     color: #111111;
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-group-title {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-group-title {
     color: rgba(18, 18, 18, 0.56);
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-item,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-item {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-item,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-item {
     color: #151515;
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-item:hover,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-item:hover {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-item:hover,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-item:hover {
     background: rgba(15, 15, 15, 0.08);
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-item.active,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-item.active {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-item.active,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-item.active {
     background: rgba(15, 15, 15, 0.12);
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-item-icon,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-menu-item-label,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-name {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-item-icon,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-menu-item-label,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-name {
     color: #111111;
   }
 
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-preview,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-time,
-  html:not(.dark-theme) .desktop-secondary-menu.active .desktop-secondary-chat-empty {
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-preview,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-time,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
+    .desktop-secondary-chat-empty {
     color: rgba(27, 27, 27, 0.62);
   }
 
@@ -1606,7 +1658,7 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-item::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 50%;
     top: 50%;
@@ -1688,7 +1740,7 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-account-btn::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 50%;
     top: 50%;

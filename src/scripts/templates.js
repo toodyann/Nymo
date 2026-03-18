@@ -27,7 +27,8 @@ export const settingsTemplates = {
           <span class="profile-name-badges" id="profileNameBadges" aria-hidden="true"></span>
         </div>
         <div class="profile-handle-row">
-          <p class="profile-handle">@orion.user</p>
+          <p class="profile-handle" id="profileDisplayHandle">@orion.user</p>
+          <span class="profile-status-pill" id="profileDisplayStatus" data-status="online">Онлайн</span>
         </div>
         <p class="profile-bio" id="profileDisplayBio">Вітаю!</p>
 
@@ -46,8 +47,13 @@ export const settingsTemplates = {
             <span class="profile-meta-value" id="profileDisplayDob">Не вказано</span>
           </div>
         </div>
-
         <div class="profile-hero-actions">
+          <button class="profile-action-btn" id="profileEditMainBtn" aria-label="Редагувати профіль">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152a15.86,15.86,0,0,0-4.51,8.64L24.27,204.1a8,8,0,0,0,9.31,9.31l43.46-7.91a15.86,15.86,0,0,0,8.64-4.51L209,77.69A16,16,0,0,0,227.31,73.37ZM72,188.29,42.93,193.6,48.24,164.5l88.82-88.83,23.79,23.79Zm100.17-100.17L148.37,64.34,171.31,41.4l23.79,23.79Z"></path>
+            </svg>
+            <span>Редагувати</span>
+          </button>
           <button class="profile-action-btn" id="profileMyItemsBtn" aria-label="Мої предмети">
             <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
               <path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"></path>
@@ -62,6 +68,93 @@ export const settingsTemplates = {
           </button>
         </div>
 
+      </div>
+    </section>
+
+    <section class="profile-summary-grid" aria-label="Статистика профілю">
+      <article class="profile-summary-card">
+        <span class="profile-summary-kicker">Чати</span>
+        <h3 id="profileStatChats">0</h3>
+        <p>Загальна кількість активних діалогів у вашому акаунті.</p>
+      </article>
+      <article class="profile-summary-card">
+        <span class="profile-summary-kicker">Повідомлення</span>
+        <h3 id="profileStatMessages">0</h3>
+        <p>Усі повідомлення в особистих і групових розмовах.</p>
+      </article>
+      <article class="profile-summary-card">
+        <span class="profile-summary-kicker">Заповнення</span>
+        <h3 id="profileStatCompletion">0%</h3>
+        <p>Рівень заповнення профілю для кращої персоналізації.</p>
+      </article>
+      <article class="profile-summary-card">
+        <span class="profile-summary-kicker">У Orion з</span>
+        <h3 id="profileStatMemberSince">цього місяця</h3>
+        <p>Дата першого входу та початку використання платформи.</p>
+      </article>
+    </section>
+
+    <section class="profile-settings-card profile-settings-menu-card">
+      <div class="profile-section-heading">
+        <h3>Швидкі розділи</h3>
+        <p>Керування основними параметрами акаунта в один клік.</p>
+      </div>
+      <div class="settings-menu-list">
+        <button type="button" class="settings-menu-item" data-section="notifications">
+          <span class="settings-menu-icon settings-icon-notifications">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,0,0-160,0c0,35.35-8.25,62.4-13.8,71.95A16,16,0,0,0,48,200H96.1a32,32,0,0,0,63.8,0H208a16,16,0,0,0,13.8-24.06ZM128,216a16,16,0,0,1-15.16-10.67h30.32A16,16,0,0,1,128,216ZM48,184c7.9-13.65,16-43.94,16-80a64,64,0,0,1,128,0c0,36.05,8.1,66.35,16,80Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Сповіщення</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+        <button type="button" class="settings-menu-item" data-section="privacy">
+          <span class="settings-menu-icon settings-icon-privacy">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.27,47,25.53a8,8,0,0,0,4.2,0c1-.26,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112V56H208Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Приватність</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+        <button type="button" class="settings-menu-item" data-section="messages">
+          <span class="settings-menu-icon settings-icon-messages">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M216,40H40A16,16,0,0,0,24,56V192a16,16,0,0,0,16,16H82.34l23,23a8,8,0,0,0,11.32,0l23-23H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,152H136a8,8,0,0,0-5.66,2.34L111,213.66,91.66,194.34A8,8,0,0,0,86,192H40V56H216Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Повідомлення</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+        <button type="button" class="settings-menu-item" data-section="appearance">
+          <span class="settings-menu-icon settings-icon-appearance">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V96H40Zm0,56H96v88H40Zm176,88H112V112H216v88Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Інтерфейс</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+        <button type="button" class="settings-menu-item" data-section="language">
+          <span class="settings-menu-icon settings-icon-language">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm79.21,96h-32.8a158.6,158.6,0,0,0-13.36-52.7A88.2,88.2,0,0,1,207.21,120ZM128,40c10.87,0,27.7,16.87,37.36,45.18A142.13,142.13,0,0,1,171.86,120H128Zm0,96h43.86a142.13,142.13,0,0,1-6.5,34.82C155.7,199.13,138.87,216,128,216Zm0-16V85.18C137.66,56.87,154.49,40,165.36,40ZM94.95,67.3A158.6,158.6,0,0,0,81.59,120H48.79A88.2,88.2,0,0,1,94.95,67.3ZM48.79,136h32.8a158.6,158.6,0,0,0,13.36,52.7A88.2,88.2,0,0,1,48.79,136ZM120,216c-10.87,0-27.7-16.87-37.36-45.18A142.13,142.13,0,0,1,76.14,136H120Zm0-96H76.14a142.13,142.13,0,0,1,6.5-34.82C92.3,56.87,109.13,40,120,40Zm41.05,68.7A158.6,158.6,0,0,0,174.41,136h32.8A88.2,88.2,0,0,1,161.05,188.7Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Мова</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
       </div>
     </section>
   </div>
@@ -658,27 +751,56 @@ export const settingsTemplates = {
 
   'mini-games': `
 <div class="settings-section" id="mini-games">
-  <div class="settings-content mini-games-content coin-tapper-content">
-    <div class="coin-level-island" aria-label="Рівень гравця">
-      <div class="coin-level-island-body">
-        <span class="coin-level-island-label">Рівень</span>
-        <strong class="coin-level-island-value" id="coinTapLevelValue">1</strong>
+  <div class="settings-content mini-games-content">
+    <section class="mini-game-panel coin-tapper-content active" data-mini-game-panel="tapper">
+      <div class="coin-level-island" aria-label="Рівень гравця">
+        <div class="coin-level-island-body">
+          <span class="coin-level-island-label">Рівень</span>
+          <strong class="coin-level-island-value" id="coinTapLevelValue">1</strong>
+        </div>
       </div>
-    </div>
 
-    <span class="coin-tapper-kicker">ORION VALUE</span>
-    <div class="coin-tapper-balance-label">Загальний баланс</div>
-    <div class="coin-tapper-balance" id="coinTapBalance">0,00</div>
+      <span class="coin-tapper-kicker">ORION VALUE</span>
+      <div class="coin-tapper-balance-label">Загальний баланс</div>
+      <div class="coin-tapper-balance" id="coinTapBalance">0,00</div>
 
-    <button class="coin-tapper-button" id="coinTapBtn" type="button" aria-label="Заробити монети">
-      <img class="coin-tapper-image" src="${orionValueAssetUrl}" alt="Orion Value" />
-    </button>
+      <button class="coin-tapper-button" id="coinTapBtn" type="button" aria-label="Заробити монети">
+        <img class="coin-tapper-image" src="${orionValueAssetUrl}" alt="Orion Value" />
+      </button>
 
-    <div class="coin-tapper-rate">
-      <span>1 тап</span>
-      <strong>=</strong>
-      <span id="coinTapRewardValue">0,01 монетки</span>
-    </div>
+      <div class="coin-tapper-rate">
+        <span>1 тап</span>
+        <strong>=</strong>
+        <span id="coinTapRewardValue">0,01 монетки</span>
+      </div>
+    </section>
+
+    <section class="mini-game-panel mini-game-view" data-mini-game-panel="signal">
+      <div class="mini-game-view-header">
+        <span class="mini-game-view-title">Полювання на сигнал</span>
+        <span class="mini-game-view-score">Рекорд: <strong id="signalHuntBest">0</strong></span>
+      </div>
+
+      <div class="mini-game-stage">
+        <div class="mini-game-score-current">
+          Очки: <strong id="signalHuntScore">0</strong> · Час: <strong id="signalHuntTime">30</strong>с
+        </div>
+
+        <div class="mini-game-canvas signal-hunt-canvas" id="signalHuntCanvas" aria-live="polite">
+          <button class="signal-hunt-target" id="signalHuntTarget" type="button" aria-label="Зловити сигнал">
+            <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z"></path>
+            </svg>
+          </button>
+          <p class="signal-hunt-status" id="signalHuntStatus">Натисни «Старт», щоб ловити сигнали повідомлень.</p>
+        </div>
+
+        <div class="mini-game-controls">
+          <button class="btn btn-primary mini-game-btn" id="signalHuntStart" type="button">Старт</button>
+          <span class="mini-game-hint">Клікай по іконці сигналу, поки вона не зникла.</span>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
   `.trim(),

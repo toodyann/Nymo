@@ -2175,6 +2175,41 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   font-size: 14px;
 }
 
+.profile-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-status-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.profile-status-pill[data-status="away"]::before {
+  background: #f59e0b;
+}
+
+.profile-status-pill[data-status="dnd"]::before {
+  background: #ef4444;
+}
+
+.profile-status-pill[data-status="offline"]::before {
+  background: #6b7280;
+}
+
 .profile-edit-inline {
   position: absolute;
   top: 24px;
@@ -2282,6 +2317,11 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   border-radius: var(--radius-control);
   border: 1px dashed color-mix(in srgb, var(--border-color) 82%, transparent);
   background: var(--surface-soft);
+}
+
+.profile-userid strong {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .profile-summary-grid {
@@ -3973,8 +4013,24 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   box-shadow: var(--shadow);
 }
 
+.mini-game-select.active {
+  border-color: color-mix(in srgb, var(--text-primary) 18%, var(--border-color));
+  background: color-mix(in srgb, var(--surface-soft) 86%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
 .mini-game-icon {
-  font-size: 28px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex: 0 0 38px;
+}
+
+.mini-game-icon svg {
+  display: block;
 }
 
 .mini-game-title {
@@ -3993,7 +4049,14 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 .mini-game-view {
   display: none;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  width: min(100%, 980px);
+  align-self: center;
+  padding: 18px;
+  border-radius: var(--radius-card);
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .mini-game-view.active {
@@ -4005,35 +4068,43 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: var(--glass);
+  padding: 14px 16px;
+  border-radius: var(--radius-inner);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
   border: 1px solid var(--border-color);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
 }
 
 .mini-game-view-title {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .mini-game-view-score {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
+  padding: 7px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+}
+
+.mini-game-view-score strong {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .mini-game-stage {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  align-items: stretch;
+  gap: 14px;
 }
 
 .mini-game-panel {
   display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
   width: 100%;
 }
 
@@ -4045,18 +4116,25 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
 }
 
 .mini-game-canvas {
-  width: min(80vw, 420px);
-  height: min(80vw, 420px);
-  max-width: 420px;
-  max-height: 420px;
-  border-radius: 20px;
+  width: 100%;
+  height: clamp(320px, 52vh, 500px);
+  max-width: 100%;
+  max-height: none;
+  border-radius: var(--radius-inner);
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 60%),
-    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.2), transparent 55%),
-    rgba(16, 18, 24, 0.6);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 58%),
+    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.16), transparent 54%),
+    color-mix(in srgb, var(--bg-color) 86%, #000000 14%);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
   position: relative;
@@ -4083,17 +4161,82 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  max-width: 420px;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  box-sizing: border-box;
 }
 
 .mini-game-btn {
-  min-width: 120px;
+  min-width: 132px;
+  flex-shrink: 0;
 }
 
 .mini-game-hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
-  text-align: right;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.signal-hunt-canvas {
+  position: relative;
+}
+
+.signal-hunt-target {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 26%, var(--border-color));
+  background: color-mix(in srgb, var(--bg-color) 88%, transparent);
+  color: var(--text-primary);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.signal-hunt-target:hover {
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+}
+
+.signal-hunt-target.active {
+  display: inline-flex;
+}
+
+.signal-hunt-target.hit {
+  transform: scale(0.9);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+}
+
+.signal-hunt-status {
+  margin: 0;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+  text-align: center;
+}
+
+html:not(.dark-theme) .mini-game-canvas {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.22), transparent 58%),
+    radial-gradient(circle at bottom, rgba(12, 18, 30, 0.08), transparent 52%),
+    color-mix(in srgb, #eef2f7 72%, var(--bg-color) 28%);
 }
 
 .snake-cell {
@@ -4222,13 +4365,54 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     margin-top: 8px;
   }
 
-  .mini-games-list {
-    grid-template-columns: 1fr;
+  .mini-game-view {
+    width: 100%;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .mini-game-view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .mini-game-score-current {
+    align-self: stretch;
+    justify-content: center;
+    text-align: center;
   }
 
   .mini-game-canvas {
-    width: min(92vw, 360px);
+    width: 100%;
     height: min(92vw, 360px);
+    min-height: 280px;
+  }
+
+  .mini-game-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .mini-game-btn {
+    width: 100%;
+  }
+
+  .mini-game-hint {
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .signal-hunt-target {
+    width: 56px;
+    height: 56px;
+  }
+
+  .signal-hunt-status {
+    padding: 10px 12px;
+    font-size: 12px;
   }
 }
 

@@ -361,14 +361,213 @@ export class ChatAppFeaturesMethods {
 
   initMiniGames(settingsContainer) {
     const miniGamesSection = settingsContainer.querySelector('#mini-games');
-    const tapperContentEl = settingsContainer.querySelector('.coin-tapper-content');
+    const tapperContentEl = settingsContainer.querySelector('[data-mini-game-panel="tapper"]');
     const balanceEl = settingsContainer.querySelector('#coinTapBalance');
     const tapBtn = settingsContainer.querySelector('#coinTapBtn');
     const levelIslandEl = settingsContainer.querySelector('.coin-level-island');
     const rateEl = settingsContainer.querySelector('.coin-tapper-rate');
     const levelValueEl = settingsContainer.querySelector('#coinTapLevelValue');
     const rewardValueEl = settingsContainer.querySelector('#coinTapRewardValue');
-    if (!balanceEl || !tapBtn) return;
+    if (!miniGamesSection || !balanceEl || !tapBtn) return;
+
+    const gameSelectButtons = settingsContainer.querySelectorAll('[data-mini-game-select]');
+    const gamePanels = settingsContainer.querySelectorAll('[data-mini-game-panel]');
+    const MINI_GAME_VIEW_KEY = 'orionMiniGameView';
+    const normalizeMiniGameView = (value) => (value === 'signal' ? 'signal' : 'tapper');
+    const pendingMiniGameView = normalizeMiniGameView(this.pendingMiniGameView || 'tapper');
+    let currentMiniGameView = pendingMiniGameView;
+    if (!this.pendingMiniGameView) {
+      try {
+        currentMiniGameView = normalizeMiniGameView(window.localStorage.getItem(MINI_GAME_VIEW_KEY));
+      } catch {
+        currentMiniGameView = 'tapper';
+      }
+    }
+    this.pendingMiniGameView = null;
+
+    const signalCanvasEl = settingsContainer.querySelector('#signalHuntCanvas');
+    const signalTargetEl = settingsContainer.querySelector('#signalHuntTarget');
+    const signalStatusEl = settingsContainer.querySelector('#signalHuntStatus');
+    const signalScoreEl = settingsContainer.querySelector('#signalHuntScore');
+    const signalTimeEl = settingsContainer.querySelector('#signalHuntTime');
+    const signalBestEl = settingsContainer.querySelector('#signalHuntBest');
+    const signalStartBtn = settingsContainer.querySelector('#signalHuntStart');
+    const SIGNAL_HUNT_BEST_KEY = 'orionSignalHuntBest';
+    const SIGNAL_HUNT_DURATION = 30;
+    const SIGNAL_MOVE_INTERVAL_MS = 760;
+    const signalState = {
+      isRunning: false,
+      score: 0,
+      timeLeft: SIGNAL_HUNT_DURATION,
+      best: 0
+    };
+
+    if (this.signalHuntTickTimer) {
+      window.clearInterval(this.signalHuntTickTimer);
+      this.signalHuntTickTimer = null;
+    }
+    if (this.signalHuntMoveTimer) {
+      window.clearInterval(this.signalHuntMoveTimer);
+      this.signalHuntMoveTimer = null;
+    }
+
+    try {
+      const savedBest = Number.parseInt(window.localStorage.getItem(SIGNAL_HUNT_BEST_KEY) || '0', 10);
+      signalState.best = Number.isFinite(savedBest) && savedBest > 0 ? savedBest : 0;
+    } catch {
+      signalState.best = 0;
+    }
+
+    const updateSignalHud = () => {
+      if (signalScoreEl) signalScoreEl.textContent = String(signalState.score);
+      if (signalTimeEl) signalTimeEl.textContent = String(signalState.timeLeft);
+      if (signalBestEl) signalBestEl.textContent = String(signalState.best);
+    };
+
+    const clearSignalHuntTimers = () => {
+      if (this.signalHuntTickTimer) {
+        window.clearInterval(this.signalHuntTickTimer);
+        this.signalHuntTickTimer = null;
+      }
+      if (this.signalHuntMoveTimer) {
+        window.clearInterval(this.signalHuntMoveTimer);
+        this.signalHuntMoveTimer = null;
+      }
+    };
+
+    const placeSignalTarget = () => {
+      if (!signalCanvasEl || !signalTargetEl || !signalTargetEl.classList.contains('active')) return;
+      const canvasWidth = signalCanvasEl.clientWidth;
+      const canvasHeight = signalCanvasEl.clientHeight;
+      const targetWidth = signalTargetEl.offsetWidth || 58;
+      const targetHeight = signalTargetEl.offsetHeight || 58;
+      const padding = 12;
+      const availableWidth = Math.max(0, canvasWidth - targetWidth - padding * 2);
+      const availableHeight = Math.max(0, canvasHeight - targetHeight - padding * 2);
+      const left = Math.round(padding + Math.random() * availableWidth);
+      const top = Math.round(padding + Math.random() * availableHeight);
+      signalTargetEl.style.left = `${left}px`;
+      signalTargetEl.style.top = `${top}px`;
+    };
+
+    const saveSignalBest = () => {
+      try {
+        window.localStorage.setItem(SIGNAL_HUNT_BEST_KEY, String(signalState.best));
+      } catch {
+        // Ignore storage failures.
+      }
+    };
+
+    const stopSignalHunt = (reason = 'finished') => {
+      if (!signalState.isRunning && reason !== 'switch') return;
+      signalState.isRunning = false;
+      clearSignalHuntTimers();
+      if (signalTargetEl) signalTargetEl.classList.remove('active');
+
+      if (signalState.score > signalState.best) {
+        signalState.best = signalState.score;
+        saveSignalBest();
+      }
+
+      updateSignalHud();
+
+      if (signalStartBtn) signalStartBtn.textContent = 'Старт';
+      if (signalStatusEl) {
+        if (reason === 'switch') {
+          signalStatusEl.textContent = 'Гру призупинено. Повернись, щоб зіграти знову.';
+        } else if (signalState.score > 0) {
+          signalStatusEl.textContent = `Гру завершено. Твій результат: ${signalState.score}.`;
+        } else {
+          signalStatusEl.textContent = 'Час вийшов. Спробуй ще раз і впіймай більше сигналів.';
+        }
+      }
+    };
+
+    const startSignalHunt = () => {
+      if (!signalCanvasEl || !signalTargetEl) return;
+      clearSignalHuntTimers();
+
+      signalState.isRunning = true;
+      signalState.score = 0;
+      signalState.timeLeft = SIGNAL_HUNT_DURATION;
+      if (signalStartBtn) signalStartBtn.textContent = 'Перезапуск';
+      if (signalStatusEl) signalStatusEl.textContent = 'Лови сигнали, вони зʼявляються у випадкових точках!';
+      signalTargetEl.classList.add('active');
+      updateSignalHud();
+      placeSignalTarget();
+
+      this.signalHuntMoveTimer = window.setInterval(() => {
+        placeSignalTarget();
+      }, SIGNAL_MOVE_INTERVAL_MS);
+
+      this.signalHuntTickTimer = window.setInterval(() => {
+        signalState.timeLeft -= 1;
+        if (signalState.timeLeft <= 0) {
+          signalState.timeLeft = 0;
+          stopSignalHunt('finished');
+          return;
+        }
+        updateSignalHud();
+      }, 1000);
+    };
+
+    const setMiniGameView = (view) => {
+      const safeView = normalizeMiniGameView(view);
+      currentMiniGameView = safeView;
+
+      gameSelectButtons.forEach((buttonEl) => {
+        const isActive = buttonEl.dataset.miniGameSelect === safeView;
+        buttonEl.classList.toggle('active', isActive);
+        buttonEl.setAttribute('aria-pressed', String(isActive));
+      });
+
+      gamePanels.forEach((panelEl) => {
+        const isActive = panelEl.dataset.miniGamePanel === safeView;
+        panelEl.classList.toggle('active', isActive);
+      });
+
+      if (safeView !== 'signal' && signalState.isRunning) {
+        stopSignalHunt('switch');
+      }
+
+      try {
+        window.localStorage.setItem(MINI_GAME_VIEW_KEY, safeView);
+      } catch {
+        // Ignore storage failures.
+      }
+    };
+
+    gameSelectButtons.forEach((buttonEl) => {
+      if (buttonEl.dataset.bound === 'true') return;
+      buttonEl.dataset.bound = 'true';
+      buttonEl.addEventListener('click', () => {
+        setMiniGameView(buttonEl.dataset.miniGameSelect || 'tapper');
+      });
+    });
+
+    if (signalTargetEl && signalTargetEl.dataset.bound !== 'true') {
+      signalTargetEl.dataset.bound = 'true';
+      signalTargetEl.addEventListener('click', () => {
+        if (!signalState.isRunning) return;
+        signalState.score += 1;
+        updateSignalHud();
+        signalTargetEl.classList.remove('hit');
+        void signalTargetEl.offsetWidth;
+        signalTargetEl.classList.add('hit');
+        placeSignalTarget();
+      });
+    }
+
+    if (signalStartBtn && signalStartBtn.dataset.bound !== 'true') {
+      signalStartBtn.dataset.bound = 'true';
+      signalStartBtn.addEventListener('click', () => {
+        setMiniGameView('signal');
+        startSignalHunt();
+      });
+    }
+
+    updateSignalHud();
+    setMiniGameView(currentMiniGameView);
 
     if (window.innerWidth <= 768 && tapperContentEl && levelIslandEl) {
       if (rateEl && rateEl.parentElement === tapperContentEl) {
@@ -1059,28 +1258,22 @@ export class ChatAppFeaturesMethods {
 
       if (sectionName === 'profile') {
         this.settingsParentSection = 'profile';
-        const profileName = settingsContainer.querySelector('#profileDisplayName');
-        const profileBio = settingsContainer.querySelector('#profileDisplayBio');
-        const profileEmail = settingsContainer.querySelector('#profileDisplayEmail');
-        const profileDob = settingsContainer.querySelector('#profileDisplayDob');
         const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
         const inlineEditBtn = settingsContainer.querySelector('.profile-edit-inline');
+        const profileEditMainBtn = settingsContainer.querySelector('#profileEditMainBtn');
         const profileMyItemsBtn = settingsContainer.querySelector('#profileMyItemsBtn');
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
-
-        if (profileName) profileName.textContent = this.user.name;
-        if (profileBio) profileBio.textContent = this.user.bio || '';
-        if (profileEmail) profileEmail.textContent = this.user.email || '';
-        if (profileDob) profileDob.textContent = this.formatBirthDate(this.user.birthDate);
 
         this.renderProfileAvatar(avatarDiv);
         this.applyProfileAura(settingsContainer.querySelector('.profile-hero-card'));
         this.applyProfileMotion(settingsContainer.querySelector('.profile-hero-card'));
         this.applyProfileBadge(settingsContainer.querySelector('#profileNameBadges'));
+        this.updateProfileDisplay();
         this.updateProfileMenuButton();
 
         const openProfileSettings = () => this.showSettings('profile-settings');
         if (inlineEditBtn) inlineEditBtn.addEventListener('click', openProfileSettings);
+        if (profileEditMainBtn) profileEditMainBtn.addEventListener('click', openProfileSettings);
         if (profileMyItemsBtn) {
           profileMyItemsBtn.addEventListener('click', () => {
             this.settingsParentSection = 'profile';

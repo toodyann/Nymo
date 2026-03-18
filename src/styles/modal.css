@@ -2011,6 +2011,19 @@ html:not(.dark-theme) .alert-overlay {
   background-color: var(--bg-secondary);
 }
 
+.chat-list-menu-item-danger {
+  color: #ef4444;
+}
+
+.chat-list-menu-item-danger svg {
+  opacity: 1;
+}
+
+.chat-list-menu-item-danger:hover {
+  background: rgba(239, 68, 68, 0.16);
+  color: #f87171;
+}
+
 .attach-sheet-overlay {
   position: fixed;
   inset: 0;
