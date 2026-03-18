@@ -1282,10 +1282,10 @@ html.dark-theme .bottom-nav-indicator {
 
   html:not(.dark-theme) .desktop-secondary-menu.active::before {
     background-image:
-      linear-gradient(rgba(252, 253, 255, 0.78), rgba(246, 248, 252, 0.76)),
-      url("../Assets/Background-sidebar.jpg");
+      linear-gradient(rgba(252, 254, 255, 0.72), rgba(247, 250, 253, 0.68)),
+      url("../Assets/Background-sidebar-white.jpg");
     opacity: 0.9;
-    filter: blur(22px) brightness(1.12) saturate(0.84) contrast(0.86);
+    filter: blur(14px) brightness(1.04) saturate(0.78) contrast(0.92);
   }
 
   html:not(.dark-theme)
