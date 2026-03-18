@@ -4584,7 +4584,7 @@ html:not(.dark-theme) .mini-game-canvas {
 
 /* Profile settings minimalist */
 #profile-settings {
-  align-items: center;
+  align-items: stretch;
 }
 
 #profile-settings .settings-header {
@@ -4592,14 +4592,15 @@ html:not(.dark-theme) .mini-game-canvas {
   top: auto;
   left: auto;
   right: auto;
-  width: min(100%, 860px);
+  width: 100%;
+  max-width: none;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 0 6px;
+  padding: 14px 24px 6px;
   min-height: 0;
-  margin: 0 auto;
+  margin: 0;
   transform: none;
   background: transparent;
   pointer-events: none;
@@ -4646,23 +4647,24 @@ html:not(.dark-theme) .mini-game-canvas {
   display: flex !important;
   flex-direction: column;
   gap: 12px;
-  width: min(100%, 860px);
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding-top: 12px !important;
   background: transparent !important;
 }
 
 #profile-settings .profile-settings-card {
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  border-radius: 14px;
-  background: var(--bg-color);
+  border: none;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none !important;
   filter: none !important;
 }
 
 html.dark-theme #profile-settings .profile-settings-card {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: var(--bg-secondary);
+  border: none;
+  background: transparent;
 }
 
 #profile-settings .profile-settings-hero-card,
@@ -4814,6 +4816,10 @@ html.dark-theme #profile-settings .profile-settings-card {
 }
 
 @media (max-width: 768px) {
+  #profile-settings .settings-header {
+    padding: 10px 16px 6px;
+  }
+
   #profile-settings .profile-settings-content {
     width: 100%;
     gap: 10px;
