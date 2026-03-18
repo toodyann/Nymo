@@ -495,7 +495,7 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
   }
 
   .welcome-minimal {
-    transform: translateY(calc(var(--bottom-nav-height) * -0.42));
+    --welcome-base-shift: calc(var(--bottom-nav-height) * -0.42);
   }
 
   .chat-area {
@@ -990,11 +990,26 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
   justify-content: center;
   padding: 28px;
   background: var(--glass);
-  animation: fadeIn 0.3s ease;
+  animation: none;
 }
 
 html.dark-theme .welcome-screen {
   background: #020202;
+}
+
+.welcome-screen.is-revealing .welcome-minimal {
+  animation: welcomeContentReveal 0.28s cubic-bezier(0.2, 0.82, 0.25, 1);
+}
+
+@keyframes welcomeContentReveal {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--welcome-base-shift) + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(var(--welcome-base-shift));
+  }
 }
 
 @media (min-width: 769px) {
@@ -1009,6 +1024,8 @@ html.dark-theme .welcome-screen {
 }
 
 .welcome-minimal {
+  --welcome-base-shift: 0px;
+  transform: translateY(var(--welcome-base-shift));
   width: min(560px, 100%);
   padding: 10px 8px;
   display: flex;

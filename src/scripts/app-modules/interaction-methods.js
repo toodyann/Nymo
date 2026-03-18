@@ -86,12 +86,12 @@ export class ChatAppInteractionMethods {
         ]
       },
       navWallet: {
-        title: 'Баланс',
+        title: 'Гаманець',
         groups: [
           {
             title: 'ФІНАНСИ',
             items: [
-              { label: 'Баланс і транзакції', section: 'wallet', icon: 'wallet' }
+              { label: 'Гаманець і транзакції', section: 'wallet', icon: 'wallet' }
             ]
           }
         ]
@@ -283,7 +283,6 @@ export class ChatAppInteractionMethods {
     const settingsContainerMobile = document.getElementById('settingsContainerMobile');
     const chatsList = document.getElementById('chatsList');
     const chatContainer = document.getElementById('chatContainer');
-    const welcomeScreen = document.getElementById('welcomeScreen');
     const chatsListHeader = document.querySelector('.chats-list-header');
     const sidebar = document.querySelector('.sidebar');
     const profileMenu = document.querySelector('.profile-menu-wrapper');
@@ -327,7 +326,7 @@ export class ChatAppInteractionMethods {
       chatContainer.classList.remove('active');
     }
     this.setMobilePageScrollLock(false);
-    if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+    this.showWelcomeScreen();
     this.restoreBottomNavToHome({ animate: false });
     this.renderChatsList();
   }

@@ -1840,10 +1840,7 @@ export class ChatAppFeaturesMethods {
             section.classList.remove('active');
           }
           // Restore chat area
-          const chatContainer = document.getElementById('chatContainer');
-          const welcomeScreen = document.getElementById('welcomeScreen');
-          if (chatContainer) chatContainer.style.display = '';
-          if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+          this.showWelcomeScreen();
           // Set nav back to chats
           const navChats = document.getElementById('navChats');
           if (navChats) this.setActiveNavButton(navChats);

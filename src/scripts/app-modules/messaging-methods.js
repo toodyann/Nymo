@@ -716,14 +716,30 @@ export class ChatAppMessagingMethods {
   }
 
   hideWelcomeScreen() {
-    document.getElementById('welcomeScreen').classList.add('hidden');
-    document.getElementById('chatContainer').classList.add('active');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const chatContainer = document.getElementById('chatContainer');
+    if (welcomeScreen) {
+      welcomeScreen.classList.remove('is-revealing');
+      welcomeScreen.classList.add('hidden');
+    }
+    if (chatContainer) chatContainer.classList.add('active');
   }
 
   showWelcomeScreen() {
     const welcomeScreen = document.getElementById('welcomeScreen');
     const chatContainer = document.getElementById('chatContainer');
-    if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+    if (welcomeScreen) {
+      welcomeScreen.classList.remove('hidden');
+      welcomeScreen.classList.remove('is-revealing');
+      void welcomeScreen.offsetWidth;
+      welcomeScreen.classList.add('is-revealing');
+      if (this.welcomeRevealTimer) {
+        clearTimeout(this.welcomeRevealTimer);
+      }
+      this.welcomeRevealTimer = window.setTimeout(() => {
+        welcomeScreen.classList.remove('is-revealing');
+      }, 320);
+    }
     if (chatContainer) {
       chatContainer.classList.remove('active');
       chatContainer.style.removeProperty('display');
