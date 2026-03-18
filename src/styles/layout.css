@@ -989,8 +989,12 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
   align-items: center;
   justify-content: center;
   padding: 28px;
-  background: transparent;
+  background: var(--glass);
   animation: fadeIn 0.3s ease;
+}
+
+html.dark-theme .welcome-screen {
+  background: #020202;
 }
 
 @media (min-width: 769px) {
