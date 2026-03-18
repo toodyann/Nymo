@@ -86,9 +86,24 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="nav-avatar desktop-nav-rail-account-avatar" id="desktopRailAccountAvatar" aria-hidden="true"></span>
         </button>
         <div class="desktop-nav-rail-account-menu" id="desktopRailAccountMenu" role="menu" aria-label="Меню акаунту">
-          <button class="desktop-nav-rail-account-menu-item" type="button" role="menuitem" data-account-action="profile">Профіль</button>
-          <button class="desktop-nav-rail-account-menu-item" type="button" role="menuitem" data-account-action="switch-account">Змінити акаунт</button>
-          <button class="desktop-nav-rail-account-menu-item is-danger" type="button" role="menuitem" data-account-action="logout">Вийти з акаунту</button>
+          <button class="desktop-nav-rail-account-menu-item" type="button" role="menuitem" data-account-action="profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+            </svg>
+            <span>Профіль</span>
+          </button>
+          <button class="desktop-nav-rail-account-menu-item" type="button" role="menuitem" data-account-action="switch-account">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M253.66,133.66l-24,24a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L216,132.69V128A88,88,0,0,0,56.49,76.67a8,8,0,0,1-13-9.34A104,104,0,0,1,232,128v4.69l10.34-10.35a8,8,0,0,1,11.32,11.32Zm-41.18,55A104,104,0,0,1,24,128v-4.69L13.66,133.66A8,8,0,0,1,2.34,122.34l24-24a8,8,0,0,1,11.32,0l24,24a8,8,0,0,1-11.32,11.32L40,123.31V128a87.62,87.62,0,0,0,22.24,58.41A79.66,79.66,0,0,1,98.3,157.66a48,48,0,1,1,59.4,0,79.59,79.59,0,0,1,36.08,28.78,89.68,89.68,0,0,0,5.71-7.11,8,8,0,0,1,13,9.34ZM128,152a32,32,0,1,0-32-32A32,32,0,0,0,128,152Zm0,64a88.2,88.2,0,0,0,53.92-18.49,64,64,0,0,0-107.84,0A87.57,87.57,0,0,0,128,216Z"></path>
+            </svg>
+            <span>Змінити акаунт</span>
+          </button>
+          <button class="desktop-nav-rail-account-menu-item is-danger" type="button" role="menuitem" data-account-action="logout">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M120,216a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h64a8,8,0,0,1,0,16H56V208h56A8,8,0,0,1,120,216Zm109.66-93.66-40-40a8,8,0,0,0-11.32,11.32L204.69,120H112a8,8,0,0,0,0,16h92.69l-26.35,26.34a8,8,0,0,0,11.32,11.32l40-40A8,8,0,0,0,229.66,122.34Z"></path>
+            </svg>
+            <span>Вийти з акаунту</span>
+          </button>
         </div>
       </div>
     </nav>

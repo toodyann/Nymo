@@ -1940,12 +1940,16 @@ html:not(.dark-theme) .alert-overlay {
   width: 220px;
   min-width: 220px;
   max-width: 220px;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 4px;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(129, 129, 129, 0.32);
+  background: rgba(8, 8, 8, 0.96);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1001;
   transform-origin: var(--chat-list-menu-origin-x, 50%)
     var(--chat-list-menu-origin-y, 0%);
@@ -1981,18 +1985,19 @@ html:not(.dark-theme) .alert-overlay {
 
 .chat-list-menu-item {
   width: 100%;
+  height: 36px;
   display: flex;
   align-items: center;
   gap: 10px;
   text-align: left;
-  padding: 10px 12px;
-  background: none;
+  padding: 0 12px;
+  background: transparent;
   border: none;
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-primary);
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  color: rgba(245, 245, 245, 0.9);
+  border-radius: 8px;
 }
 
 .chat-list-menu-item svg {
@@ -2008,11 +2013,11 @@ html:not(.dark-theme) .alert-overlay {
 }
 
 .chat-list-menu-item:hover {
-  background-color: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .chat-list-menu-item-danger {
-  color: #ef4444;
+  color: #ff4d4f;
 }
 
 .chat-list-menu-item-danger svg {
@@ -2020,8 +2025,29 @@ html:not(.dark-theme) .alert-overlay {
 }
 
 .chat-list-menu-item-danger:hover {
-  background: rgba(239, 68, 68, 0.16);
-  color: #f87171;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html:not(.dark-theme) .chat-list-menu {
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(248, 250, 254, 0.98);
+  box-shadow: 0 10px 28px rgba(19, 26, 44, 0.16);
+}
+
+html:not(.dark-theme) .chat-list-menu-item {
+  color: #111111;
+}
+
+html:not(.dark-theme) .chat-list-menu-item:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+html:not(.dark-theme) .chat-list-menu-item-danger {
+  color: #d92d20;
+}
+
+html:not(.dark-theme) .chat-list-menu-item-danger:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .attach-sheet-overlay {

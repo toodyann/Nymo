@@ -1796,7 +1796,10 @@ html.dark-theme .bottom-nav-indicator {
     border-radius: 8px;
     background: transparent;
     padding: 0 12px;
-    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
     font-size: 14px;
     font-weight: 600;
     color: rgba(245, 245, 245, 0.9);
@@ -1809,6 +1812,13 @@ html.dark-theme .bottom-nav-indicator {
 
   .desktop-nav-rail-account-menu-item.is-danger {
     color: #ff4d4f;
+  }
+
+  .desktop-nav-rail-account-menu-item svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    display: block;
   }
 
   .desktop-nav-rail-item.active {

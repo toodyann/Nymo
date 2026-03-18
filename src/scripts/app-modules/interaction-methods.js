@@ -76,6 +76,12 @@ export class ChatAppInteractionMethods {
               { label: 'Анімація', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'sparkles', shopCategory: 'motion' },
               { label: 'Значки', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'badge', shopCategory: 'badge' }
             ]
+          },
+          {
+            title: 'АКАУНТ',
+            items: [
+              { label: 'Мої предмети', section: 'profile-items', parentSection: 'messenger-settings', icon: 'cube' }
+            ]
           }
         ]
       },
