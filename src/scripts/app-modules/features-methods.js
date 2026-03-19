@@ -1,6 +1,8 @@
 import { setupSettingsSwipeBack } from '../swipe-handlers.js';
 import { escapeHtml } from '../ui-helpers.js';
 
+const flappyCoinSoundUrl = new URL('../../Sounds/coin-sound.mp3', import.meta.url).href;
+
 export class ChatAppFeaturesMethods {
   initShop(settingsContainer) {
     const balanceEl = settingsContainer.querySelector('#shopBalanceValue');
@@ -437,8 +439,8 @@ export class ChatAppFeaturesMethods {
     const FLAPPY_FLAP_VELOCITY = -390;
     const FLAPPY_PIPE_SPEED = 240;
     const FLAPPY_PIPE_SPAWN_INTERVAL = 1.45;
-    const FLAPPY_PIPE_WIDTH = 92;
-    const FLAPPY_PIPE_GAP = 198;
+    const FLAPPY_PIPE_WIDTH = 86;
+    const FLAPPY_PIPE_GAP_BASE = 198;
     const FLAPPY_MAX_DT = 1 / 30;
     const grid2048State = {
       board: new Array(GRID_2048_SIZE * GRID_2048_SIZE).fill(0),
@@ -614,7 +616,8 @@ export class ChatAppFeaturesMethods {
       if (!flappyCanvasEl) return;
       const rect = flappyCanvasEl.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
-      const devicePixelRatio = Math.min(2, window.devicePixelRatio || 1);
+      // Keep pixel-art rendering on whole-number DPR to avoid subpixel seams.
+      const devicePixelRatio = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1)));
       flappyState.worldWidth = Math.max(280, Math.round(rect.width));
       flappyState.worldHeight = Math.max(240, Math.round(rect.height));
       const targetWidth = Math.max(1, Math.round(flappyState.worldWidth * devicePixelRatio));
@@ -623,9 +626,13 @@ export class ChatAppFeaturesMethods {
       if (flappyCanvasEl.height !== targetHeight) flappyCanvasEl.height = targetHeight;
     };
 
-    const getFlappyGroundHeight = () => Math.round(Math.max(72, flappyState.worldHeight * 0.145));
+    const getFlappyGroundHeight = () => Math.round(Math.max(62, flappyState.worldHeight * 0.125));
     const getFlappyBirdX = () => Math.round(flappyState.worldWidth * 0.25);
-    const getFlappyBirdRadius = () => Math.max(16, Math.round(flappyState.worldHeight * 0.03));
+    const getFlappyBirdRadius = () => Math.max(14, Math.round(flappyState.worldHeight * 0.025));
+    const getFlappyPipeGap = () => {
+      const playableHeight = Math.max(220, flappyState.worldHeight - getFlappyGroundHeight());
+      return Math.round(Math.min(FLAPPY_PIPE_GAP_BASE, Math.max(132, playableHeight * 0.42)));
+    };
 
     const addFlappyReward = (amountCents) => {
       const safeAmount = Number.isFinite(amountCents) ? Math.max(0, Math.floor(amountCents)) : 0;
@@ -633,6 +640,26 @@ export class ChatAppFeaturesMethods {
       flappyState.earnedCents += safeAmount;
       this.setTapBalanceCents(this.getTapBalanceCents() + safeAmount);
       balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
+    };
+
+    const playFlappyCoinSound = () => {
+      if (this.settings?.soundNotifications === false) return;
+      try {
+        if (!this.flappyCoinAudio) {
+          this.flappyCoinAudio = new Audio(flappyCoinSoundUrl);
+          this.flappyCoinAudio.preload = 'auto';
+          this.flappyCoinAudio.volume = 0.45;
+        }
+        const coinAudio = this.flappyCoinAudio.cloneNode(true);
+        coinAudio.currentTime = 0;
+        coinAudio.volume = this.flappyCoinAudio.volume;
+        const playResult = coinAudio.play();
+        if (playResult && typeof playResult.catch === 'function') {
+          playResult.catch(() => {});
+        }
+      } catch {
+        // Ignore audio playback issues.
+      }
     };
 
     const prepareFlappySpriteAtlas = (sourceImage) => {
@@ -683,6 +710,7 @@ export class ChatAppFeaturesMethods {
       };
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, worldWidth, worldHeight);
 
       const skyGradient = ctx.createLinearGradient(0, 0, 0, worldHeight - groundHeight);
@@ -693,12 +721,16 @@ export class ChatAppFeaturesMethods {
 
       const cloudSpacing = Math.max(210, Math.round(worldWidth * 0.24));
       const cloudY = Math.round(worldHeight * 0.12);
-      for (let i = -1; i < Math.ceil(worldWidth / cloudSpacing) + 2; i += 1) {
-        const cloud = spriteMap.clouds[((i % spriteMap.clouds.length) + spriteMap.clouds.length) % spriteMap.clouds.length];
-        const x = i * cloudSpacing - (flappyState.cloudOffset % cloudSpacing);
-        const y = cloudY + ((i % 2) ? 10 : -8);
-        const width = Math.round(cloud.w * 0.62);
-        const height = Math.round(cloud.h * 0.62);
+      const cloudOffset = Math.max(0, flappyState.cloudOffset);
+      const firstCloudSegment = Math.floor(cloudOffset / cloudSpacing) - 2;
+      const visibleCloudSegments = Math.ceil(worldWidth / cloudSpacing) + 5;
+      for (let i = 0; i < visibleCloudSegments; i += 1) {
+        const segmentIndex = firstCloudSegment + i;
+        const cloud = spriteMap.clouds[((segmentIndex % spriteMap.clouds.length) + spriteMap.clouds.length) % spriteMap.clouds.length];
+        const x = Math.round(segmentIndex * cloudSpacing - cloudOffset);
+        const y = cloudY + ((segmentIndex % 2) ? 10 : -8);
+        const width = Math.round(cloud.w * 0.52);
+        const height = Math.round(cloud.h * 0.52);
         if (!drawSprite(cloud, x, y, width, height)) {
           ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
           ctx.beginPath();
@@ -707,9 +739,31 @@ export class ChatAppFeaturesMethods {
         }
       }
 
+      const groundPart = hasSprite
+        ? { ...spriteMap.ground, x: spriteMap.ground.x + 2, w: Math.min(64, spriteMap.ground.w - 4) }
+        : spriteMap.ground;
+      const groundTileWidth = Math.max(1, Math.round(groundPart.w));
+      const groundY = Math.round(worldHeight - groundHeight);
+      const groundShift = ((Math.floor(flappyState.groundOffset) % groundTileWidth) + groundTileWidth) % groundTileWidth;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, groundY, worldWidth, groundHeight);
+      ctx.clip();
+      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
+        const drawX = Math.round(x - groundShift);
+        if (!drawSprite(groundPart, drawX, groundY, groundTileWidth, groundHeight)) {
+          ctx.fillStyle = '#5d3f27';
+          ctx.fillRect(drawX, groundY, groundTileWidth, groundHeight);
+          ctx.fillStyle = '#6ea848';
+          ctx.fillRect(drawX, groundY, groundTileWidth, 14);
+        }
+      }
+      ctx.restore();
+
       flappyState.pipes.forEach((pipe) => {
-        const topEnd = Math.round(pipe.gapCenter - FLAPPY_PIPE_GAP / 2);
-        const bottomStart = Math.round(pipe.gapCenter + FLAPPY_PIPE_GAP / 2);
+        const gapHeight = pipe.gapHeight || getFlappyPipeGap();
+        const topEnd = Math.round(pipe.gapCenter - gapHeight / 2);
+        const bottomStart = Math.round(pipe.gapCenter + gapHeight / 2);
         const pipeX = Math.round(pipe.x);
         const capHeight = 18;
         const topBodyHeight = Math.max(0, topEnd);
@@ -748,7 +802,7 @@ export class ChatAppFeaturesMethods {
         }
 
         if (pipe.coin && !pipe.coin.collected) {
-          const coinSize = Math.max(30, Math.round(worldHeight * 0.078));
+          const coinSize = Math.max(26, Math.round(worldHeight * 0.064));
           const coinX = pipe.coin.x - coinSize / 2;
           const coinY = pipe.coin.y - coinSize / 2;
           if (flappyState.coinReady && flappyState.coinImage) {
@@ -762,21 +816,10 @@ export class ChatAppFeaturesMethods {
         }
       });
 
-      const groundTileWidth = spriteMap.ground.w;
-      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
-        const drawX = Math.round(x - (flappyState.groundOffset % groundTileWidth));
-        if (!drawSprite(spriteMap.ground, drawX, worldHeight - groundHeight, groundTileWidth, groundHeight)) {
-          ctx.fillStyle = '#5d3f27';
-          ctx.fillRect(drawX, worldHeight - groundHeight, groundTileWidth, groundHeight);
-          ctx.fillStyle = '#6ea848';
-          ctx.fillRect(drawX, worldHeight - groundHeight, groundTileWidth, 14);
-        }
-      }
-
       ctx.save();
       ctx.translate(birdX, flappyState.birdY);
       ctx.rotate(flappyState.birdRotation);
-      const birdSize = birdRadius * 3;
+      const birdSize = birdRadius * 3.6;
       const frameIndex = Math.floor(flappyState.flapFrameIndex) % spriteMap.bird.length;
       const currentFrame = spriteMap.bird[frameIndex] || spriteMap.bird[0];
       if (!drawSprite(currentFrame, -birdSize / 2, -birdSize / 2, birdSize, birdSize)) {
@@ -851,20 +894,24 @@ export class ChatAppFeaturesMethods {
 
     const spawnFlappyPipe = () => {
       const groundHeight = getFlappyGroundHeight();
-      const minGapCenter = 120 + FLAPPY_PIPE_GAP / 2;
-      const maxGapCenter = flappyState.worldHeight - groundHeight - 80 - FLAPPY_PIPE_GAP / 2;
-      const range = Math.max(0, maxGapCenter - minGapCenter);
-      const gapCenter = minGapCenter + Math.random() * range;
+      const gapHeight = getFlappyPipeGap();
+      const playableHeight = flappyState.worldHeight - groundHeight;
+      const minGapCenter = 58 + gapHeight / 2;
+      const maxGapCenter = playableHeight - 58 - gapHeight / 2;
+      const gapCenter = maxGapCenter > minGapCenter
+        ? (minGapCenter + Math.random() * (maxGapCenter - minGapCenter))
+        : (playableHeight * 0.5);
       const pipe = {
         x: flappyState.worldWidth + FLAPPY_PIPE_WIDTH + 20,
         width: FLAPPY_PIPE_WIDTH,
         gapCenter,
+        gapHeight,
         passed: false,
         coin: null
       };
 
       if (Math.random() > 0.32) {
-        const coinSpread = FLAPPY_PIPE_GAP * 0.42;
+        const coinSpread = gapHeight * 0.42;
         pipe.coin = {
           x: pipe.x + FLAPPY_PIPE_WIDTH * 0.5,
           y: gapCenter + (Math.random() * 2 - 1) * coinSpread * 0.5,
@@ -873,6 +920,34 @@ export class ChatAppFeaturesMethods {
       }
 
       flappyState.pipes.push(pipe);
+    };
+
+    const buildFlappyPreviewPipes = () => {
+      const groundHeight = getFlappyGroundHeight();
+      const gapHeight = getFlappyPipeGap();
+      const laneCenter = Math.round((flappyState.worldHeight - groundHeight) * 0.5);
+      return [
+        {
+          x: Math.round(flappyState.worldWidth * 0.78),
+          width: FLAPPY_PIPE_WIDTH,
+          gapCenter: laneCenter - 34,
+          gapHeight,
+          passed: true,
+          coin: {
+            x: Math.round(flappyState.worldWidth * 0.78 + FLAPPY_PIPE_WIDTH * 0.5),
+            y: laneCenter - 16,
+            collected: false
+          }
+        },
+        {
+          x: Math.round(flappyState.worldWidth * 0.78 + 320),
+          width: FLAPPY_PIPE_WIDTH,
+          gapCenter: laneCenter + 24,
+          gapHeight,
+          passed: true,
+          coin: null
+        }
+      ];
     };
 
     const resetFlappyRound = () => {
@@ -885,7 +960,7 @@ export class ChatAppFeaturesMethods {
       flappyState.birdY = Math.round((flappyState.worldHeight - groundHeight) * 0.42);
       flappyState.birdVelocity = 0;
       flappyState.birdRotation = 0;
-      flappyState.pipes = [];
+      flappyState.pipes = buildFlappyPreviewPipes();
       flappyState.pipeSpawnTimer = 0.72;
       flappyState.lastTimestamp = performance.now();
       flappyState.flapFrame = 0;
@@ -985,8 +1060,9 @@ export class ChatAppFeaturesMethods {
           pipe.coin.x = pipe.x + pipe.width * 0.5;
         }
 
-        const topEnd = pipe.gapCenter - FLAPPY_PIPE_GAP / 2;
-        const bottomStart = pipe.gapCenter + FLAPPY_PIPE_GAP / 2;
+        const gapHeight = pipe.gapHeight || getFlappyPipeGap();
+        const topEnd = pipe.gapCenter - gapHeight / 2;
+        const bottomStart = pipe.gapCenter + gapHeight / 2;
         const topCollision = circleRectCollision(
           birdX,
           flappyState.birdY,
@@ -1017,7 +1093,7 @@ export class ChatAppFeaturesMethods {
         }
 
         if (pipe.coin && !pipe.coin.collected) {
-          const coinSize = Math.max(30, Math.round(flappyState.worldHeight * 0.078));
+          const coinSize = Math.max(26, Math.round(flappyState.worldHeight * 0.064));
           const dx = birdX - pipe.coin.x;
           const dy = flappyState.birdY - pipe.coin.y;
           const collisionDistance = birdRadius + coinSize * 0.38;
@@ -1025,6 +1101,7 @@ export class ChatAppFeaturesMethods {
             pipe.coin.collected = true;
             flappyState.coins += 1;
             addFlappyReward(coinReward);
+            playFlappyCoinSound();
           }
         }
       });
@@ -1053,6 +1130,8 @@ export class ChatAppFeaturesMethods {
         flappyStartBtn.textContent = 'Перезапуск';
       }
       setFlappyStatus('Лети вперед: клікай, торкайся або натискай Space для стрибка.');
+      flappyState.pipes = [];
+      flappyState.pipeSpawnTimer = 0.95;
       flappyState.rafId = window.requestAnimationFrame(stepFlappyOrion);
       this.flappyOrionAnimationFrame = flappyState.rafId;
     };
@@ -1214,7 +1293,7 @@ export class ChatAppFeaturesMethods {
         tile.textContent = value ? String(value) : '';
         if (!value) return;
 
-        const cappedClass = value <= 64 ? `value-${value}` : 'value-128';
+        const cappedClass = value <= 2048 ? `value-${value}` : 'value-2048';
         tile.classList.add(cappedClass);
         if (value >= 128) tile.classList.add('value-high');
         if (value >= 1024) tile.classList.add('value-super');
