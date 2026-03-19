@@ -2,6 +2,8 @@
 
 const orionValueAssetUrl = new URL('../Assets/Orion_value.png', import.meta.url).href;
 const flappyOrionSpriteAssetUrl = new URL('../Assets/Flappy-Orion-Sprite.png', import.meta.url).href;
+const orionDriveCarAssetUrl = new URL('../Assets/OrionDrive/Red-car.png', import.meta.url).href;
+const orionDriveConeAssetUrl = new URL('../Assets/OrionDrive/Cone.png', import.meta.url).href;
 
 export const settingsTemplates = {
   'profile': `
@@ -851,6 +853,43 @@ export const settingsTemplates = {
         <div class="mini-game-controls">
           <button class="btn btn-primary mini-game-btn" id="flappyOrionStart" type="button">Старт</button>
           <span class="mini-game-hint">Оминай труби та збирай Orion Value монети.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="mini-game-panel mini-game-view" data-mini-game-panel="drift">
+      <div class="mini-game-stage orion-drift-stage">
+        <div class="mini-game-canvas orion-drift-canvas-wrap" id="orionDriftCanvasWrap" aria-live="polite">
+          <canvas
+            class="orion-drift-canvas"
+            id="orionDriftCanvas"
+            data-car-src="${orionDriveCarAssetUrl}"
+            data-cone-src="${orionDriveConeAssetUrl}"
+            data-orb-src="${orionValueAssetUrl}"
+            width="900"
+            height="540"
+          ></canvas>
+
+          <div class="orion-drift-hud">
+            <div class="orion-drift-orbs">Сфери: <strong id="orionDriftOrbs">0</strong></div>
+            <div class="orion-drift-main">
+              <strong class="orion-drift-score" id="orionDriftScore">0</strong>
+              <span class="orion-drift-multiplier" id="orionDriftMultiplier">x1.0</span>
+              <span class="orion-drift-speed">Швидкість: <strong id="orionDriftSpeed">0</strong> км/год</span>
+              <span class="orion-drift-best">Рекорд: <strong id="orionDriftBest">0</strong></span>
+            </div>
+          </div>
+
+          <div class="orion-drift-boost">
+            <span class="orion-drift-boost-label">Прискорення</span>
+            <div class="orion-drift-boost-track">
+              <span class="orion-drift-boost-fill" id="orionDriftBoostFill"></span>
+            </div>
+          </div>
+
+          <p class="orion-drift-status" id="orionDriftStatus">Відкритий режим: катайся вільно. Керуй газом, гальмом і поворотом.</p>
+
+          <button class="orion-drift-start-overlay" id="orionDriftStart" type="button">Старт</button>
         </div>
       </div>
     </section>
