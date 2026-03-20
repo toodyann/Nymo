@@ -720,36 +720,6 @@ html.dark-theme .settings-subsection .settings-subsection-back {
   outline: none;
 }
 
-.settings-item-action {
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-  background: linear-gradient(
-    155deg,
-    rgba(255, 255, 255, 0.16),
-    rgba(255, 255, 255, 0.04)
-  );
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.1s ease;
-}
-
-.settings-item-action:active {
-  transform: scale(0.98);
-}
-
 .settings-item-action-select {
   min-width: 132px;
 }
@@ -2337,35 +2307,19 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 24px;
-  padding: 4px 10px;
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  min-height: 10px;
+  padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.profile-status-pill::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+  border: none;
   background: #22c55e;
-}
-
-.profile-status-pill[data-status="away"]::before {
-  background: #f59e0b;
-}
-
-.profile-status-pill[data-status="dnd"]::before {
-  background: #ef4444;
-}
-
-.profile-status-pill[data-status="offline"]::before {
-  background: #6b7280;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #22c55e 26%, transparent);
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+  overflow: hidden;
 }
 
 .profile-edit-inline {

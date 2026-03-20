@@ -634,7 +634,8 @@ export class ChatAppCoreMethods {
     if (profileName) profileName.textContent = this.user.name;
     if (profileHandle) profileHandle.textContent = handleValue;
     if (profileStatus) {
-      profileStatus.textContent = statusLabelMap[statusValue] || statusLabelMap.online;
+      profileStatus.textContent = '';
+      profileStatus.setAttribute('aria-label', statusLabelMap[statusValue] || statusLabelMap.online);
       profileStatus.dataset.status = statusValue || 'online';
     }
     if (profileBio) profileBio.textContent = this.user.bio || '';

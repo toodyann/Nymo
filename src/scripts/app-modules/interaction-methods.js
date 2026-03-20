@@ -152,7 +152,7 @@ export class ChatAppInteractionMethods {
             title: 'ОСНОВНЕ',
             items: [
               { label: 'Мій профіль', section: 'profile', parentSection: 'profile', icon: 'user' },
-              { label: 'Налаштування профілю', section: 'profile-settings', parentSection: 'profile', icon: 'gear' },
+              { label: 'Налаштування профілю', section: 'profile-settings', parentSection: 'profile', icon: 'profileSettings' },
               { label: 'Мої предмети', section: 'profile-items', parentSection: 'profile', icon: 'cube' }
             ]
           },
@@ -198,6 +198,7 @@ export class ChatAppInteractionMethods {
       sparkles: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg>',
       badge: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.27,47,25.53a8,8,0,0,0,4.2,0c1-.26,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0Z"></path></svg>',
       wallet: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M216,64H56a8,8,0,0,1,0-16H192a8,8,0,0,0,0-16H56A24,24,0,0,0,32,56V184a24,24,0,0,0,24,24H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm0,128H56a8,8,0,0,1-8-8V78.63A23.84,23.84,0,0,0,56,80H216Zm-48-60a12,12,0,1,1,12,12A12,12,0,0,1,168,132Z"></path></svg>',
+      profileSettings: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M144,157.68a68,68,0,1,0-71.9,0c-20.65,6.76-39.23,19.39-54.17,37.17a8,8,0,1,0,12.24,10.3C50.25,181.19,77.91,168,108,168s57.75,13.19,77.87,37.15a8,8,0,0,0,12.26-10.3C183.18,177.07,164.6,164.44,144,157.68ZM56,100a52,52,0,1,1,52,52A52.06,52.06,0,0,1,56,100Zm196.25,43.07-4.66-2.69a23.6,23.6,0,0,0,0-8.76l4.66-2.69a8,8,0,1,0-8-13.86l-4.67,2.7a23.92,23.92,0,0,0-7.58-4.39V108a8,8,0,0,0-16,0v5.38a23.92,23.92,0,0,0-7.58,4.39l-4.67-2.7a8,8,0,1,0-8,13.86l4.66,2.69a23.6,23.6,0,0,0,0,8.76l-4.66,2.69a8,8,0,0,0,8,13.86l4.67-2.7a23.92,23.92,0,0,0,7.58,4.39V164a8,8,0,0,0,16,0v-5.38a23.92,23.92,0,0,0,7.58-4.39l4.67,2.7a7.92,7.92,0,0,0,4,1.07,8,8,0,0,0,4-14.93ZM216,136a8,8,0,1,1,8,8A8,8,0,0,1,216,136Z"></path></svg>',
       code: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="m8 16-4-4 4-4M16 8l4 4-4 4M14 4l-4 16" stroke="currentColor" stroke-width="2"/></svg>'
     };
     return icons[iconName] || icons.gear;
@@ -1905,7 +1906,6 @@ export class ChatAppInteractionMethods {
     }
     
     this.renderChatsList();
-    this.renderChat();
     this.updateChatHeader();
     this.enforcePlainChatModalHeader();
     this.hideWelcomeScreen();
@@ -1936,6 +1936,7 @@ export class ChatAppInteractionMethods {
       }
     } catch (e) {
     }
+    this.renderChat();
     this.triggerChatEnterAnimation();
     this.applyMobileChatViewportLayout();
   }
@@ -2127,11 +2128,49 @@ export class ChatAppInteractionMethods {
     }
   }
 
+  syncDateSeparatorToChatInfo(messagesContainer = null) {
+    const container = messagesContainer || document.getElementById('messagesContainer');
+    if (!container) return;
+
+    container.style.setProperty('--date-separator-offset-x', '0px');
+    this.syncChatInfoToMessagesCenter(container);
+  }
+
+  syncChatInfoToMessagesCenter(messagesContainer = null) {
+    const container = messagesContainer || document.getElementById('messagesContainer');
+    if (!container) return;
+
+    const appInfo = document.getElementById('appChatInfo');
+    const modalInfo = document.getElementById('chatModalInfo');
+    const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
+    const infoEl = isMobileViewport ? modalInfo : appInfo;
+    if (!infoEl) return;
+
+    const infoRect = infoEl.getBoundingClientRect();
+    const infoStyles = window.getComputedStyle(infoEl);
+    const isInfoVisible = infoRect.width > 0
+      && infoRect.height > 0
+      && infoStyles.display !== 'none'
+      && infoStyles.visibility !== 'hidden'
+      && infoStyles.opacity !== '0';
+    if (!isInfoVisible) {
+      infoEl.style.setProperty('--app-chat-info-offset-x', '0px');
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const rawOffset = (containerRect.left + containerRect.width / 2) - (infoRect.left + infoRect.width / 2);
+    const maxOffset = Math.max(0, containerRect.width * 0.2);
+    const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, rawOffset));
+    infoEl.style.setProperty('--app-chat-info-offset-x', `${Math.round(clampedOffset)}px`);
+  }
+
   renderChat(highlightId = null) {
     if (typeof this.stopActiveVoicePlayback === 'function') {
       this.stopActiveVoicePlayback(true);
     }
     const messagesContainer = document.getElementById('messagesContainer');
+    this.syncDateSeparatorToChatInfo(messagesContainer);
     messagesContainer.innerHTML = '';
     messagesContainer.classList.remove('has-content');
     messagesContainer.classList.add('no-content');
@@ -2218,6 +2257,7 @@ export class ChatAppInteractionMethods {
     this.bindMessageContextMenu();
     this.initMessageImageTransitions(messagesContainer);
     this.initVoiceMessageElements(messagesContainer);
+    this.syncDateSeparatorToChatInfo(messagesContainer);
 
     // Auto-scroll to bottom
     setTimeout(() => {

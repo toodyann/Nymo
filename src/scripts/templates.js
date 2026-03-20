@@ -32,7 +32,7 @@ export const settingsTemplates = {
         </div>
         <div class="profile-handle-row">
           <p class="profile-handle" id="profileDisplayHandle">@orion.user</p>
-          <span class="profile-status-pill" id="profileDisplayStatus" data-status="online">Онлайн</span>
+          <span class="profile-status-pill" id="profileDisplayStatus" data-status="online" aria-label="Онлайн"></span>
         </div>
         <p class="profile-bio" id="profileDisplayBio">Вітаю!</p>
 
@@ -457,7 +457,7 @@ export const settingsTemplates = {
           <span>Дозвіл браузера</span>
           <p class="settings-item-desc" id="desktopNotificationState">Натисніть, щоб перевірити або надати доступ</p>
         </div>
-        <button type="button" class="settings-item-action" id="desktopNotificationActionBtn">Перевірити</button>
+        <button type="button" class="btn btn-secondary settings-item-action" id="desktopNotificationActionBtn">Перевірити</button>
       </div>
 
       <div class="settings-item">
@@ -582,7 +582,7 @@ export const settingsTemplates = {
           <span>Заблоковані користувачі</span>
           <p class="settings-item-desc" id="blockedUsersSummary">Список порожній</p>
         </div>
-        <button type="button" class="settings-item-action" id="manageBlockedUsersBtn">Керувати</button>
+        <button type="button" class="btn btn-secondary settings-item-action" id="manageBlockedUsersBtn">Керувати</button>
       </div>
 
       <div class="settings-item">

@@ -1470,7 +1470,7 @@
     position: absolute !important;
     left: 50% !important;
     top: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    transform: translate(calc(-50% + var(--app-chat-info-offset-x, 0px)), -50%) !important;
     margin: 0 !important;
     min-width: 0;
     max-width: calc(100% - 96px);

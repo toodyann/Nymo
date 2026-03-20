@@ -220,7 +220,7 @@ export class ChatAppFeaturesMethods {
         model.position.sub(center);
         box.setFromObject(model);
         model.position.y -= box.min.y;
-        model.rotation.y = Math.PI * 0.78;
+        model.rotation.y = Math.PI * 0.22;
         scene.add(model);
 
         renderer.render(scene, camera);
@@ -3717,6 +3717,7 @@ export class ChatAppFeaturesMethods {
     const inventory = new Set(this.loadShopInventory());
     const shopCatalog = [...this.getShopCatalog(), ...this.getOrionDriveCarCatalog()];
     const catalogById = new Map(shopCatalog.map(item => [item.id, item]));
+    const carPreviewCache = this.shopCarPreviewCache instanceof Map ? this.shopCarPreviewCache : new Map();
     const SELL_MULTIPLIER = 0.6;
     const PROFILE_ITEMS_VIEW_KEY = 'orionProfileItemsView';
     const normalizeView = (value) => (value === 'list' ? 'list' : 'cards');
@@ -3773,9 +3774,18 @@ export class ChatAppFeaturesMethods {
       }
 
       if (item.type === 'car') {
+        const cachedPreview = carPreviewCache.get(item.effect);
+        const previewSrc = cachedPreview || item.previewSrc;
+        const qualityClass = cachedPreview ? 'is-enhanced' : 'is-fallback';
         return `
           <div class="shop-item-preview-vehicle">
-            <img src="${item.previewSrc}" alt="${escapeHtml(item.title)}" loading="lazy" />
+            <img
+              class="shop-item-preview-vehicle-image ${qualityClass}"
+              src="${previewSrc}"
+              alt="${escapeHtml(item.title)}"
+              loading="lazy"
+              data-shop-car-effect="${this.escapeAttr(item.effect)}"
+            />
           </div>
         `;
       }

@@ -171,7 +171,9 @@ html:not(.dark-theme) .app-header {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% + var(--app-chat-info-offset-x, 0px)), -50%);
+  z-index: 32;
+  isolation: isolate;
   margin: 0 auto;
   padding: 6px 14px;
   border-radius: 14px;
