@@ -519,6 +519,12 @@ html.dark-theme .message.other .message-content {
     filter 0.2s ease;
 }
 
+.message-menu-focus-clone.is-scrollable {
+  pointer-events: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .message-menu-focus-clone.show {
   opacity: 1;
   transform: translateY(0) scale(1.01);

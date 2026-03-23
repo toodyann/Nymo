@@ -10,11 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const htmlContent = `<div class="orion-app">
   <header class="app-header">
     <div class="app-header-left">
-      <button class="btn-back" id="backBtn" aria-label="Назад">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-          <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
-        </svg>
-      </button>
       <div class="chat-brand">
         <img class="app-logo" src="${orionLogoAssetUrl}" alt="Orion" />
       </div>
@@ -218,11 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="chat-container" id="chatContainer">
       <div class="chat-modal-header">
         <div class="chat-modal-header-left">
-          <button class="btn-back" id="chatBackBtn" aria-label="Назад">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-              <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
-            </svg>
-          </button>
           <div class="app-chat-info" id="chatModalInfo">
             <div class="app-chat-avatar" id="chatModalAvatar"></div>
             <div class="app-chat-meta">
@@ -367,6 +357,17 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="messages-container" id="messagesContainer">
         <!-- Повідомлення будуть додаватися динамічно -->
       </div>
+      <button
+        type="button"
+        class="messages-scroll-bottom-btn"
+        id="messagesScrollBottomBtn"
+        aria-label="Прокрутити в кінець"
+        aria-hidden="true"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+          <path d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z"></path>
+        </svg>
+      </button>
 
       <!-- Поле введення повідомлення -->
       <div class="message-input-area">

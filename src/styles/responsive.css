@@ -1646,6 +1646,19 @@
     flex-shrink: 0;
   }
 
+  .messages-scroll-bottom-btn {
+    right: 12px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    width: 40px;
+    height: 40px;
+    z-index: 7;
+  }
+
+  .messages-scroll-bottom-btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
   .input-wrapper {
     gap: 8px;
     position: relative;
@@ -1678,6 +1691,10 @@
 
   .orion-app.keyboard-open .messages-container {
     padding-bottom: 4px;
+  }
+
+  .orion-app.keyboard-open .messages-scroll-bottom-btn {
+    bottom: calc(82px + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px));
   }
 
   .orion-app.keyboard-open .profile-menu-wrapper {

@@ -164,6 +164,11 @@ html:not(.dark-theme) .app-header {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  background: transparent !important;
+}
+
+.app-header-right {
+  background: transparent !important;
 }
 
 .orion-app.chat-open #appChatInfo,
@@ -178,7 +183,7 @@ html:not(.dark-theme) .app-header {
   padding: 6px 14px;
   border-radius: 14px;
   border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  background: transparent !important;
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -188,7 +193,7 @@ html:not(.dark-theme) .app-header {
 
 html:not(.dark-theme) .orion-app.chat-open #appChatInfo,
 html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
-  background: var(--surface-soft);
+  background: transparent !important;
   border-color: var(--border-color);
   box-shadow:
     0 10px 24px rgba(15, 19, 32, 0.12),
@@ -252,6 +257,11 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
   transform: translateY(-50%);
   gap: 12px;
   margin: 0;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .orion-app.chat-open .app-header-left,
@@ -658,6 +668,7 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
   min-height: 0;
   overflow: hidden;
   height: 100%;
+  position: relative;
 }
 
 .chat-modal-header {
@@ -872,6 +883,48 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
 }
 
 .messages-container.no-content::before {
+  display: none;
+}
+
+.messages-scroll-bottom-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 78px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  z-index: 8;
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.22s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.messages-scroll-bottom-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.messages-scroll-bottom-btn.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#messagesContainer:not(.has-content) + .messages-scroll-bottom-btn {
   display: none;
 }
 

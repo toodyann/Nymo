@@ -14,7 +14,6 @@ export class ChatAppInteractionMethods {
 
     const styleTargets = [
       header,
-      header.querySelector('#chatBackBtn'),
       header.querySelector('#chatModalInfo'),
       header.querySelector('#chatModalMenuBtn'),
       ...header.querySelectorAll('.chat-modal-header-right .btn-icon')
@@ -699,6 +698,7 @@ export class ChatAppInteractionMethods {
         this.sendMessage();
       });
     }
+    this.setupMessagesScrollBottomButton();
     const attachBtn = document.querySelector('.btn-attach');
     const galleryPickerInput = document.getElementById('galleryPickerInput');
     const cameraPickerInput = document.getElementById('cameraPickerInput');
@@ -765,27 +765,6 @@ export class ChatAppInteractionMethods {
     this.setupVoiceMessageEvents();
 
     document.getElementById('searchInput').addEventListener('input', (e) => this.filterChats(e.target.value));
-
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        if (this.isContactProfileSectionActive()) {
-          this.closeContactProfileSection();
-          return;
-        }
-        this.closeChat();
-      });
-    }
-    const chatBackBtn = document.getElementById('chatBackBtn');
-    if (chatBackBtn) {
-      chatBackBtn.addEventListener('click', () => {
-        if (this.isContactProfileSectionActive()) {
-          this.closeContactProfileSection();
-          return;
-        }
-        this.closeChat();
-      });
-    }
 
     document.getElementById('newContactInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -1276,6 +1255,46 @@ export class ChatAppInteractionMethods {
     insertAtCursor(input, text);
   }
 
+  isMessagesNearBottom(messagesEl, threshold = 80) {
+    if (!messagesEl) return false;
+    const remaining = messagesEl.scrollHeight - messagesEl.clientHeight - messagesEl.scrollTop;
+    return remaining <= threshold;
+  }
+
+  updateMessagesScrollBottomButtonVisibility() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    const scrollBottomBtn = document.getElementById('messagesScrollBottomBtn');
+    if (!messagesContainer || !scrollBottomBtn) return;
+
+    const hasContent = messagesContainer.classList.contains('has-content')
+      && messagesContainer.scrollHeight > messagesContainer.clientHeight + 8;
+    const shouldShow = Boolean(
+      this.currentChat
+      && hasContent
+      && !this.isMessagesNearBottom(messagesContainer, 72)
+    );
+
+    scrollBottomBtn.classList.toggle('active', shouldShow);
+    scrollBottomBtn.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+  }
+
+  setupMessagesScrollBottomButton() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    const scrollBottomBtn = document.getElementById('messagesScrollBottomBtn');
+    if (!messagesContainer || !scrollBottomBtn) return;
+
+    if (scrollBottomBtn.dataset.ready !== 'true') {
+      scrollBottomBtn.dataset.ready = 'true';
+      messagesContainer.addEventListener('scroll', () => this.updateMessagesScrollBottomButtonVisibility(), { passive: true });
+      scrollBottomBtn.addEventListener('click', () => {
+        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+        window.setTimeout(() => this.updateMessagesScrollBottomButtonVisibility(), 260);
+      });
+    }
+
+    this.updateMessagesScrollBottomButtonVisibility();
+  }
+
   resizeMessageInput(inputEl = null) {
     const input = inputEl || document.getElementById('messageInput');
     if (!input) return;
@@ -1348,7 +1367,7 @@ export class ChatAppInteractionMethods {
       document.body.scrollTop = 0;
 
       const messages = document.getElementById('messagesContainer');
-      if (messages) {
+      if (messages && this.isMessagesNearBottom(messages, 96)) {
         messages.scrollTop = messages.scrollHeight;
       }
     }
@@ -1464,7 +1483,7 @@ export class ChatAppInteractionMethods {
     inputArea.style.setProperty('bottom', '0');
     appEl.style.setProperty('--keyboard-inset', `${keyboardHeight}px`);
 
-    if (keyboardHeight > 0 && messages) {
+    if (keyboardHeight > 0 && messages && this.isMessagesNearBottom(messages, 96)) {
       messages.scrollTop = messages.scrollHeight;
     }
   }
@@ -1476,11 +1495,17 @@ export class ChatAppInteractionMethods {
     const appEl = document.querySelector('.orion-app');
 
     const updateHeight = () => {
-      this.resizeMessageInput(inputEl);
       const messages = document.getElementById('messagesContainer');
-      if (messages && this.currentChat) {
+      const keepPinnedToBottom = Boolean(
+        messages
+        && this.currentChat
+        && this.isMessagesNearBottom(messages, 80)
+      );
+      this.resizeMessageInput(inputEl);
+      if (messages && this.currentChat && keepPinnedToBottom) {
         messages.scrollTop = messages.scrollHeight;
       }
+      this.updateMessagesScrollBottomButtonVisibility();
     };
 
     inputEl.addEventListener('input', updateHeight);
@@ -1507,7 +1532,9 @@ export class ChatAppInteractionMethods {
       this.closeAttachSheet();
       this.setMobilePageScrollLock(true, true);
       const messages = document.getElementById('messagesContainer');
-      if (messages) messages.scrollTop = messages.scrollHeight;
+      if (messages && this.isMessagesNearBottom(messages, 96)) {
+        messages.scrollTop = messages.scrollHeight;
+      }
     };
     inputEl.addEventListener('touchstart', (event) => {
       if (window.innerWidth > 900) return;
@@ -2188,6 +2215,7 @@ export class ChatAppInteractionMethods {
     messagesContainer.innerHTML = '';
     messagesContainer.classList.remove('has-content');
     messagesContainer.classList.add('no-content');
+    this.updateMessagesScrollBottomButtonVisibility();
 
     if (!this.currentChat) return;
 
@@ -2200,6 +2228,7 @@ export class ChatAppInteractionMethods {
         <div class="chat-empty-subtitle">Напишіть перше повідомлення у цей чат</div>
       `;
       messagesContainer.appendChild(emptyEl);
+      this.updateMessagesScrollBottomButtonVisibility();
       return;
     }
 
@@ -2276,6 +2305,7 @@ export class ChatAppInteractionMethods {
     // Auto-scroll to bottom
     setTimeout(() => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      this.updateMessagesScrollBottomButtonVisibility();
     }, 0);
   }
 
@@ -2295,6 +2325,7 @@ export class ChatAppInteractionMethods {
     let focusedMessageSource = null;
     let activeMenuMessageId = null;
     let menuCloseTimer = null;
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
     const clearFocusedMessage = () => {
       if (focusedMessageSource) {
@@ -2308,25 +2339,72 @@ export class ChatAppInteractionMethods {
       activeMenuMessageId = null;
     };
 
-    const focusMessageAboveOverlay = (messageEl) => {
+    const focusMessageAboveOverlay = (messageEl, reservedMenuHeight = 0) => {
       clearFocusedMessage();
       if (!messageEl) return;
 
       const rect = messageEl.getBoundingClientRect();
+      const viewportPadding = 8;
+      const menuReserve = Math.max(0, Number(reservedMenuHeight) || 0);
+      const maxCloneHeight = Math.max(
+        140,
+        window.innerHeight - viewportPadding * 2 - menuReserve - 8
+      );
+      const cloneWidth = Math.min(rect.width, Math.max(120, window.innerWidth - viewportPadding * 2));
+      const left = clamp(rect.left, viewportPadding, window.innerWidth - cloneWidth - viewportPadding);
       const clone = messageEl.cloneNode(true);
       clone.classList.add('message-menu-focus-clone');
       clone.classList.remove('longpress-pulse');
-      clone.style.left = `${rect.left}px`;
-      clone.style.top = `${rect.top}px`;
-      clone.style.width = `${rect.width}px`;
+      clone.style.left = `${Math.round(left)}px`;
+      clone.style.top = `${Math.round(rect.top)}px`;
+      clone.style.width = `${Math.round(cloneWidth)}px`;
 
       focusedMessageSource = messageEl;
       focusedMessageSource.style.visibility = 'hidden';
       focusedMessageClone = clone;
       document.body.appendChild(clone);
+
+      let cloneHeight = clone.getBoundingClientRect().height;
+      if (cloneHeight > maxCloneHeight) {
+        clone.classList.add('is-scrollable');
+        clone.style.maxHeight = `${Math.round(maxCloneHeight)}px`;
+        clone.style.overflowY = 'auto';
+        clone.style.overflowX = 'hidden';
+        clone.scrollTop = 0;
+        cloneHeight = maxCloneHeight;
+      }
+
+      const top = clamp(rect.top, viewportPadding, window.innerHeight - cloneHeight - viewportPadding);
+      clone.style.top = `${Math.round(top)}px`;
+
       window.requestAnimationFrame(() => {
         if (focusedMessageClone) focusedMessageClone.classList.add('show');
       });
+    };
+
+    const ensureMessageVisibleForMenu = (messageEl) => {
+      if (!messageEl) return;
+      const containerRect = messagesContainer.getBoundingClientRect();
+      if (!containerRect.height) return;
+
+      const inset = 12;
+      const viewTop = containerRect.top + inset;
+      const viewBottom = containerRect.bottom - inset;
+      const rect = messageEl.getBoundingClientRect();
+      const maxVisibleHeight = Math.max(120, viewBottom - viewTop);
+
+      let delta = 0;
+      if (rect.height > maxVisibleHeight) {
+        delta = rect.top - viewTop;
+      } else if (rect.top < viewTop) {
+        delta = rect.top - viewTop;
+      } else if (rect.bottom > viewBottom) {
+        delta = rect.bottom - viewBottom;
+      }
+
+      if (Math.abs(delta) > 0.5) {
+        messagesContainer.scrollTop += delta;
+      }
     };
 
     const finishCloseMenu = () => {
@@ -2388,6 +2466,7 @@ export class ChatAppInteractionMethods {
         return;
       }
 
+      ensureMessageVisibleForMenu(messageEl);
       closeMenu(true);
       const from = messageEl.dataset.from;
       const text = messageEl.dataset.text || '';
@@ -2409,7 +2488,9 @@ export class ChatAppInteractionMethods {
 
       menu.style.left = '0px';
       menu.style.top = '0px';
-      focusMessageAboveOverlay(messageEl);
+      const menuProbeRect = menu.getBoundingClientRect();
+      const reservedMenuHeight = menuProbeRect.height > 0 ? menuProbeRect.height : 220;
+      focusMessageAboveOverlay(messageEl, reservedMenuHeight);
       backdrop.classList.remove('is-closing');
       backdrop.classList.add('active');
       backdrop.setAttribute('aria-hidden', 'false');
@@ -2418,7 +2499,7 @@ export class ChatAppInteractionMethods {
       menu.setAttribute('aria-hidden', 'false');
 
       const menuRect = menu.getBoundingClientRect();
-      const msgRect = messageEl.getBoundingClientRect();
+      const msgRect = (focusedMessageClone || messageEl).getBoundingClientRect();
       const desiredX = from === 'own'
         ? msgRect.right - menuRect.width
         : msgRect.left;
@@ -3087,6 +3168,7 @@ export class ChatAppInteractionMethods {
     messagesContainer.innerHTML = '';
     messagesContainer.classList.remove('has-content');
     messagesContainer.classList.add('no-content');
+    this.updateMessagesScrollBottomButtonVisibility();
   }
 
 }
