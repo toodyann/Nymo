@@ -2201,8 +2201,15 @@ export class ChatAppInteractionMethods {
 
     const containerRect = container.getBoundingClientRect();
     const rawOffset = (containerRect.left + containerRect.width / 2) - (infoRect.left + infoRect.width / 2);
+    const currentOffset = Number.parseFloat(
+      infoEl.style.getPropertyValue('--app-chat-info-offset-x')
+      || infoStyles.getPropertyValue('--app-chat-info-offset-x')
+      || '0'
+    );
+    const baseOffset = Number.isFinite(currentOffset) ? currentOffset : 0;
+    const nextOffset = baseOffset + rawOffset;
     const maxOffset = Math.max(0, containerRect.width * 0.2);
-    const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, rawOffset));
+    const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, nextOffset));
     infoEl.style.setProperty('--app-chat-info-offset-x', `${Math.round(clampedOffset)}px`);
   }
 
