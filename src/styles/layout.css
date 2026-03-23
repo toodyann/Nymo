@@ -925,7 +925,8 @@ html:not(.dark-theme) .orion-app.chat-active #appChatInfo {
     max-height: 132px;
     padding: 5px 12px;
     line-height: 18px;
-    overflow-y: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     transition:
       border-color 0.2s ease,
       box-shadow 0.2s ease;

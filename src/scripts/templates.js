@@ -52,12 +52,6 @@ export const settingsTemplates = {
           </div>
         </div>
         <div class="profile-hero-actions">
-          <button class="profile-action-btn" id="profileEditMainBtn" aria-label="Редагувати профіль">
-            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152a15.86,15.86,0,0,0-4.51,8.64L24.27,204.1a8,8,0,0,0,9.31,9.31l43.46-7.91a15.86,15.86,0,0,0,8.64-4.51L209,77.69A16,16,0,0,0,227.31,73.37ZM72,188.29,42.93,193.6,48.24,164.5l88.82-88.83,23.79,23.79Zm100.17-100.17L148.37,64.34,171.31,41.4l23.79,23.79Z"></path>
-            </svg>
-            <span>Редагувати</span>
-          </button>
           <button class="profile-action-btn" id="profileMyItemsBtn" aria-label="Мої предмети">
             <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
               <path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"></path>
@@ -122,7 +116,7 @@ export const settingsTemplates = {
             </svg>
           </span>
           <span class="settings-menu-label">
-            <span>Приватність</span>
+            <span>Конфіденційність</span>
           </span>
           <span class="settings-menu-arrow">›</span>
         </button>
@@ -353,6 +347,7 @@ export const settingsTemplates = {
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="motion">Анімація</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="badge">Значки</button>
                 <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="car">Авто Orion Drive</button>
+                <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="smoke">Дим Orion Drive</button>
 	            </div>
 	          </div>
 

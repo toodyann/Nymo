@@ -3231,6 +3231,163 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   image-rendering: auto;
 }
 
+.shop-item-preview-smoke {
+  position: relative;
+  width: min(100%, 160px);
+  min-height: 104px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background:
+    radial-gradient(
+      circle at 50% 105%,
+      color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 24%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      circle at 14% 18%,
+      color-mix(in srgb, var(--shop-smoke-accent, #ffffff) 16%, transparent) 0%,
+      transparent 42%
+    ),
+    radial-gradient(circle at 78% 10%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-soft) 96%, transparent) 0%,
+      color-mix(in srgb, var(--bg-color) 88%, transparent) 100%
+    );
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shop-item-preview-smoke::before {
+  content: "";
+  position: absolute;
+  inset: auto -18px -18px -18px;
+  height: 62px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 46%, transparent) 0%,
+      transparent 72%
+    );
+  filter: blur(10px);
+  opacity: 0.62;
+}
+
+.shop-item-preview-smoke::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    transparent 36%,
+    transparent 72%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+.shop-item-preview-smoke-aura {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 126px;
+  height: 54px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--shop-smoke-accent, #ffffff) 42%, transparent) 0%,
+    color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 30%, transparent) 48%,
+    transparent 100%
+  );
+  filter: blur(12px);
+  opacity: 0.84;
+  z-index: 1;
+}
+
+.shop-item-preview-smoke-puff {
+  position: absolute;
+  display: block;
+  z-index: 2;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 36% 34%,
+      color-mix(in srgb, var(--shop-smoke-accent, #ffffff) 72%, var(--shop-smoke-color, #aeb7c4) 28%) 0%,
+      color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 74%, transparent) 56%,
+      transparent 100%
+    );
+  filter: blur(0.8px);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+  animation: smokePreviewFloat 5.8s ease-in-out infinite;
+}
+
+.shop-item-preview-smoke-puff.puff-1 {
+  left: 20px;
+  bottom: 16px;
+  width: 44px;
+  height: 32px;
+  opacity: 0.78;
+  animation-delay: -1.1s;
+}
+
+.shop-item-preview-smoke-puff.puff-2 {
+  left: 48px;
+  bottom: 28px;
+  width: 50px;
+  height: 36px;
+  opacity: 0.7;
+  animation-delay: -2.6s;
+}
+
+.shop-item-preview-smoke-puff.puff-3 {
+  left: 86px;
+  bottom: 18px;
+  width: 40px;
+  height: 30px;
+  opacity: 0.66;
+  animation-delay: -0.4s;
+}
+
+.shop-item-preview-smoke-puff.puff-4 {
+  left: 74px;
+  bottom: 44px;
+  width: 56px;
+  height: 40px;
+  opacity: 0.58;
+  animation-delay: -3.4s;
+}
+
+.shop-item-preview-smoke-puff.puff-5 {
+  left: 34px;
+  bottom: 52px;
+  width: 46px;
+  height: 34px;
+  opacity: 0.5;
+  animation-delay: -4.2s;
+}
+
+@keyframes smokePreviewFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.98);
+  }
+  25% {
+    transform: translate3d(2px, -3px, 0) scale(1.01);
+  }
+  50% {
+    transform: translate3d(3px, -7px, 0) scale(1.05);
+  }
+  75% {
+    transform: translate3d(1px, -4px, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.98);
+  }
+}
+
 .shop-item-preview-avatar {
   width: 68px;
   height: 68px;

@@ -67,9 +67,101 @@ const ORION_DRIVE_SHOP_CARS = [
   }
 ];
 
+const ORION_DRIVE_SMOKE_DEFAULT = {
+  id: 'smoke_default',
+  type: 'smoke',
+  effect: '',
+  title: 'Stock Smoke',
+  description: 'Базовий сірий дим Orion Drive.',
+  price: 0,
+  wheelColorHex: 0xaeb7c4,
+  exhaustColorHex: 0xc5ccd8,
+  burnoutColorHex: 0xdee5f0,
+  previewColor: '#aeb7c4',
+  previewAccent: '#dee5f0'
+};
+
+const ORION_DRIVE_SHOP_SMOKE_COLORS = [
+  {
+    id: 'smoke_ice',
+    type: 'smoke',
+    effect: 'ice',
+    title: 'Ice Mist',
+    description: 'Холодний блакитний шлейф для чистого ковзання.',
+    price: 520,
+    wheelColorHex: 0x82d8ff,
+    exhaustColorHex: 0xb4eaff,
+    burnoutColorHex: 0xe0f7ff,
+    previewColor: '#82d8ff',
+    previewAccent: '#e0f7ff'
+  },
+  {
+    id: 'smoke_neon',
+    type: 'smoke',
+    effect: 'neon',
+    title: 'Neon Pulse',
+    description: 'Неоновий бірюзовий дим у стилі нічного міста.',
+    price: 640,
+    wheelColorHex: 0x3df2d0,
+    exhaustColorHex: 0x7afbe4,
+    burnoutColorHex: 0xc8fff3,
+    previewColor: '#3df2d0',
+    previewAccent: '#c8fff3'
+  },
+  {
+    id: 'smoke_magenta',
+    type: 'smoke',
+    effect: 'magenta',
+    title: 'Magenta Flow',
+    description: 'Яскравий рожево-фіолетовий шлейф для ефектних заїздів.',
+    price: 760,
+    wheelColorHex: 0xf472dd,
+    exhaustColorHex: 0xf8a3ea,
+    burnoutColorHex: 0xffddf8,
+    previewColor: '#f472dd',
+    previewAccent: '#ffddf8'
+  },
+  {
+    id: 'smoke_amber',
+    type: 'smoke',
+    effect: 'amber',
+    title: 'Amber Burn',
+    description: 'Теплий бурштиновий дим із виразним glow-ефектом.',
+    price: 880,
+    wheelColorHex: 0xffb347,
+    exhaustColorHex: 0xffca77,
+    burnoutColorHex: 0xffe2ad,
+    previewColor: '#ffb347',
+    previewAccent: '#ffe2ad'
+  },
+  {
+    id: 'smoke_toxic',
+    type: 'smoke',
+    effect: 'toxic',
+    title: 'Toxic Lime',
+    description: 'Кислотний лаймовий дим для агресивного стилю їзди.',
+    price: 980,
+    wheelColorHex: 0x98ff5a,
+    exhaustColorHex: 0xbdff87,
+    burnoutColorHex: 0xe4ffc8,
+    previewColor: '#98ff5a',
+    previewAccent: '#e4ffc8'
+  }
+];
+
 export class ChatAppFeaturesMethods {
   getOrionDriveCarCatalog() {
     return ORION_DRIVE_SHOP_CARS.map((item) => ({ ...item }));
+  }
+
+  getOrionDriveSmokeCatalog() {
+    return ORION_DRIVE_SHOP_SMOKE_COLORS.map((item) => ({ ...item }));
+  }
+
+  getOrionDriveSmokeDefinition(effect = '') {
+    const match = ORION_DRIVE_SHOP_SMOKE_COLORS.find((item) => item.effect === effect);
+    if (match) return { ...match };
+    return { ...ORION_DRIVE_SMOKE_DEFAULT };
   }
 
   getOrionDriveCarAssetSrc(effect = '') {
@@ -99,7 +191,11 @@ export class ChatAppFeaturesMethods {
     if (!balanceEl || !gridEl || !shopContentEl) return;
 
     const inventory = new Set(this.loadShopInventory());
-    const catalog = [...this.getShopCatalog(), ...this.getOrionDriveCarCatalog()];
+    const catalog = [
+      ...this.getShopCatalog(),
+      ...this.getOrionDriveCarCatalog(),
+      ...this.getOrionDriveSmokeCatalog()
+    ];
     const catalogById = new Map(catalog.map((item) => [item.id, item]));
     const minCatalogPrice = Math.min(...catalog.map(item => item.price));
     const maxCatalogPrice = Math.max(...catalog.map(item => item.price));
@@ -111,7 +207,7 @@ export class ChatAppFeaturesMethods {
       minPrice: minCatalogPrice,
       maxPrice: maxCatalogPrice
     };
-    const presetCategory = ['all', 'frame', 'aura', 'motion', 'badge', 'car'].includes(this.pendingShopCategory)
+    const presetCategory = ['all', 'frame', 'aura', 'motion', 'badge', 'car', 'smoke'].includes(this.pendingShopCategory)
       ? this.pendingShopCategory
       : null;
     if (presetCategory) {
@@ -303,6 +399,22 @@ export class ChatAppFeaturesMethods {
         `;
       }
 
+      if (item.type === 'smoke') {
+        return `
+          <div
+            class="shop-item-preview-smoke"
+            style="--shop-smoke-color: ${this.escapeAttr(item.previewColor || '#aeb7c4')}; --shop-smoke-accent: ${this.escapeAttr(item.previewAccent || '#dee5f0')};"
+          >
+            <span class="shop-item-preview-smoke-aura" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-1" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-2" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-3" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-4" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-5" aria-hidden="true"></span>
+          </div>
+        `;
+      }
+
       return `
         <div class="shop-item-preview-card" ${item.type === 'motion' ? `data-profile-motion="${item.effect}"` : `data-profile-aura="${item.effect}"`}>
           <div class="shop-item-preview-card-line primary"></div>
@@ -318,6 +430,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
       if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
       if (item.type === 'car') return this.user?.equippedDriveCar === item.effect;
+      if (item.type === 'smoke') return this.user?.equippedDriveSmokeColor === item.effect;
       return false;
     };
 
@@ -327,6 +440,7 @@ export class ChatAppFeaturesMethods {
       if (type === 'motion') return 'Анімація';
       if (type === 'badge') return 'Значок';
       if (type === 'car') return 'Авто Orion Drive';
+      if (type === 'smoke') return 'Дим Orion Drive';
       return 'Предмет';
     };
 
@@ -337,6 +451,7 @@ export class ChatAppFeaturesMethods {
       if (filterState.category === 'motion') parts.push('Анімація');
       if (filterState.category === 'badge') parts.push('Значки');
       if (filterState.category === 'car') parts.push('Авто Orion Drive');
+      if (filterState.category === 'smoke') parts.push('Дим Orion Drive');
       if (filterState.ownership === 'owned') parts.push('Куплені');
       if (filterState.ownership === 'unowned') parts.push('Не куплені');
       if (filterState.availability === 'equipped') parts.push('Встановлені');
@@ -595,6 +710,8 @@ export class ChatAppFeaturesMethods {
         this.user.equippedProfileBadge = this.user.equippedProfileBadge === item.effect ? '' : item.effect;
       } else if (item.type === 'car') {
         this.user.equippedDriveCar = this.user.equippedDriveCar === item.effect ? '' : item.effect;
+      } else if (item.type === 'smoke') {
+        this.user.equippedDriveSmokeColor = this.user.equippedDriveSmokeColor === item.effect ? '' : item.effect;
       }
 
       this.saveUserProfile({
@@ -603,7 +720,8 @@ export class ChatAppFeaturesMethods {
         equippedProfileAura: this.user.equippedProfileAura || '',
         equippedProfileMotion: this.user.equippedProfileMotion || '',
         equippedProfileBadge: this.user.equippedProfileBadge || '',
-        equippedDriveCar: this.user.equippedDriveCar || ''
+        equippedDriveCar: this.user.equippedDriveCar || '',
+        equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
       });
       this.syncProfileCosmetics();
       renderShop();
@@ -1712,6 +1830,7 @@ export class ChatAppFeaturesMethods {
     };
 
     const addDriftExhaustPuff = (x, y, angle, strength = 0.2, speedAbs = 0) => {
+      const smokeStyle = this.getOrionDriveSmokeDefinition(this.user?.equippedDriveSmokeColor || '');
       driftState.exhaustIdSeed = (driftState.exhaustIdSeed + 1) % 1_000_000_000;
       const backDrift = 0.24 + speedAbs * 0.016 + strength * 0.52;
       const spread = 0.26 + strength * 0.42;
@@ -1729,6 +1848,7 @@ export class ChatAppFeaturesMethods {
         rise: 0.028 + Math.random() * 0.03 + strength * 0.02,
         size: 3.2 + Math.random() * 1.6 + strength * 1.8,
         opacity: 0.045 + strength * 0.07,
+        colorHex: smokeStyle.exhaustColorHex,
         life: 0.72 + Math.random() * 0.42 + strength * 0.24,
         maxLife: 1
       });
@@ -1740,6 +1860,7 @@ export class ChatAppFeaturesMethods {
     };
 
     const addDriftWheelSmokePuff = (x, y, angle, strength = 0.45, speedAbs = 0, burnout = false) => {
+      const smokeStyle = this.getOrionDriveSmokeDefinition(this.user?.equippedDriveSmokeColor || '');
       driftState.wheelSmokeIdSeed = (driftState.wheelSmokeIdSeed + 1) % 1_000_000_000;
       const forwardX = Math.sin(angle);
       const forwardY = -Math.cos(angle);
@@ -1758,6 +1879,9 @@ export class ChatAppFeaturesMethods {
         rise: 0.1 + Math.random() * 0.08 + strength * 0.1 + (burnout ? 0.06 : 0),
         size: 4.8 + Math.random() * 2.2 + strength * 2.8 + (burnout ? 2.1 : 0),
         opacity: 0.16 + strength * 0.18 + (burnout ? 0.08 : 0),
+        colorHex: burnout
+          ? (smokeStyle.burnoutColorHex || smokeStyle.wheelColorHex)
+          : smokeStyle.wheelColorHex,
         life: 0.5 + Math.random() * 0.28 + strength * 0.28 + (burnout ? 0.12 : 0),
         maxLife: 1
       });
@@ -1853,9 +1977,9 @@ export class ChatAppFeaturesMethods {
         const ctx = textureCanvas.getContext('2d');
         if (ctx) {
           const gradient = ctx.createRadialGradient(48, 48, 6, 48, 48, 46);
-          gradient.addColorStop(0, 'rgba(178, 184, 194, 0.28)');
-          gradient.addColorStop(0.44, 'rgba(156, 164, 176, 0.18)');
-          gradient.addColorStop(1, 'rgba(132, 140, 152, 0)');
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 0.58)');
+          gradient.addColorStop(0.44, 'rgba(255, 255, 255, 0.36)');
+          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, 96, 96);
         }
@@ -1868,6 +1992,7 @@ export class ChatAppFeaturesMethods {
       if (!drift3d.exhaustMaterial) {
         drift3d.exhaustMaterial = new THREE.SpriteMaterial({
           map: drift3d.exhaustTexture,
+          color: 0xffffff,
           transparent: true,
           opacity: 0.16,
           depthWrite: false
@@ -1887,9 +2012,9 @@ export class ChatAppFeaturesMethods {
         const ctx = textureCanvas.getContext('2d');
         if (ctx) {
           const gradient = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
-          gradient.addColorStop(0, 'rgba(168, 174, 186, 0.48)');
-          gradient.addColorStop(0.42, 'rgba(126, 134, 148, 0.26)');
-          gradient.addColorStop(1, 'rgba(94, 102, 116, 0)');
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 0.68)');
+          gradient.addColorStop(0.42, 'rgba(255, 255, 255, 0.38)');
+          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, 128, 128);
         }
@@ -1902,6 +2027,7 @@ export class ChatAppFeaturesMethods {
       if (!drift3d.wheelSmokeMaterial) {
         drift3d.wheelSmokeMaterial = new THREE.SpriteMaterial({
           map: drift3d.wheelSmokeTexture,
+          color: 0xffffff,
           transparent: true,
           opacity: 0.26,
           depthWrite: false
@@ -2168,6 +2294,9 @@ export class ChatAppFeaturesMethods {
         exhaustObject.position.set(sceneX, puff.height, sceneZ);
         exhaustObject.scale.set(scale, scale, 1);
         if (exhaustObject.material?.isMaterial) {
+          exhaustObject.material.color.setHex(
+            Number.isFinite(puff.colorHex) ? puff.colorHex : ORION_DRIVE_SMOKE_DEFAULT.exhaustColorHex
+          );
           exhaustObject.material.opacity = Math.max(
             0,
             Math.min(0.2, puff.opacity * fade * (isDarkTheme ? 1 : 0.75))
@@ -2197,6 +2326,9 @@ export class ChatAppFeaturesMethods {
         smokeObject.position.set(sceneX, puff.height, sceneZ);
         smokeObject.scale.set(scale, scale, 1);
         if (smokeObject.material?.isMaterial) {
+          smokeObject.material.color.setHex(
+            Number.isFinite(puff.colorHex) ? puff.colorHex : ORION_DRIVE_SMOKE_DEFAULT.wheelColorHex
+          );
           smokeObject.material.opacity = Math.max(
             0,
             Math.min(0.36, puff.opacity * fade * (isDarkTheme ? 1 : 0.72))
@@ -3715,7 +3847,11 @@ export class ChatAppFeaturesMethods {
     if (!balanceEl || !itemsCountEl || !gridEl) return;
 
     const inventory = new Set(this.loadShopInventory());
-    const shopCatalog = [...this.getShopCatalog(), ...this.getOrionDriveCarCatalog()];
+    const shopCatalog = [
+      ...this.getShopCatalog(),
+      ...this.getOrionDriveCarCatalog(),
+      ...this.getOrionDriveSmokeCatalog()
+    ];
     const catalogById = new Map(shopCatalog.map(item => [item.id, item]));
     const carPreviewCache = this.shopCarPreviewCache instanceof Map ? this.shopCarPreviewCache : new Map();
     const SELL_MULTIPLIER = 0.6;
@@ -3752,6 +3888,7 @@ export class ChatAppFeaturesMethods {
       if (type === 'motion') return 'Анімація';
       if (type === 'badge') return 'Бейдж';
       if (type === 'car') return 'Авто Orion Drive';
+      if (type === 'smoke') return 'Дим Orion Drive';
       return 'Предмет';
     };
 
@@ -3790,6 +3927,22 @@ export class ChatAppFeaturesMethods {
         `;
       }
 
+      if (item.type === 'smoke') {
+        return `
+          <div
+            class="shop-item-preview-smoke"
+            style="--shop-smoke-color: ${this.escapeAttr(item.previewColor || '#aeb7c4')}; --shop-smoke-accent: ${this.escapeAttr(item.previewAccent || '#dee5f0')};"
+          >
+            <span class="shop-item-preview-smoke-aura" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-1" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-2" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-3" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-4" aria-hidden="true"></span>
+            <span class="shop-item-preview-smoke-puff puff-5" aria-hidden="true"></span>
+          </div>
+        `;
+      }
+
       return `
         <div class="shop-item-preview-card" ${item.type === 'motion' ? `data-profile-motion="${item.effect}"` : `data-profile-aura="${item.effect}"`}>
           <div class="shop-item-preview-card-line primary"></div>
@@ -3805,6 +3958,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
       if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
       if (item.type === 'car') return this.user?.equippedDriveCar === item.effect;
+      if (item.type === 'smoke') return this.user?.equippedDriveSmokeColor === item.effect;
       return false;
     };
 
@@ -3814,6 +3968,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'motion') this.user.equippedProfileMotion = value;
       if (item.type === 'badge') this.user.equippedProfileBadge = value;
       if (item.type === 'car') this.user.equippedDriveCar = value;
+      if (item.type === 'smoke') this.user.equippedDriveSmokeColor = value;
     };
 
     const saveCosmetics = () => {
@@ -3823,7 +3978,8 @@ export class ChatAppFeaturesMethods {
         equippedProfileAura: this.user.equippedProfileAura || '',
         equippedProfileMotion: this.user.equippedProfileMotion || '',
         equippedProfileBadge: this.user.equippedProfileBadge || '',
-        equippedDriveCar: this.user.equippedDriveCar || ''
+        equippedDriveCar: this.user.equippedDriveCar || '',
+        equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
       });
       this.syncProfileCosmetics();
     };
@@ -4353,7 +4509,20 @@ export class ChatAppFeaturesMethods {
         if (profileNameInput) profileNameInput.value = this.user.name;
         if (profileEmailInput) profileEmailInput.value = this.user.email;
         if (profileBioInput) profileBioInput.value = this.user.bio;
-        if (profileDobInput) profileDobInput.value = this.user.birthDate || '';
+        if (profileDobInput) {
+          profileDobInput.value = this.user.birthDate || '';
+          if (profileDobInput.dataset.pickerBound !== 'true') {
+            profileDobInput.dataset.pickerBound = 'true';
+            profileDobInput.addEventListener('click', () => {
+              if (typeof profileDobInput.showPicker !== 'function') return;
+              try {
+                profileDobInput.showPicker();
+              } catch (_) {
+                // Some browsers can throw when picker is blocked; keep native fallback.
+              }
+            });
+          }
+        }
         
         this.renderProfileAvatar(avatarDiv);
 
@@ -4395,7 +4564,6 @@ export class ChatAppFeaturesMethods {
         this.settingsParentSection = 'profile';
         const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
         const inlineEditBtn = settingsContainer.querySelector('.profile-edit-inline');
-        const profileEditMainBtn = settingsContainer.querySelector('#profileEditMainBtn');
         const profileMyItemsBtn = settingsContainer.querySelector('#profileMyItemsBtn');
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
 
@@ -4408,7 +4576,6 @@ export class ChatAppFeaturesMethods {
 
         const openProfileSettings = () => this.showSettings('profile-settings');
         if (inlineEditBtn) inlineEditBtn.addEventListener('click', openProfileSettings);
-        if (profileEditMainBtn) profileEditMainBtn.addEventListener('click', openProfileSettings);
         if (profileMyItemsBtn) {
           profileMyItemsBtn.addEventListener('click', () => {
             this.settingsParentSection = 'profile';
@@ -4652,7 +4819,8 @@ export class ChatAppFeaturesMethods {
       || document.getElementById('profile')
       || document.getElementById('profile-settings');
     const name = container?.querySelector('#profileName')?.value;
-    const email = container?.querySelector('#profileEmail')?.value;
+    const emailInput = container?.querySelector('#profileEmail');
+    const email = emailInput?.value;
     const bio = container?.querySelector('#profileBio')?.value;
     const birthDate = container?.querySelector('#profileDob')?.value;
     
@@ -4660,11 +4828,20 @@ export class ChatAppFeaturesMethods {
       await this.showAlert('Будь ласка, введіть ім\'я');
       return;
     }
+
+    const normalizedEmail = email?.trim() || '';
+    if (normalizedEmail && !this.isLikelyValidEmail(normalizedEmail)) {
+      await this.showAlert('Вкажіть коректний email у форматі name@example.com');
+      if (emailInput && typeof emailInput.focus === 'function') {
+        emailInput.focus();
+      }
+      return;
+    }
     
     const profileData = {
       ...this.user,
       name: name.trim(),
-      email: email?.trim() || '',
+      email: normalizedEmail,
       status: this.user.status || 'online',
       bio: bio?.trim() || '',
       birthDate: birthDate?.trim() || '',
@@ -4674,7 +4851,8 @@ export class ChatAppFeaturesMethods {
       equippedProfileAura: this.user.equippedProfileAura || '',
       equippedProfileMotion: this.user.equippedProfileMotion || '',
       equippedProfileBadge: this.user.equippedProfileBadge || '',
-      equippedDriveCar: this.user.equippedDriveCar || ''
+      equippedDriveCar: this.user.equippedDriveCar || '',
+      equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
     };
     
     this.saveUserProfile(profileData);
@@ -4686,6 +4864,31 @@ export class ChatAppFeaturesMethods {
     }
 
     this.showSettings(this.settingsParentSection || 'profile');
+  }
+
+  isLikelyValidEmail(value = '') {
+    if (typeof value !== 'string') return false;
+    const email = value.trim();
+    if (!email) return false;
+    if (email.includes(' ')) return false;
+    if ((email.match(/@/g) || []).length !== 1) return false;
+    if (email.startsWith('.') || email.endsWith('.')) return false;
+    if (email.includes('..')) return false;
+
+    const [localPart, domainPart] = email.split('@');
+    if (!localPart || !domainPart) return false;
+    if (localPart.length > 64 || domainPart.length > 255) return false;
+    if (domainPart.startsWith('-') || domainPart.endsWith('-')) return false;
+    if (!domainPart.includes('.')) return false;
+
+    const domainSections = domainPart.split('.');
+    if (domainSections.some((part) => !part || part.startsWith('-') || part.endsWith('-'))) return false;
+    const tld = domainSections[domainSections.length - 1];
+    if (!/^[A-Za-z]{2,}$/.test(tld)) return false;
+
+    const localPattern = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+$/;
+    const domainPattern = /^[A-Za-z0-9.-]+$/;
+    return localPattern.test(localPart) && domainPattern.test(domainPart);
   }
 
   async saveMessengerSettings(options = {}) {

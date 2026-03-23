@@ -31,7 +31,8 @@ export class ChatAppCoreMethods {
         equippedProfileAura: data.equippedProfileAura || '',
         equippedProfileMotion: data.equippedProfileMotion || '',
         equippedProfileBadge: data.equippedProfileBadge || '',
-        equippedDriveCar: data.equippedDriveCar || ''
+        equippedDriveCar: data.equippedDriveCar || '',
+        equippedDriveSmokeColor: data.equippedDriveSmokeColor || ''
       };
     }
     return {
@@ -47,7 +48,8 @@ export class ChatAppCoreMethods {
       equippedProfileAura: '',
       equippedProfileMotion: '',
       equippedProfileBadge: '',
-      equippedDriveCar: ''
+      equippedDriveCar: '',
+      equippedDriveSmokeColor: ''
     };
   }
 
