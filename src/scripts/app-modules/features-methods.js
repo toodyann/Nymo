@@ -1859,36 +1859,101 @@ export class ChatAppFeaturesMethods {
       }
     };
 
-    const addDriftWheelSmokePuff = (x, y, angle, strength = 0.45, speedAbs = 0, burnout = false) => {
+    const addDriftWheelSmokePuff = (
+      x,
+      y,
+      angle,
+      strength = 0.45,
+      speedAbs = 0,
+      burnout = false,
+      options = {}
+    ) => {
       const smokeStyle = this.getOrionDriveSmokeDefinition(this.user?.equippedDriveSmokeColor || '');
+      const {
+        alongOffset = 0,
+        sideOffset = 0,
+        heightBoost = 0,
+        spreadBoost = 0,
+        sizeBoost = 0,
+        opacityBoost = 0,
+        lifeBoost = 0,
+        riseBoost = 0,
+        swirlBoost = 0
+      } = options || {};
       driftState.wheelSmokeIdSeed = (driftState.wheelSmokeIdSeed + 1) % 1_000_000_000;
       const forwardX = Math.sin(angle);
       const forwardY = -Math.cos(angle);
       const sideX = Math.cos(angle);
       const sideY = Math.sin(angle);
       const backSpeed = 0.28 + speedAbs * 0.02 + strength * 0.7;
-      const sideSpread = 0.24 + strength * 0.48 + (burnout ? 0.22 : 0);
-      const jitter = burnout ? 0.32 : 0.18;
+      const sideSpread = 0.24 + strength * 0.48 + (burnout ? 0.22 : 0) + spreadBoost;
+      const jitter = (burnout ? 0.32 : 0.18) + Math.min(0.3, Math.abs(sideOffset) * 0.2);
+      const activeWheelSmokeColor = Number.isFinite(smokeStyle.wheelColorHex)
+        ? smokeStyle.wheelColorHex
+        : ORION_DRIVE_SMOKE_DEFAULT.wheelColorHex;
+      const emissionX = x
+        - forwardX * alongOffset
+        + sideX * sideOffset
+        + sideX * (Math.random() * 2 - 1) * jitter;
+      const emissionY = y
+        - forwardY * alongOffset
+        + sideY * sideOffset
+        + sideY * (Math.random() * 2 - 1) * jitter;
+      const swirl = 0.16 + strength * 0.28 + (burnout ? 0.14 : 0) + swirlBoost;
       driftState.wheelSmokePuffs.push({
         id: driftState.wheelSmokeIdSeed,
-        x: x + sideX * (Math.random() * 2 - 1) * jitter,
-        y: y + sideY * (Math.random() * 2 - 1) * jitter,
-        height: 0.04 + Math.random() * 0.018,
+        x: emissionX,
+        y: emissionY,
+        height: 0.04 + Math.random() * 0.018 + heightBoost,
         vx: -forwardX * backSpeed + sideX * (Math.random() * 2 - 1) * sideSpread,
         vy: -forwardY * backSpeed + sideY * (Math.random() * 2 - 1) * sideSpread,
-        rise: 0.1 + Math.random() * 0.08 + strength * 0.1 + (burnout ? 0.06 : 0),
-        size: 4.8 + Math.random() * 2.2 + strength * 2.8 + (burnout ? 2.1 : 0),
-        opacity: 0.16 + strength * 0.18 + (burnout ? 0.08 : 0),
-        colorHex: burnout
-          ? (smokeStyle.burnoutColorHex || smokeStyle.wheelColorHex)
-          : smokeStyle.wheelColorHex,
-        life: 0.5 + Math.random() * 0.28 + strength * 0.28 + (burnout ? 0.12 : 0),
-        maxLife: 1
+        rise: 0.1 + Math.random() * 0.08 + strength * 0.1 + (burnout ? 0.06 : 0) + riseBoost,
+        size: 4.8 + Math.random() * 2.2 + strength * 2.8 + (burnout ? 2.1 : 0) + sizeBoost,
+        opacity: 0.16 + strength * 0.18 + (burnout ? 0.08 : 0) + opacityBoost,
+        colorHex: activeWheelSmokeColor,
+        life: 0.5 + Math.random() * 0.28 + strength * 0.28 + (burnout ? 0.12 : 0) + lifeBoost,
+        maxLife: 1,
+        age: 0,
+        swirl,
+        noisePhase: Math.random() * Math.PI * 2,
+        noiseSpeed: 3.2 + Math.random() * 2.4,
+        drag: 2.2 + Math.random() * 1.2 + (burnout ? 0.5 : 0),
+        spread: 0.16 + Math.random() * 0.22 + Math.max(0, spreadBoost) * 0.4,
+        verticalStretch: 1 + Math.random() * 0.34,
+        rotation: Math.random() * Math.PI * 2,
+        spin: (Math.random() * 2 - 1) * 0.34
       });
       const lastPuff = driftState.wheelSmokePuffs[driftState.wheelSmokePuffs.length - 1];
       if (lastPuff) lastPuff.maxLife = lastPuff.life;
-      if (driftState.wheelSmokePuffs.length > 320) {
-        driftState.wheelSmokePuffs.splice(0, driftState.wheelSmokePuffs.length - 320);
+      if (driftState.wheelSmokePuffs.length > 460) {
+        driftState.wheelSmokePuffs.splice(0, driftState.wheelSmokePuffs.length - 460);
+      }
+    };
+
+    const addDriftWheelSmokeCluster = (
+      wheelX,
+      wheelY,
+      angle,
+      strength = 0.45,
+      speedAbs = 0,
+      burnout = false,
+      wheelSide = 0
+    ) => {
+      addDriftWheelSmokePuff(wheelX, wheelY, angle, strength, speedAbs, burnout);
+      const extraLayers = burnout ? 3 : strength > 0.82 ? 2 : 1;
+      for (let i = 0; i < extraLayers; i += 1) {
+        const layerFactor = i + 1;
+        addDriftWheelSmokePuff(wheelX, wheelY, angle, strength, speedAbs, burnout, {
+          alongOffset: 0.2 + layerFactor * (0.22 + Math.random() * 0.1),
+          sideOffset: wheelSide * (0.14 + layerFactor * 0.08) + (Math.random() * 2 - 1) * (0.12 + strength * 0.22),
+          heightBoost: 0.016 + layerFactor * 0.018,
+          spreadBoost: 0.12 + strength * 0.15,
+          sizeBoost: 0.8 + layerFactor * 0.58 + strength * 0.56,
+          opacityBoost: 0.012 + layerFactor * 0.009,
+          lifeBoost: 0.06 + layerFactor * 0.06,
+          riseBoost: 0.04 + layerFactor * 0.035,
+          swirlBoost: 0.08 + layerFactor * 0.06
+        });
       }
     };
 
@@ -2011,11 +2076,26 @@ export class ChatAppFeaturesMethods {
         textureCanvas.height = 128;
         const ctx = textureCanvas.getContext('2d');
         if (ctx) {
-          const gradient = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
-          gradient.addColorStop(0, 'rgba(255, 255, 255, 0.68)');
-          gradient.addColorStop(0.42, 'rgba(255, 255, 255, 0.38)');
-          gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          ctx.fillStyle = gradient;
+          ctx.clearRect(0, 0, 128, 128);
+          const blobs = [
+            { x: 50, y: 74, r: 42, alpha: 0.38 },
+            { x: 84, y: 68, r: 36, alpha: 0.3 },
+            { x: 70, y: 46, r: 34, alpha: 0.28 },
+            { x: 44, y: 48, r: 30, alpha: 0.26 }
+          ];
+          blobs.forEach((blob) => {
+            const gradient = ctx.createRadialGradient(blob.x, blob.y, blob.r * 0.18, blob.x, blob.y, blob.r);
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${blob.alpha})`);
+            gradient.addColorStop(0.56, `rgba(255, 255, 255, ${blob.alpha * 0.54})`);
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(blob.x - blob.r, blob.y - blob.r, blob.r * 2, blob.r * 2);
+          });
+          const haze = ctx.createRadialGradient(64, 66, 14, 64, 66, 60);
+          haze.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+          haze.addColorStop(0.72, 'rgba(255, 255, 255, 0.08)');
+          haze.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = haze;
           ctx.fillRect(0, 0, 128, 128);
         }
         const texture = new THREE.CanvasTexture(textureCanvas);
@@ -2322,16 +2402,21 @@ export class ChatAppFeaturesMethods {
         const sceneX = puff.x * drift3d.worldScale;
         const sceneZ = puff.y * drift3d.worldScale;
         const fade = puff.maxLife > 0 ? Math.max(0, puff.life / puff.maxLife) : 0;
-        const scale = Math.max(0.11, puff.size * drift3d.worldScale * (1 + (1 - fade) * 1.55));
+        const scaleBase = Math.max(0.11, puff.size * drift3d.worldScale * (1 + (1 - fade) * 1.68));
+        const spread = Number.isFinite(puff.spread) ? puff.spread : 0.2;
+        const verticalStretch = Number.isFinite(puff.verticalStretch) ? puff.verticalStretch : 1.1;
+        const scaleX = scaleBase * (1 + spread * (1 - fade) * 0.55);
+        const scaleY = scaleBase * (0.84 + verticalStretch * (1 - fade) * 0.34);
         smokeObject.position.set(sceneX, puff.height, sceneZ);
-        smokeObject.scale.set(scale, scale, 1);
+        smokeObject.scale.set(scaleX, scaleY, 1);
         if (smokeObject.material?.isMaterial) {
           smokeObject.material.color.setHex(
             Number.isFinite(puff.colorHex) ? puff.colorHex : ORION_DRIVE_SMOKE_DEFAULT.wheelColorHex
           );
+          smokeObject.material.rotation = (Number.isFinite(puff.rotation) ? puff.rotation : 0) + (1 - fade) * (puff.spin || 0);
           smokeObject.material.opacity = Math.max(
             0,
-            Math.min(0.36, puff.opacity * fade * (isDarkTheme ? 1 : 0.72))
+            Math.min(0.4, puff.opacity * fade * (isDarkTheme ? 1 : 0.74))
           );
         }
       });
@@ -3048,7 +3133,7 @@ export class ChatAppFeaturesMethods {
 
       const shouldEmitWheelSmoke = wheelSlipLevel > 0.1 && (speedAbs > 28 || burnoutActive);
       if (shouldEmitWheelSmoke) {
-        const smokeRate = (isDrifting ? 62 : burnoutActive ? 48 : 30) * (0.56 + wheelSlipLevel * 0.8);
+        const smokeRate = (isDrifting ? 46 : burnoutActive ? 36 : 24) * (0.58 + wheelSlipLevel * 0.82);
         driftState.wheelSmokeSpawnCarry += elapsedSeconds * smokeRate;
         while (driftState.wheelSmokeSpawnCarry >= 1) {
           driftState.wheelSmokeSpawnCarry -= 1;
@@ -3059,8 +3144,37 @@ export class ChatAppFeaturesMethods {
               + (isDrifting ? 0.22 : 0)
               + (burnoutActive ? 0.3 : 0)
           );
-          addDriftWheelSmokePuff(leftWheelX, leftWheelY, driftState.bodyAngle, smokeStrength, speedAbs, burnoutActive);
-          addDriftWheelSmokePuff(rightWheelX, rightWheelY, driftState.bodyAngle, smokeStrength, speedAbs, burnoutActive);
+          addDriftWheelSmokeCluster(
+            leftWheelX,
+            leftWheelY,
+            driftState.bodyAngle,
+            smokeStrength,
+            speedAbs,
+            burnoutActive,
+            -1
+          );
+          addDriftWheelSmokeCluster(
+            rightWheelX,
+            rightWheelY,
+            driftState.bodyAngle,
+            smokeStrength,
+            speedAbs,
+            burnoutActive,
+            1
+          );
+          if (smokeStrength > 0.72 || burnoutActive) {
+            addDriftWheelSmokePuff(rearX, rearY, driftState.bodyAngle, smokeStrength, speedAbs, burnoutActive, {
+              alongOffset: 0.42 + Math.random() * 0.3,
+              sideOffset: (Math.random() * 2 - 1) * (wheelOffset * 0.42),
+              heightBoost: 0.06 + Math.random() * 0.03,
+              spreadBoost: 0.22 + smokeStrength * 0.16,
+              sizeBoost: 1.4 + smokeStrength * 0.88,
+              opacityBoost: 0.03,
+              lifeBoost: 0.16,
+              riseBoost: 0.08,
+              swirlBoost: 0.16
+            });
+          }
         }
       } else {
         driftState.wheelSmokeSpawnCarry = Math.max(0, driftState.wheelSmokeSpawnCarry - elapsedSeconds * 6);
@@ -3156,11 +3270,22 @@ export class ChatAppFeaturesMethods {
       });
       driftState.exhaustPuffs = driftState.exhaustPuffs.filter((puff) => puff.life > 0);
       driftState.wheelSmokePuffs.forEach((puff) => {
+        puff.age = (puff.age || 0) + elapsedSeconds;
+        const lifeProgress = puff.maxLife > 0 ? Math.max(0, 1 - (puff.life / puff.maxLife)) : 0;
+        const swirl = Number.isFinite(puff.swirl) ? puff.swirl : 0.18;
+        const noiseSpeed = Number.isFinite(puff.noiseSpeed) ? puff.noiseSpeed : 4;
+        const noisePhase = (Number.isFinite(puff.noisePhase) ? puff.noisePhase : 0)
+          + puff.age * noiseSpeed;
+        const turbulence = swirl * (0.72 + lifeProgress * 0.94);
+        puff.vx += Math.cos(noisePhase) * turbulence * elapsedSeconds;
+        puff.vy += Math.sin(noisePhase * 0.92 + 0.7) * turbulence * elapsedSeconds;
         puff.x += puff.vx * elapsedSeconds;
         puff.y += puff.vy * elapsedSeconds;
         puff.height += puff.rise * elapsedSeconds;
-        puff.vx *= Math.exp(-elapsedSeconds * 3.1);
-        puff.vy *= Math.exp(-elapsedSeconds * 3.1);
+        const drag = Number.isFinite(puff.drag) ? puff.drag : 3.1;
+        const velocityDamping = Math.exp(-elapsedSeconds * drag);
+        puff.vx *= velocityDamping;
+        puff.vy *= velocityDamping;
         puff.life -= elapsedSeconds;
       });
       driftState.wheelSmokePuffs = driftState.wheelSmokePuffs.filter((puff) => puff.life > 0);
