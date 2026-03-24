@@ -1,5 +1,5 @@
-import { getSettingsTemplate } from '../templates.js';
-import { escapeHtml } from '../ui-helpers.js';
+import { getSettingsTemplate } from '../../ui/templates/settings-templates.js';
+import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
 
 export class ChatAppMessagingMethods {
   appendMessage(msg, highlightClass = '') {

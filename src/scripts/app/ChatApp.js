@@ -1,13 +1,14 @@
-import './init.js';
-import { ChatAppCoreMethods } from './app-modules/core-methods.js';
-import { ChatAppInteractionMethods } from './app-modules/interaction-methods.js';
-import { ChatAppMessagingMethods } from './app-modules/messaging-methods.js';
-import { ChatAppFeaturesMethods } from './app-modules/features-methods.js';
-import { ChatAppProfileMethods } from './app-modules/profile-methods.js';
-import { ChatAppShopMethods } from './app-modules/shop-methods.js';
-import { ChatAppGamesMethods } from './app-modules/games-methods.js';
-import { ChatAppChatRenderMethods } from './app-modules/chat-render-methods.js';
-import { ChatAppComposerMethods } from './app-modules/composer-methods.js';
+import {
+  ChatAppCoreMethods,
+  ChatAppInteractionMethods,
+  ChatAppMessagingMethods,
+  ChatAppFeaturesMethods,
+  ChatAppProfileMethods,
+  ChatAppShopMethods,
+  ChatAppGamesMethods,
+  ChatAppChatRenderMethods,
+  ChatAppComposerMethods
+} from './mixins/index.js';
 
 function attachMethods(targetClass, sourceClass) {
   Object.getOwnPropertyNames(sourceClass.prototype).forEach((methodName) => {
@@ -19,7 +20,7 @@ function attachMethods(targetClass, sourceClass) {
   });
 }
 
-class ChatApp {
+export class ChatApp {
   constructor() {
     this.chats = this.loadChats();
     this.currentChat = null;
@@ -75,7 +76,3 @@ attachMethods(ChatApp, ChatAppShopMethods);
 attachMethods(ChatApp, ChatAppGamesMethods);
 attachMethods(ChatApp, ChatAppChatRenderMethods);
 attachMethods(ChatApp, ChatAppComposerMethods);
-
-document.addEventListener('DOMContentLoaded', () => {
-  window.app = new ChatApp();
-});

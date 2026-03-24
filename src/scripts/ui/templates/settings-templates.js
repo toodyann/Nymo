@@ -1,10 +1,10 @@
 // Шаблони налаштувань для Orion
 
-const orionValueAssetUrl = new URL('../Assets/Orion_value.png', import.meta.url).href;
-const flappyOrionSpriteAssetUrl = new URL('../Assets/Flappy-Orion-Sprite.png', import.meta.url).href;
-const orionDriveCarAssetUrl = new URL('../Assets/OrionDrive/Сar-kit/Models/GLB format/race.glb', import.meta.url).href;
-const orionDriveConeAssetUrl = new URL('../Assets/OrionDrive/Сar-kit/Models/GLB format/cone.glb', import.meta.url).href;
-const orionDriveBoxAssetUrl = new URL('../Assets/OrionDrive/Сar-kit/Models/GLB format/box.glb', import.meta.url).href;
+const orionValueAssetUrl = new URL('../../../Assets/Orion_value.png', import.meta.url).href;
+const flappyOrionSpriteAssetUrl = new URL('../../../Assets/Flappy-Orion-Sprite.png', import.meta.url).href;
+const orionDriveCarAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/race.glb', import.meta.url).href;
+const orionDriveConeAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/cone.glb', import.meta.url).href;
+const orionDriveBoxAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/box.glb', import.meta.url).href;
 
 export const settingsTemplates = {
   'profile': `

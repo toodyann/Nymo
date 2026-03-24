@@ -5,7 +5,7 @@ import {
   setupEmojiPicker,
   insertAtCursor,
   formatMessageDateTime
-} from '../ui-helpers.js';
+} from '../../shared/helpers/ui-helpers.js';
 
 export class ChatAppInteractionMethods {
   enforcePlainChatModalHeader() {

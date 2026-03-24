@@ -1,5 +1,5 @@
-import { setupMobileSwipeBack } from '../swipe-handlers.js';
-import { getContactColor } from '../ui-helpers.js';
+import { setupMobileSwipeBack } from '../../shared/gestures/swipe-handlers.js';
+import { getContactColor } from '../../shared/helpers/ui-helpers.js';
 
 export class ChatAppCoreMethods {
   readJsonStorage(key, fallback) {

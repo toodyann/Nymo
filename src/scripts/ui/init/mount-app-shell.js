@@ -1,4 +1,4 @@
-const orionLogoAssetUrl = new URL('../Assets/Orion_logo.png', import.meta.url).href;
+const orionLogoAssetUrl = new URL('../../../Assets/Orion_logo.png', import.meta.url).href;
 
 document.addEventListener('DOMContentLoaded', () => {
   const appContainer = document.getElementById('app');

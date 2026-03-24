@@ -1,9 +1,9 @@
-import { setupSettingsSwipeBack } from '../swipe-handlers.js';
-import { escapeHtml } from '../ui-helpers.js';
+import { setupSettingsSwipeBack } from '../../shared/gestures/swipe-handlers.js';
+import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-const flappyCoinSoundUrl = new URL('../../Sounds/coin-sound.mp3', import.meta.url).href;
+const flappyCoinSoundUrl = new URL('../../../Sounds/coin-sound.mp3', import.meta.url).href;
 const ORION_DRIVE_SHOP_CARS = [
   {
     id: 'car_taxi',
@@ -12,8 +12,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Taxi Sprint',
     description: 'Класичне таксі з кращою видимістю у щільному трафіку.',
     price: 820,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/taxi.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/taxi.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/taxi.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/taxi.png', import.meta.url).href
   },
   {
     id: 'car_sedan_sports',
@@ -22,8 +22,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Sedan Sports',
     description: 'Легка спортивна седан-платформа для маневрених заїздів.',
     price: 980,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/sedan-sports.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/sedan-sports.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/sedan-sports.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/sedan-sports.png', import.meta.url).href
   },
   {
     id: 'car_suv_luxury',
@@ -32,8 +32,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'SUV Luxury',
     description: 'Преміум SUV для стабільної їзди та важкого стилю.',
     price: 1260,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/suv-luxury.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/suv-luxury.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/suv-luxury.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/suv-luxury.png', import.meta.url).href
   },
   {
     id: 'car_police',
@@ -42,8 +42,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Interceptor',
     description: 'Поліцейський перехоплювач із агресивним силуетом.',
     price: 1490,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/police.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/police.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/police.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/police.png', import.meta.url).href
   },
   {
     id: 'car_race_future',
@@ -52,8 +52,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Race Future',
     description: 'Футуристичний болід для Orion Drive.',
     price: 1740,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/race-future.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/race-future.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/race-future.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/race-future.png', import.meta.url).href
   },
   {
     id: 'car_firetruck',
@@ -62,8 +62,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Firetruck XL',
     description: 'Пожежний важковаговик для нестандартного драйву.',
     price: 1980,
-    assetSrc: new URL('../../Assets/OrionDrive/Сar-kit/Models/GLB format/firetruck.glb', import.meta.url).href,
-    previewSrc: new URL('../../Assets/OrionDrive/Сar-kit/Previews/firetruck.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/firetruck.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/firetruck.png', import.meta.url).href
   }
 ];
 
