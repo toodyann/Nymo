@@ -1,11 +1,12 @@
 const orionLogoAssetUrl = new URL('../../../Assets/Orion_logo.png', import.meta.url).href;
 
-document.addEventListener('DOMContentLoaded', () => {
+export function mountAppShell() {
   const appContainer = document.getElementById('app');
   if (!appContainer) {
     console.error('App container not found');
     return;
   }
+  if (appContainer.querySelector('.orion-app')) return;
 
   const htmlContent = `<div class="orion-app">
   <header class="app-header">
@@ -535,10 +536,14 @@ document.addEventListener('DOMContentLoaded', () => {
             type="text" 
             id="newContactInput" 
             class="contact-input" 
-            placeholder="Ім'я контакту або назва групи"
+            placeholder="Тег, ім'я або номер користувача"
             autocomplete="off"
           >
         </label>
+        <div class="new-chat-user-search" id="newChatUserSearch">
+          <div class="new-chat-user-search-status" id="newChatUserSearchStatus">Почніть вводити тег користувача (або ім'я/номер).</div>
+          <div class="new-chat-user-search-results" id="newChatUserSearchResults"></div>
+        </div>
         <label class="group-toggle new-chat-mode">
           <input type="checkbox" id="isGroupToggle" />
           <span class="new-chat-mode-copy">
@@ -766,4 +771,4 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
 
   appContainer.innerHTML = htmlContent + extraUi;
-});
+}

@@ -18,6 +18,7 @@ export class ChatAppCoreMethods {
   loadUserProfile() {
     const data = this.readJsonStorage('orion_user', null);
     if (data && typeof data === 'object') {
+      const avatarImage = String(data.avatarImage || data.avatarUrl || '').trim();
       return {
         name: data.name || 'Користувач Orion',
         email: data.email || 'user@example.com',
@@ -26,7 +27,8 @@ export class ChatAppCoreMethods {
         birthDate: data.birthDate || '',
         createdAt: data.createdAt || new Date().toISOString(),
         avatarColor: data.avatarColor || '',
-        avatarImage: data.avatarImage || '',
+        avatarImage,
+        avatarUrl: avatarImage,
         equippedAvatarFrame: data.equippedAvatarFrame || '',
         equippedProfileAura: data.equippedProfileAura || '',
         equippedProfileMotion: data.equippedProfileMotion || '',
@@ -44,6 +46,7 @@ export class ChatAppCoreMethods {
       createdAt: new Date().toISOString(),
       avatarColor: 'linear-gradient(135deg, #6b7280, #9ca3af)',
       avatarImage: '',
+      avatarUrl: '',
       equippedAvatarFrame: '',
       equippedProfileAura: '',
       equippedProfileMotion: '',
@@ -54,8 +57,14 @@ export class ChatAppCoreMethods {
   }
 
   saveUserProfile(userData) {
-    this.user = userData;
-    localStorage.setItem('orion_user', JSON.stringify(userData));
+    const avatarImage = this.getAvatarImage(userData?.avatarImage || userData?.avatarUrl);
+    const nextUserData = {
+      ...userData,
+      avatarImage,
+      avatarUrl: avatarImage
+    };
+    this.user = nextUserData;
+    localStorage.setItem('orion_user', JSON.stringify(nextUserData));
     this.updateProfileMenuButton();
     this.updateProfileDisplay();
   }
@@ -524,27 +533,75 @@ export class ChatAppCoreMethods {
       .replace(/>/g, '&gt;');
   }
 
+  getAvatarImage(value) {
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  getChatAvatarMeta(chat = null) {
+    const source = chat && typeof chat === 'object' ? chat : {};
+    const name = String(source?.name || 'Користувач').trim() || 'Користувач';
+    const avatarImage = this.getAvatarImage(source?.avatarImage || source?.avatarUrl);
+    const avatarColor = source?.avatarColor || this.getContactColor(name);
+    return {
+      name,
+      avatarImage,
+      avatarColor,
+      initials: this.getInitials(name)
+    };
+  }
+
+  applyChatAvatarToElement(avatarEl, chat = null) {
+    if (!avatarEl) return;
+    const { avatarImage, avatarColor, initials } = this.getChatAvatarMeta(chat);
+    if (avatarImage) {
+      avatarEl.textContent = '';
+      avatarEl.style.backgroundImage = `url("${this.escapeAttr(avatarImage)}")`;
+      avatarEl.style.backgroundColor = 'transparent';
+      return;
+    }
+    avatarEl.style.backgroundImage = '';
+    avatarEl.style.backgroundColor = '';
+    avatarEl.textContent = initials;
+    avatarEl.style.background = avatarColor;
+  }
+
+  getChatAvatarHtml(chat = null, className = 'message-avatar') {
+    const { avatarImage, avatarColor, initials } = this.getChatAvatarMeta(chat);
+    if (avatarImage) {
+      const safeUrl = this.escapeAttr(avatarImage);
+      return `<div class="${className} is-image" style="background-image: url(&quot;${safeUrl}&quot;); background-color: transparent;"></div>`;
+    }
+    const safeInitials = typeof this.escapeHtml === 'function' ? this.escapeHtml(initials) : initials;
+    return `<div class="${className}" style="background: ${avatarColor}">${safeInitials}</div>`;
+  }
+
   applyUserAvatarToElement(avatarEl, name = '') {
     if (!avatarEl) return;
     const displayName = name || this.user?.name || 'Користувач Orion';
     if (!this.user?.avatarColor) {
       this.user.avatarColor = this.getRandomAvatarGradient();
     }
-
-    if (this.user?.avatarImage) {
+    const userAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
+    if (userAvatarImage) {
+      this.user.avatarImage = userAvatarImage;
+      this.user.avatarUrl = userAvatarImage;
       avatarEl.textContent = '';
-      avatarEl.style.backgroundImage = `url("${this.escapeAttr(this.user.avatarImage)}")`;
+      avatarEl.style.backgroundImage = `url("${this.escapeAttr(userAvatarImage)}")`;
       avatarEl.style.backgroundColor = 'transparent';
     } else {
       avatarEl.style.backgroundImage = '';
+      avatarEl.style.backgroundColor = '';
       avatarEl.textContent = this.getInitials(displayName);
       avatarEl.style.background = this.user.avatarColor || this.getContactColor(displayName);
     }
   }
 
   getUserAvatarHtml() {
-    if (this.user?.avatarImage) {
-      const safeUrl = this.escapeAttr(this.user.avatarImage);
+    const userAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
+    if (userAvatarImage) {
+      this.user.avatarImage = userAvatarImage;
+      this.user.avatarUrl = userAvatarImage;
+      const safeUrl = this.escapeAttr(userAvatarImage);
       return `<div class="message-avatar is-image" style="background-image: url(&quot;${safeUrl}&quot;);"></div>`;
     }
     const initials = this.getInitials(this.user?.name || 'Користувач Orion');
@@ -560,9 +617,12 @@ export class ChatAppCoreMethods {
     const imageEl = avatarEl.querySelector('.profile-avatar-image');
     const initialsEl = avatarEl.querySelector('.profile-avatar-initials');
 
-    if (this.user?.avatarImage) {
+    const userAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
+    if (userAvatarImage) {
+      this.user.avatarImage = userAvatarImage;
+      this.user.avatarUrl = userAvatarImage;
       if (imageEl) {
-        imageEl.src = this.user.avatarImage;
+        imageEl.src = userAvatarImage;
         imageEl.style.display = 'block';
       }
       if (initialsEl) initialsEl.style.display = 'none';
@@ -624,7 +684,8 @@ export class ChatAppCoreMethods {
       Boolean(String(this.user?.email || '').trim()),
       Boolean(String(this.user?.bio || '').trim()),
       Boolean(String(this.user?.birthDate || '').trim()),
-      Boolean(String(this.user?.avatarImage || '').trim()) || Boolean(String(this.user?.avatarColor || '').trim())
+      Boolean(String(this.user?.avatarImage || this.user?.avatarUrl || '').trim())
+        || Boolean(String(this.user?.avatarColor || '').trim())
     ].filter(Boolean).length;
     const completeness = Math.round((completenessFilled / 5) * 100);
     const createdAt = String(this.user?.createdAt || '').trim();
@@ -784,16 +845,29 @@ export class ChatAppCoreMethods {
     }
   }
 
+  getChatsStorageKey() {
+    const userId = typeof this.getAuthUserId === 'function' ? this.getAuthUserId() : '';
+    if (userId) return `orion_chats:${userId}`;
+    return 'orion_chats';
+  }
+
   loadChats() {
-    const stored = this.readJsonStorage('orion_chats', null);
+    const primaryKey = this.getChatsStorageKey();
+    const stored = this.readJsonStorage(primaryKey, null);
     if (Array.isArray(stored)) {
       return stored;
+    }
+    if (primaryKey !== 'orion_chats') {
+      const legacyStored = this.readJsonStorage('orion_chats', null);
+      if (Array.isArray(legacyStored)) {
+        return legacyStored;
+      }
     }
     return [];
   }
 
   saveChats() {
-    localStorage.setItem('orion_chats', JSON.stringify(this.chats));
+    localStorage.setItem(this.getChatsStorageKey(), JSON.stringify(this.chats));
   }
 
   setupModalEnterHandlers() {
@@ -877,6 +951,10 @@ export class ChatAppCoreMethods {
       }
     };
     document.addEventListener('touchmove', this.mobileTouchMoveLockHandler, { passive: false });
+
+    if (typeof this.initializeServerChatSync === 'function') {
+      this.initializeServerChatSync();
+    }
 
   }
 

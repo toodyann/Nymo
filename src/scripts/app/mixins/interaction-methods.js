@@ -6,6 +6,7 @@ import {
   insertAtCursor,
   formatMessageDateTime
 } from '../../shared/helpers/ui-helpers.js';
+import { clearAuthSession, redirectToAuthPage } from '../../shared/auth/auth-session.js';
 
 export class ChatAppInteractionMethods {
   enforcePlainChatModalHeader() {
@@ -242,11 +243,8 @@ export class ChatAppInteractionMethods {
       button.className = `desktop-secondary-chat-item ${this.currentChat?.id === chat.id ? 'active' : ''}`;
       button.dataset.chatId = String(chat.id);
 
-      const initials = chat.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-      const color = this.getContactColor(chat.name);
-
       button.innerHTML = `
-        <div class="desktop-secondary-chat-avatar" style="background: ${color}">${initials}</div>
+        ${this.getChatAvatarHtml(chat, 'desktop-secondary-chat-avatar')}
         <div class="desktop-secondary-chat-info">
           <span class="desktop-secondary-chat-name">${this.escapeHtml(chat.name)}</span>
           <span class="desktop-secondary-chat-preview">${safePreviewText}</span>
@@ -504,22 +502,13 @@ export class ChatAppInteractionMethods {
       if (!confirmed) return;
 
       try {
+        clearAuthSession();
         localStorage.removeItem('orion_user');
       } catch {
         // Ignore storage failures and continue with in-memory reset.
       }
-
-      this.user = this.loadUserProfile();
-      this.saveUserProfile({ ...this.user });
-
-      const navChats = document.getElementById('navChats');
-      if (navChats) this.setActiveNavButton(navChats);
-      this.openChatsHomeView({ syncNav: false });
-      if (window.innerWidth > 768) {
-        this.openDesktopSecondaryMenu('navChats', { activateFirst: true });
-      }
-
-      await this.showNotice('Виконано вихід з акаунту');
+      redirectToAuthPage();
+      return;
     }
   }
 
@@ -766,6 +755,14 @@ export class ChatAppInteractionMethods {
 
     document.getElementById('searchInput').addEventListener('input', (e) => this.filterChats(e.target.value));
 
+    document.getElementById('newContactInput').addEventListener('input', (e) => {
+      const isGroupToggle = document.getElementById('isGroupToggle');
+      if (isGroupToggle?.checked) return;
+      if (typeof this.scheduleUserSearch === 'function') {
+        this.scheduleUserSearch(e.target.value || '');
+      }
+    });
+
     document.getElementById('newContactInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this.createNewChat();
@@ -774,12 +771,19 @@ export class ChatAppInteractionMethods {
 
     const isGroupToggle = document.getElementById('isGroupToggle');
     const groupFields = document.getElementById('groupFields');
+    const userSearchWrap = document.getElementById('newChatUserSearch');
     if (isGroupToggle && groupFields) {
       const toggleGroupFields = () => {
         if (isGroupToggle.checked) {
           groupFields.classList.add('active');
+          if (userSearchWrap) userSearchWrap.classList.add('hidden');
         } else {
           groupFields.classList.remove('active');
+          if (userSearchWrap) userSearchWrap.classList.remove('hidden');
+          if (typeof this.scheduleUserSearch === 'function') {
+            const value = document.getElementById('newContactInput')?.value || '';
+            this.scheduleUserSearch(value);
+          }
         }
       };
       isGroupToggle.addEventListener('change', toggleGroupFields);
@@ -1674,10 +1678,8 @@ export class ChatAppInteractionMethods {
       chatItem.className = `chat-item ${this.currentChat?.id === chat.id ? 'active' : ''}${pinnedClass}`;
       chatItem.dataset.chatId = chat.id;
       chatItem.dataset.chatName = chat.name;
-      const initials = chat.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-      const color = this.getContactColor(chat.name);
       chatItem.innerHTML = `
-        <div class="chat-avatar" style="background: ${color}">${initials}</div>
+        ${this.getChatAvatarHtml(chat, 'chat-avatar')}
         <div class="chat-info">
           <span class="chat-name">${chat.name}</span>
           <span class="chat-preview">${safePreviewText}</span>
@@ -1980,6 +1982,9 @@ export class ChatAppInteractionMethods {
     this.renderChat();
     this.triggerChatEnterAnimation();
     this.applyMobileChatViewportLayout();
+    if (typeof this.syncCurrentChatMessagesFromServer === 'function') {
+      this.syncCurrentChatMessagesFromServer({ forceScroll: true }).catch(() => {});
+    }
   }
 
   triggerChatEnterAnimation() {
@@ -2272,12 +2277,15 @@ export class ChatAppInteractionMethods {
       let senderNameHtml = '';
       
       if (msg.from === 'other') {
-        const initials = this.currentChat.name.split(' ').map(w => w[0]).join('').toUpperCase();
-        const color = this.getContactColor(this.currentChat.name);
-        avatarHtml = `<div class="message-avatar" style="background: ${color}">${initials}</div>`;
-    } else {
-      avatarHtml = this.getUserAvatarHtml();
-    }
+        const otherChatAvatar = {
+          name: msg.senderName || this.currentChat?.name || 'Контакт',
+          avatarImage: this.getAvatarImage(msg.senderAvatarImage || this.currentChat?.avatarImage || this.currentChat?.avatarUrl),
+          avatarColor: msg.senderAvatarColor || this.currentChat?.avatarColor || ''
+        };
+        avatarHtml = this.getChatAvatarHtml(otherChatAvatar, 'message-avatar');
+      } else {
+        avatarHtml = this.getUserAvatarHtml();
+      }
       
       const editedLabel = msg.edited ? '<span class="message-edited">редаговано</span>' : '';
       const editedClass = msg.edited ? ' edited' : '';
@@ -2790,9 +2798,7 @@ export class ChatAppInteractionMethods {
     status.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
 
     avatar.style.background = this.currentChat.avatarColor || this.getContactColor(chatName);
-    const customAvatarSrc = typeof this.currentChat.avatarImage === 'string'
-      ? this.currentChat.avatarImage.trim()
-      : '';
+    const customAvatarSrc = this.getAvatarImage(this.currentChat.avatarImage || this.currentChat.avatarUrl);
     const hasCustomAvatar = customAvatarSrc.length > 0;
     if (avatarImage) {
       avatarImage.onerror = () => {
@@ -3042,10 +3048,7 @@ export class ChatAppInteractionMethods {
         contactStatus.classList.toggle('online', isOnline);
         contactStatus.classList.toggle('offline', !isOnline);
         if (avatar) {
-          const initials = this.currentChat.name.split(' ').map(w => w[0]).join('').toUpperCase();
-          const color = this.getContactColor(this.currentChat.name);
-          avatar.textContent = initials;
-          avatar.style.background = color;
+          this.applyChatAvatarToElement(avatar, this.currentChat);
         }
 
         if (contactDetails) {
@@ -3064,6 +3067,8 @@ export class ChatAppInteractionMethods {
         }
         if (avatar) {
           avatar.textContent = '';
+          avatar.style.backgroundImage = '';
+          avatar.style.backgroundColor = '';
           avatar.style.background = '';
         }
         if (contactDetails) {

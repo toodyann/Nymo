@@ -1,5 +1,10 @@
 import { setupSettingsSwipeBack } from '../../shared/gestures/swipe-handlers.js';
 import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
+import {
+  getAuthSession,
+  setAuthSession,
+  syncLegacyUserProfile
+} from '../../shared/auth/auth-session.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -4665,13 +4670,36 @@ export class ChatAppFeaturesMethods {
               avatarUpload.value = '';
               return;
             }
-            const reader = new FileReader();
-            reader.onload = () => {
-              this.user.avatarImage = reader.result?.toString() || '';
-              this.saveUserProfile(this.user);
+            avatarUpload.disabled = true;
+            try {
+              const optimizedAvatar = await this.buildProfileAvatarDataUrl(file);
+              const profileResponse = await this.updateCurrentUserProfileOnServer({
+                avatarUrl: optimizedAvatar
+              });
+              const serverAvatar = this.getAvatarImage(
+                profileResponse?.avatarImage
+                || profileResponse?.avatarUrl
+                || profileResponse?.user?.avatarImage
+                || profileResponse?.user?.avatarUrl
+                || optimizedAvatar
+              );
+
+              const nextUser = {
+                ...this.user,
+                avatarImage: serverAvatar,
+                avatarUrl: serverAvatar
+              };
+              this.saveUserProfile(nextUser);
+              this.syncAvatarToAuthSession(nextUser);
               this.renderProfileAvatar(avatarDiv);
-            };
-            reader.readAsDataURL(file);
+              this.renderChatsList();
+              this.updateChatHeader();
+            } catch (error) {
+              await this.showAlert(error?.message || 'Не вдалося оновити аватар на сервері.');
+            } finally {
+              avatarUpload.value = '';
+              avatarUpload.disabled = false;
+            }
           });
         }
         
@@ -4984,7 +5012,8 @@ export class ChatAppFeaturesMethods {
       bio: bio?.trim() || '',
       birthDate: birthDate?.trim() || '',
       avatarColor: this.user.avatarColor,
-      avatarImage: this.user.avatarImage || '',
+      avatarImage: this.user.avatarImage || this.user.avatarUrl || '',
+      avatarUrl: this.user.avatarImage || this.user.avatarUrl || '',
       equippedAvatarFrame: this.user.equippedAvatarFrame || '',
       equippedProfileAura: this.user.equippedProfileAura || '',
       equippedProfileMotion: this.user.equippedProfileMotion || '',
@@ -5110,6 +5139,79 @@ export class ChatAppFeaturesMethods {
     this.profileSettingsSnapshot = null;
   }
 
+  async buildProfileAvatarDataUrl(file) {
+    if (!(file instanceof File)) {
+      throw new Error('Некоректний файл аватара.');
+    }
+
+    const sourceDataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Не вдалося прочитати файл аватара.'));
+      reader.readAsDataURL(file);
+    });
+    if (!sourceDataUrl) {
+      throw new Error('Не вдалося прочитати файл аватара.');
+    }
+
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Неможливо обробити зображення аватара.'));
+      img.src = sourceDataUrl;
+    });
+
+    const maxSide = 320;
+    const sourceWidth = Number(image.naturalWidth || image.width || maxSide) || maxSide;
+    const sourceHeight = Number(image.naturalHeight || image.height || maxSide) || maxSide;
+    const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+    const targetWidth = Math.max(64, Math.round(sourceWidth * scale));
+    const targetHeight = Math.max(64, Math.round(sourceHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      throw new Error('Браузер не підтримує обробку зображень.');
+    }
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.clearRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    // Keep payload under typical JSON body limits on backend.
+    let quality = 0.9;
+    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+    const maxLength = 90_000;
+    while (dataUrl.length > maxLength && quality > 0.45) {
+      quality = Number((quality - 0.1).toFixed(2));
+      dataUrl = canvas.toDataURL('image/jpeg', quality);
+    }
+
+    return dataUrl;
+  }
+
+  syncAvatarToAuthSession(userProfile = {}) {
+    const session = getAuthSession();
+    if (!session || typeof session !== 'object') return;
+
+    const avatarImage = this.getAvatarImage(userProfile?.avatarImage || userProfile?.avatarUrl);
+    const mergedUser = {
+      ...(session.user && typeof session.user === 'object' ? session.user : {}),
+      name: userProfile?.name || session?.user?.name || session?.user?.nickname || '',
+      nickname: userProfile?.name || session?.user?.nickname || session?.user?.name || '',
+      avatarImage,
+      avatarUrl: avatarImage,
+      avatarColor: userProfile?.avatarColor || session?.user?.avatarColor || ''
+    };
+    setAuthSession({
+      ...session,
+      user: mergedUser
+    });
+    syncLegacyUserProfile(mergedUser);
+  }
+
   handleAvatarChange(settingsContainer) {
     const colors = [
       'linear-gradient(135deg, #6b7280, #9ca3af)',
@@ -5131,6 +5233,7 @@ export class ChatAppFeaturesMethods {
     const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
     this.user.avatarColor = newColor;
     this.user.avatarImage = '';
+    this.user.avatarUrl = '';
 
     if (avatarDiv) {
       this.renderProfileAvatar(avatarDiv);

@@ -1,7 +1,1327 @@
 import { getSettingsTemplate } from '../../ui/templates/settings-templates.js';
 import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
+import { buildApiUrl, getAuthSession } from '../../shared/auth/auth-session.js';
 
 export class ChatAppMessagingMethods {
+  decodeJwtPayload(token) {
+    const raw = String(token || '').trim();
+    if (!raw) return null;
+    const parts = raw.split('.');
+    if (parts.length < 2) return null;
+    try {
+      const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padLength = normalized.length % 4;
+      const padded = normalized + (padLength ? '='.repeat(4 - padLength) : '');
+      const decoded = atob(padded);
+      return JSON.parse(decoded);
+    } catch {
+      return null;
+    }
+  }
+
+  getAuthToken() {
+    const session = getAuthSession();
+    const token = session?.token ?? session?.accessToken ?? session?.access_token ?? '';
+    const normalized = typeof token === 'string' ? token.trim() : '';
+    return normalized.replace(/^Bearer\s+/i, '');
+  }
+
+  getAuthUserId() {
+    const session = getAuthSession();
+    const user = session?.user && typeof session.user === 'object' ? session.user : {};
+    const directId = user.id ?? user.userId ?? user._id ?? user.sub ?? '';
+    const directIdString = String(directId || '').trim();
+    if (directIdString) return directIdString;
+
+    const token = this.getAuthToken();
+    if (token) {
+      const payload = this.decodeJwtPayload(token);
+      const sub = payload?.sub ?? payload?.userId ?? payload?.id ?? '';
+      if (typeof sub === 'string' && sub.trim()) return sub.trim();
+    }
+    return '';
+  }
+
+  getApiHeaders({ json = false } = {}) {
+    const headers = {};
+    if (json) headers['Content-Type'] = 'application/json';
+    // Backend test client works via X-User-Id only.
+    const userId = this.getAuthUserId();
+    if (userId) headers['X-User-Id'] = userId;
+    return headers;
+  }
+
+  async readJsonSafe(response) {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  getRequestErrorMessage(data, fallback = 'Помилка запиту до сервера.') {
+    const raw = data?.message || data?.error || fallback;
+    if (Array.isArray(raw)) return raw.filter(Boolean).join(' ') || fallback;
+    return String(raw || fallback);
+  }
+
+  getUserDisplayName(user) {
+    const name = (
+      user?.nickname ||
+      user?.name ||
+      user?.fullName ||
+      user?.displayName ||
+      user?.mobile ||
+      user?.phone ||
+      user?.email ||
+      'Користувач'
+    );
+    return String(name).trim() || 'Користувач';
+  }
+
+  getUserAvatarImage(user) {
+    if (!user || typeof user !== 'object') return '';
+    const nestedAvatar = user.avatar && typeof user.avatar === 'object' ? user.avatar : null;
+    const nestedProfile = user.profile && typeof user.profile === 'object' ? user.profile : null;
+    const avatarCandidate =
+      user.avatarImage ??
+      user.avatarUrl ??
+      user.photoUrl ??
+      user.photoURL ??
+      user.profilePhoto ??
+      user.profileImage ??
+      user.image ??
+      user.picture ??
+      nestedProfile?.avatarImage ??
+      nestedProfile?.avatarUrl ??
+      nestedProfile?.image ??
+      nestedAvatar?.url ??
+      nestedAvatar?.secure_url ??
+      '';
+    return this.getAvatarImage(avatarCandidate);
+  }
+
+  getUserAvatarColor(user) {
+    if (!user || typeof user !== 'object') return '';
+    const value = user.avatarColor ?? user.profileColor ?? '';
+    return String(value || '').trim();
+  }
+
+  getCurrentUserDisplayName() {
+    const session = getAuthSession();
+    return this.getUserDisplayName(session?.user || {});
+  }
+
+  normalizeParticipantRecord(member) {
+    if (!member || typeof member !== 'object') return null;
+    const nestedUser = member.user && typeof member.user === 'object' ? member.user : null;
+    const id = String(
+      member.id
+        ?? member.userId
+        ?? member._id
+        ?? nestedUser?.id
+        ?? nestedUser?.userId
+        ?? nestedUser?._id
+        ?? ''
+    ).trim();
+    if (!id) return null;
+    const normalizedSource = nestedUser ? { ...member, ...nestedUser } : member;
+    return {
+      id,
+      name: this.getUserDisplayName(normalizedSource),
+      avatarImage: this.getUserAvatarImage(normalizedSource),
+      avatarColor: this.getUserAvatarColor(normalizedSource)
+    };
+  }
+
+  cacheKnownUserMeta(userId, meta = {}) {
+    const safeId = String(userId || '').trim();
+    if (!safeId) return;
+
+    if (!this.knownUsersById) {
+      this.knownUsersById = new Map();
+    }
+
+    const previous = this.knownUsersById.get(safeId) || {};
+    const next = { ...previous };
+    const safeName = String(meta?.name || '').trim();
+    const safeAvatar = this.getAvatarImage(meta?.avatarImage || meta?.avatarUrl);
+    const safeAvatarColor = String(meta?.avatarColor || '').trim();
+
+    if (safeName && safeName !== 'Користувач') next.name = safeName;
+    if (safeAvatar) next.avatarImage = safeAvatar;
+    if (safeAvatarColor) next.avatarColor = safeAvatarColor;
+
+    this.knownUsersById.set(safeId, next);
+    if (next.name) {
+      if (!this.knownUserNamesById) {
+        this.knownUserNamesById = new Map();
+      }
+      this.knownUserNamesById.set(safeId, next.name);
+    }
+  }
+
+  getCachedUserMeta(userId) {
+    const safeId = String(userId || '').trim();
+    if (!safeId || !this.knownUsersById) return {};
+    const meta = this.knownUsersById.get(safeId);
+    return meta && typeof meta === 'object' ? meta : {};
+  }
+
+  cacheKnownUserName(userId, name) {
+    this.cacheKnownUserMeta(userId, { name });
+  }
+
+  cacheKnownUserAvatar(userId, avatarImage = '') {
+    this.cacheKnownUserMeta(userId, { avatarImage });
+  }
+
+  extractEntityId(entity) {
+    if (!entity || typeof entity !== 'object') return '';
+    return String(entity.id ?? entity.userId ?? entity._id ?? entity.sub ?? '').trim();
+  }
+
+  getCachedUserName(userId) {
+    const safeId = String(userId || '').trim();
+    if (!safeId) return '';
+    const metaName = String(this.getCachedUserMeta(safeId)?.name || '').trim();
+    if (metaName) return metaName;
+    if (!this.knownUserNamesById) return '';
+    return String(this.knownUserNamesById.get(safeId) || '').trim();
+  }
+
+  getCachedUserAvatar(userId) {
+    const safeId = String(userId || '').trim();
+    if (!safeId) return '';
+    return this.getAvatarImage(this.getCachedUserMeta(safeId)?.avatarImage);
+  }
+
+  async resolveUserNameById(userId) {
+    const safeId = String(userId || '').trim();
+    if (!safeId) return '';
+
+    const cached = this.getCachedUserName(safeId);
+    if (cached) return cached;
+
+    const endpoints = [
+      `/users/${encodeURIComponent(safeId)}`,
+      `/users?id=${encodeURIComponent(safeId)}`,
+      `/users?userId=${encodeURIComponent(safeId)}`,
+      `/users?search=${encodeURIComponent(safeId)}`
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(buildApiUrl(endpoint), { headers: this.getApiHeaders() });
+        if (!response.ok) {
+          if (response.status === 404 || response.status === 405) continue;
+          continue;
+        }
+        const data = await this.readJsonSafe(response);
+        const lists = [
+          Array.isArray(data) ? data : null,
+          Array.isArray(data?.users) ? data.users : null,
+          Array.isArray(data?.items) ? data.items : null,
+          Array.isArray(data?.results) ? data.results : null
+        ].filter(Boolean);
+
+        let exactUser = null;
+        if (this.extractEntityId(data) === safeId) exactUser = data;
+        if (!exactUser && this.extractEntityId(data?.user) === safeId) exactUser = data.user;
+        if (!exactUser) {
+          for (const list of lists) {
+            exactUser = list.find((item) => this.extractEntityId(item) === safeId) || null;
+            if (exactUser) break;
+          }
+        }
+        if (!exactUser) continue;
+
+        const name = this.getUserDisplayName(exactUser);
+        const avatarImage = this.getUserAvatarImage(exactUser);
+        const avatarColor = this.getUserAvatarColor(exactUser);
+        this.cacheKnownUserMeta(safeId, { name, avatarImage, avatarColor });
+        if (name && name !== 'Користувач') {
+          return name;
+        }
+      } catch {
+        // Try next endpoint.
+      }
+    }
+
+    return '';
+  }
+
+  isNameMatchingCurrentUser(name) {
+    const a = String(name || '').trim().toLowerCase();
+    const b = this.getCurrentUserDisplayName().trim().toLowerCase();
+    if (!a || !b) return false;
+    return a === b;
+  }
+
+  isGenericOrInvalidChatName(name, { isGroup = false } = {}) {
+    const value = String(name || '').trim();
+    if (!value) return true;
+    if (!isGroup && this.isNameMatchingCurrentUser(value)) return true;
+    const lower = value.toLowerCase();
+    return lower === 'новий чат' || lower === 'користувач';
+  }
+
+  extractMessageSenderName(message) {
+    if (!message || typeof message !== 'object') return '';
+    const senderCandidates = [
+      message.sender,
+      message.author,
+      message.fromUser,
+      message.user,
+      message.createdBy,
+      message.owner
+    ];
+    for (const candidate of senderCandidates) {
+      if (!candidate || typeof candidate !== 'object') continue;
+      const name = this.getUserDisplayName(candidate);
+      if (name && name !== 'Користувач') return name;
+    }
+    const directName = this.getUserDisplayName(message);
+    if (directName && directName !== 'Користувач') return directName;
+    return '';
+  }
+
+  extractMessageSenderAvatar(message) {
+    if (!message || typeof message !== 'object') return '';
+    const senderCandidates = [
+      message.sender,
+      message.author,
+      message.fromUser,
+      message.user,
+      message.createdBy,
+      message.owner,
+      message
+    ];
+    for (const candidate of senderCandidates) {
+      const avatar = this.getUserAvatarImage(candidate);
+      if (avatar) return avatar;
+    }
+    return '';
+  }
+
+  extractMessageSenderAvatarColor(message) {
+    if (!message || typeof message !== 'object') return '';
+    const senderCandidates = [
+      message.sender,
+      message.author,
+      message.fromUser,
+      message.user,
+      message.createdBy,
+      message.owner,
+      message
+    ];
+    for (const candidate of senderCandidates) {
+      const color = this.getUserAvatarColor(candidate);
+      if (color) return color;
+    }
+    return '';
+  }
+
+  getUserTag(user) {
+    const tag = (
+      user?.tag ||
+      user?.username ||
+      user?.handle ||
+      user?.login ||
+      user?.userTag ||
+      ''
+    );
+    return String(tag).trim().replace(/^@+/, '');
+  }
+
+  normalizeSearchQuery(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  normalizeTagQuery(value) {
+    return this.normalizeSearchQuery(value).replace(/^@+/, '');
+  }
+
+  rankUsersByQuery(users, query) {
+    const q = this.normalizeSearchQuery(query);
+    const qTag = this.normalizeTagQuery(query);
+    if (!q) return [];
+
+    const scored = users
+      .map((user) => {
+        const tag = this.normalizeTagQuery(user.tag);
+        const name = this.normalizeSearchQuery(user.name);
+        const mobile = this.normalizeSearchQuery(user.mobile);
+        const email = this.normalizeSearchQuery(user.email);
+
+        const matches =
+          (tag && (tag.includes(qTag) || tag.includes(q))) ||
+          (name && name.includes(q)) ||
+          (mobile && mobile.includes(q)) ||
+          (email && email.includes(q));
+        if (!matches) return null;
+
+        let score = 99;
+        if (tag && qTag && tag === qTag) score = 0;
+        else if (tag && qTag && tag.startsWith(qTag)) score = 1;
+        else if (tag && qTag && tag.includes(qTag)) score = 2;
+        else if (name === q) score = 3;
+        else if (name.startsWith(q)) score = 4;
+        else if (name.includes(q)) score = 5;
+        else if (mobile.startsWith(q)) score = 6;
+        else if (mobile.includes(q) || email.includes(q)) score = 7;
+
+        return { user, score, tag, name };
+      })
+      .filter(Boolean);
+
+    scored.sort((a, b) => {
+      if (a.score !== b.score) return a.score - b.score;
+      if (a.tag && b.tag && a.tag !== b.tag) return a.tag.localeCompare(b.tag, 'uk');
+      return a.name.localeCompare(b.name, 'uk');
+    });
+
+    return scored.map((item) => item.user);
+  }
+
+  normalizeUserList(payload) {
+    const candidates = [
+      payload,
+      payload?.users,
+      payload?.data,
+      payload?.results,
+      payload?.items
+    ];
+    const source = candidates.find(Array.isArray);
+    if (!source) return [];
+
+    const selfId = this.getAuthUserId();
+    return source
+      .filter((item) => item && typeof item === 'object')
+      .map((item) => {
+        const id = String(item.id ?? item.userId ?? item._id ?? '').trim();
+        const normalizedName = this.getUserDisplayName(item);
+        const avatarImage = this.getUserAvatarImage(item);
+        const avatarColor = this.getUserAvatarColor(item);
+        this.cacheKnownUserMeta(id, {
+          name: normalizedName,
+          avatarImage,
+          avatarColor
+        });
+        return {
+          id,
+          name: normalizedName,
+          tag: this.getUserTag(item),
+          mobile: String(item.mobile ?? item.phone ?? '').trim(),
+          email: String(item.email ?? '').trim(),
+          avatarImage,
+          avatarColor,
+          raw: item
+        };
+      })
+      .filter((item) => item.id && item.id !== selfId);
+  }
+
+  renderNewChatSearchState({
+    loading = false,
+    message = '',
+    users = [],
+    selectedUserId = ''
+  } = {}) {
+    const statusEl = document.getElementById('newChatUserSearchStatus');
+    const listEl = document.getElementById('newChatUserSearchResults');
+    if (!statusEl || !listEl) return;
+
+    if (loading) {
+      statusEl.textContent = 'Пошук користувачів...';
+      listEl.innerHTML = '';
+      return;
+    }
+
+    if (!users.length) {
+      statusEl.textContent = message || 'Користувачів не знайдено.';
+      listEl.innerHTML = '';
+      return;
+    }
+
+    statusEl.textContent = '';
+    listEl.innerHTML = users.map((user) => {
+      const tagText = user.tag ? `@${user.tag}` : '';
+      const secondary = [tagText, user.mobile || user.email || ''].filter(Boolean).join(' · ');
+      const activeClass = selectedUserId && selectedUserId === user.id ? ' active' : '';
+      const avatarHtml = this.getChatAvatarHtml(
+        {
+          name: user.name,
+          avatarImage: user.avatarImage,
+          avatarColor: user.avatarColor
+        },
+        'new-chat-user-result-avatar'
+      );
+      return `
+        <button type="button" class="new-chat-user-result${activeClass}" data-user-id="${this.escapeHtml(user.id)}">
+          ${avatarHtml}
+          <span class="new-chat-user-result-copy">
+            <span class="new-chat-user-result-main">${this.escapeHtml(user.name)}</span>
+            <span class="new-chat-user-result-secondary">${this.escapeHtml(secondary)}</span>
+          </span>
+        </button>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.new-chat-user-result').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-user-id');
+        const user = (this.newChatUserResults || []).find((item) => item.id === userId);
+        if (!user) return;
+        this.newChatSelectedUser = user;
+        const input = document.getElementById('newContactInput');
+        if (input) input.value = user.name;
+        this.renderNewChatSearchState({
+          users: this.newChatUserResults,
+          selectedUserId: user.id
+        });
+      });
+    });
+  }
+
+  async fetchRegisteredUsers(query) {
+    const trimmedQuery = String(query || '').trim();
+    if (trimmedQuery.length < 2) {
+      return [];
+    }
+
+    const encoded = encodeURIComponent(trimmedQuery);
+    const endpoints = [
+      `/users/search?query=${encoded}`,
+      `/users/search?search=${encoded}`,
+      `/users?search=${encoded}`,
+      `/users?query=${encoded}`
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(buildApiUrl(endpoint), {
+          headers: this.getApiHeaders()
+        });
+        if (response.status === 404 || response.status === 405) {
+          continue;
+        }
+        const data = await this.readJsonSafe(response);
+        if (!response.ok) {
+          continue;
+        }
+        const users = this.rankUsersByQuery(this.normalizeUserList(data), trimmedQuery);
+        if (users.length > 0) return users;
+      } catch {
+        // Try next endpoint variant.
+      }
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('/users'), {
+        headers: this.getApiHeaders()
+      });
+      if (response.ok) {
+        const data = await this.readJsonSafe(response);
+        const users = this.rankUsersByQuery(this.normalizeUserList(data), trimmedQuery);
+        if (users.length > 0) return users;
+      }
+    } catch {
+      // No generic users list endpoint, keep graceful empty result.
+    }
+
+    return [];
+  }
+
+  scheduleUserSearch(query) {
+    if (this.newChatUserSearchTimer) {
+      clearTimeout(this.newChatUserSearchTimer);
+      this.newChatUserSearchTimer = null;
+    }
+
+    const value = String(query || '').trim();
+    if (value.length < 2) {
+      this.newChatUserResults = [];
+      this.newChatSelectedUser = null;
+      this.renderNewChatSearchState({
+        message: 'Введіть щонайменше 2 символи тегу, імені або номера.'
+      });
+      return;
+    }
+
+    const requestId = (this.newChatUserSearchRequestId || 0) + 1;
+    this.newChatUserSearchRequestId = requestId;
+    this.renderNewChatSearchState({ loading: true });
+
+    this.newChatUserSearchTimer = window.setTimeout(async () => {
+      try {
+        const users = await this.fetchRegisteredUsers(value);
+        if (this.newChatUserSearchRequestId !== requestId) return;
+        this.newChatUserResults = users;
+        if (this.newChatSelectedUser && !users.some((u) => u.id === this.newChatSelectedUser.id)) {
+          this.newChatSelectedUser = null;
+        }
+        this.renderNewChatSearchState({
+          users,
+          selectedUserId: this.newChatSelectedUser?.id || '',
+          message: `Не знайдено користувачів за запитом "${value}".`
+        });
+      } catch {
+        if (this.newChatUserSearchRequestId !== requestId) return;
+        this.newChatUserResults = [];
+        this.newChatSelectedUser = null;
+        this.renderNewChatSearchState({
+          message: 'Не вдалося виконати пошук користувачів.'
+        });
+      }
+    }, 260);
+  }
+
+  async updateCurrentUserProfileOnServer(payload = {}) {
+    const userId = this.getAuthUserId();
+    if (!userId) {
+      throw new Error('Не знайдено X-User-Id у сесії. Увійдіть у акаунт ще раз.');
+    }
+    const response = await fetch(buildApiUrl('/users/me'), {
+      method: 'PATCH',
+      headers: this.getApiHeaders({ json: true }),
+      body: JSON.stringify(payload)
+    });
+    const data = await this.readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося оновити профіль.'));
+    }
+    return data && typeof data === 'object' ? data : {};
+  }
+
+  async createChatOnServer(payload) {
+    const userId = this.getAuthUserId();
+    if (!userId) {
+      throw new Error('Не знайдено ідентифікатор користувача для створення чату.');
+    }
+
+    const response = await fetch(buildApiUrl('/chats'), {
+      method: 'POST',
+      headers: this.getApiHeaders({ json: true }),
+      body: JSON.stringify(payload)
+    });
+    const data = await this.readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося створити чат.'));
+    }
+    return data || {};
+  }
+
+  extractServerChatId(data) {
+    const payload = data?.chat && typeof data.chat === 'object' ? data.chat : data;
+    const id = String(payload?.id ?? payload?.chatId ?? payload?._id ?? '').trim();
+    return id;
+  }
+
+  async joinChatOnServerAsUser(chatServerId, userId) {
+    const safeChatId = String(chatServerId || '').trim();
+    const safeUserId = String(userId || '').trim();
+    if (!safeChatId || !safeUserId) return false;
+
+    const attempts = [
+      {
+        endpoint: `/chats/${encodeURIComponent(safeChatId)}/join`,
+        options: {
+          method: 'POST',
+          headers: { 'X-User-Id': safeUserId }
+        }
+      },
+      {
+        endpoint: '/chats/join',
+        options: {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': safeUserId
+          },
+          body: JSON.stringify({ chatId: safeChatId })
+        }
+      },
+      {
+        endpoint: '/chats/join',
+        options: {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': safeUserId
+          },
+          body: JSON.stringify({ id: safeChatId })
+        }
+      }
+    ];
+
+    for (const attempt of attempts) {
+      const response = await fetch(buildApiUrl(attempt.endpoint), attempt.options);
+      if (response.ok) return true;
+
+      // Some backends can return "already joined" as non-2xx text.
+      const data = await this.readJsonSafe(response);
+      const message = this.getRequestErrorMessage(data, '');
+      if (/already|вже|exists|учасник/i.test(message)) {
+        return true;
+      }
+
+      if (response.status === 404 || response.status === 405) {
+        continue;
+      }
+    }
+
+    return false;
+  }
+
+  async ensurePrivateChatParticipantJoined(chat) {
+    if (!chat || chat.isGroup || !chat.participantId) return true;
+    if (chat.participantJoinedVerified) return true;
+
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) return false;
+
+    const joined = await this.joinChatOnServerAsUser(chatServerId, chat.participantId);
+    if (joined) {
+      chat.participantJoinedVerified = true;
+      this.saveChats();
+    }
+    return joined;
+  }
+
+  buildLocalChatFromServer(data, fallback = {}) {
+    const payload = data?.chat && typeof data.chat === 'object' ? data.chat : data;
+    const name = String(payload?.name || fallback?.name || 'Новий чат').trim();
+    const avatarImage = this.getAvatarImage(
+      fallback?.avatarImage
+      || fallback?.avatarUrl
+      || this.getUserAvatarImage(payload)
+    );
+    const avatarColor = String(
+      fallback?.avatarColor
+      || payload?.avatarColor
+      || this.getUserAvatarColor(payload)
+      || ''
+    ).trim();
+    const nextId = Math.max(0, ...this.chats.map((chat) => Number(chat.id) || 0)) + 1;
+    return {
+      id: nextId,
+      serverId: String(payload?.id ?? payload?.chatId ?? '').trim() || null,
+      participantId: String(fallback?.participantId || '').trim() || null,
+      name,
+      avatarImage,
+      avatarUrl: avatarImage,
+      avatarColor,
+      messages: [],
+      isGroup: Boolean(payload?.isGroup ?? fallback?.isGroup),
+      members: Array.isArray(fallback?.members) ? fallback.members : []
+    };
+  }
+
+  initializeServerChatSync() {
+    if (this.serverChatSyncInitialized) return;
+    this.serverChatSyncInitialized = true;
+    this.serverChatSyncInFlight = false;
+
+    this.runServerChatSync({ forceScroll: false });
+
+    if (this.serverChatSyncTimer) {
+      window.clearInterval(this.serverChatSyncTimer);
+    }
+    this.serverChatSyncTimer = window.setInterval(() => {
+      this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
+    }, 2500);
+
+    if (this.serverChatVisibilityHandler) {
+      document.removeEventListener('visibilitychange', this.serverChatVisibilityHandler);
+    }
+    this.serverChatVisibilityHandler = () => {
+      if (document.visibilityState === 'visible') {
+        this.runServerChatSync({ forceScroll: false });
+      }
+    };
+    document.addEventListener('visibilitychange', this.serverChatVisibilityHandler);
+  }
+
+  async runServerChatSync({ forceScroll = false, skipWhenHidden = false } = {}) {
+    if (skipWhenHidden && document.visibilityState === 'hidden') return;
+    if (this.serverChatSyncInFlight) return;
+    this.serverChatSyncInFlight = true;
+    try {
+      await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
+      await this.syncCurrentChatMessagesFromServer({ forceScroll });
+    } catch {
+      // Keep UI responsive if backend is temporarily unavailable.
+    } finally {
+      this.serverChatSyncInFlight = false;
+    }
+  }
+
+  resolveChatServerId(chat) {
+    if (!chat) return '';
+    const direct = String(chat.serverId ?? '').trim();
+    if (direct) return direct;
+    if (typeof chat.id === 'string' && chat.id.trim() && !/^\d+$/.test(chat.id.trim())) {
+      return chat.id.trim();
+    }
+    return '';
+  }
+
+  formatLocalMessageDateParts(value) {
+    const date = value ? new Date(value) : new Date();
+    const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+    const hh = String(safeDate.getHours()).padStart(2, '0');
+    const mm = String(safeDate.getMinutes()).padStart(2, '0');
+    return {
+      date: safeDate.toISOString().slice(0, 10),
+      time: `${hh}:${mm}`
+    };
+  }
+
+  normalizeServerChatsPayload(payload) {
+    const candidates = [payload, payload?.chats, payload?.data, payload?.items, payload?.results];
+    const source = candidates.find(Array.isArray);
+    if (!source) return [];
+    const selfId = this.getAuthUserId();
+
+    return source
+      .filter((item) => item && typeof item === 'object')
+      .map((item) => {
+        const serverId = String(item.id ?? item.chatId ?? item._id ?? '').trim();
+        if (!serverId) return null;
+
+        const participants = Array.isArray(item.participants)
+          ? item.participants
+          : Array.isArray(item.members)
+            ? item.members
+            : Array.isArray(item.users)
+              ? item.users
+              : [];
+        const normalizedParticipants = participants
+          .map((member) => this.normalizeParticipantRecord(member))
+          .filter(Boolean);
+        const otherParticipant = normalizedParticipants.find((member) => member.id !== selfId) || null;
+        let participantConfidence = 0;
+        let participantIdRaw = '';
+
+        if (otherParticipant?.id) {
+          participantIdRaw = String(otherParticipant.id).trim();
+          participantConfidence = 2; // from explicit participants list
+        } else {
+          const fieldParticipantId = String(item.participantId ?? '').trim();
+          const fieldTargetUserId = String(item.targetUserId ?? '').trim();
+          const fieldOwnerId = String(item.ownerId ?? item.createdById ?? item.owner?.id ?? item.createdBy?.id ?? '').trim();
+          if (fieldParticipantId && fieldParticipantId !== selfId) {
+            participantIdRaw = fieldParticipantId;
+            participantConfidence = 1; // from dedicated participant field
+          } else if (fieldTargetUserId && fieldTargetUserId !== selfId) {
+            participantIdRaw = fieldTargetUserId;
+            participantConfidence = 1;
+          } else if (fieldOwnerId && fieldOwnerId !== selfId) {
+            participantIdRaw = fieldOwnerId;
+            participantConfidence = 1;
+          }
+        }
+
+        const participantId = participantIdRaw && participantIdRaw !== selfId ? participantIdRaw : '';
+
+        const participantName = String(otherParticipant?.name || '').trim();
+        const participantAvatarImage = this.getAvatarImage(otherParticipant?.avatarImage || otherParticipant?.avatarUrl);
+        const participantAvatarColor = String(otherParticipant?.avatarColor || '').trim();
+        this.cacheKnownUserMeta(participantId, {
+          name: participantName,
+          avatarImage: participantAvatarImage,
+          avatarColor: participantAvatarColor
+        });
+        const isGroup = Boolean(item.isGroup ?? item.group ?? item.type === 'group');
+        const fallbackName = String(item.name ?? item.title ?? '').trim();
+        const cachedParticipant = this.getCachedUserMeta(participantId);
+        const cachedParticipantName = String(cachedParticipant?.name || '').trim();
+        const cachedParticipantAvatar = this.getAvatarImage(cachedParticipant?.avatarImage);
+        const effectiveParticipantName = participantName || cachedParticipantName;
+        const shouldUseParticipantName = !isGroup
+          && effectiveParticipantName
+          && effectiveParticipantName !== 'Користувач';
+        const fallbackLooksLikeSelf = !isGroup && this.isNameMatchingCurrentUser(fallbackName);
+        const name = shouldUseParticipantName
+          ? effectiveParticipantName
+          : ((fallbackLooksLikeSelf ? '' : fallbackName) || effectiveParticipantName || 'Новий чат');
+        const fallbackAvatarImage = this.getUserAvatarImage(item);
+        const avatarImage = this.getAvatarImage(participantAvatarImage || cachedParticipantAvatar || fallbackAvatarImage);
+        const fallbackAvatarColor = this.getUserAvatarColor(item);
+        const avatarColor = String(participantAvatarColor || cachedParticipant?.avatarColor || fallbackAvatarColor || '').trim();
+
+        return {
+          serverId,
+          name,
+          isGroup,
+          participantId: participantId || null,
+          participantConfidence,
+          avatarImage,
+          avatarUrl: avatarImage,
+          avatarColor
+        };
+      })
+      .filter(Boolean);
+  }
+
+  normalizeServerMessagesPayload(payload) {
+    const candidates = [payload, payload?.messages, payload?.data, payload?.items, payload?.results];
+    const source = candidates.find(Array.isArray);
+    if (!source) return [];
+    return source.filter((item) => item && typeof item === 'object');
+  }
+
+  mapServerMessagesToLocal(chat, serverMessages = []) {
+    const selfId = this.getAuthUserId();
+    const existingMessages = Array.isArray(chat?.messages) ? chat.messages : [];
+    const existingByServerId = new Map();
+    const existingLocalIds = [];
+    const usedIds = new Set();
+
+    existingMessages.forEach((msg) => {
+      const localId = Number(msg?.id);
+      if (Number.isFinite(localId) && localId > 0) existingLocalIds.push(localId);
+      const serverId = String(msg?.serverId ?? '').trim();
+      if (serverId && Number.isFinite(localId) && localId > 0) {
+        existingByServerId.set(serverId, localId);
+      }
+    });
+
+    let nextLocalId = Math.max(0, ...existingLocalIds) + 1;
+    const nextMessages = serverMessages
+      .map((item, index) => {
+        const serverId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
+        let localId = serverId ? existingByServerId.get(serverId) : null;
+        if (!Number.isFinite(localId) || localId <= 0 || usedIds.has(localId)) {
+          localId = nextLocalId;
+          nextLocalId += 1;
+        }
+        usedIds.add(localId);
+
+        const createdAt = item.createdAt ?? item.timestamp ?? item.date ?? new Date().toISOString();
+        const { date, time } = this.formatLocalMessageDateParts(createdAt);
+        // Some APIs use `userId` as "current viewer id" in response mapping.
+        // Prefer explicit sender/author keys first.
+        const senderId = String(
+          item.senderId
+            ?? item.fromUserId
+            ?? item.authorId
+            ?? item.ownerId
+            ?? item.createdById
+            ?? item.sender?.id
+            ?? item.author?.id
+            ?? item.fromUser?.id
+            ?? item.createdBy?.id
+            ?? item.user?.id
+            ?? item.userId
+            ?? ''
+        ).trim();
+        const senderName = this.extractMessageSenderName(item);
+        const senderAvatarImage = this.extractMessageSenderAvatar(item);
+        const senderAvatarColor = this.extractMessageSenderAvatarColor(item);
+        this.cacheKnownUserMeta(senderId, {
+          name: senderName,
+          avatarImage: senderAvatarImage,
+          avatarColor: senderAvatarColor
+        });
+
+        const fromFlag = String(item.from ?? '').trim().toLowerCase();
+        let from = 'other';
+        if (senderId) {
+          from = senderId === selfId ? 'own' : 'other';
+        } else if (fromFlag) {
+          const ownFlags = new Set(['own', 'me', 'self', 'mine']);
+          from = ownFlags.has(fromFlag) ? 'own' : 'other';
+        }
+
+        const content = item.content ?? item.text ?? item.message ?? '';
+        const text = String(content ?? '');
+        const attachmentUrl = String(item.attachmentUrl ?? item.fileUrl ?? '').trim();
+        const imageUrl = String(item.imageUrl ?? '').trim() || attachmentUrl;
+        const audioUrl = String(item.audioUrl ?? '').trim();
+        const attachmentMime = String(item.attachmentMimeType ?? item.mimeType ?? '').toLowerCase();
+        let type = String(item.type ?? '').trim();
+        if (!type) {
+          if (audioUrl || attachmentMime.startsWith('audio/')) {
+            type = 'voice';
+          } else if (imageUrl && (attachmentMime.startsWith('image/') || /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i.test(imageUrl))) {
+            type = 'image';
+          } else {
+            type = 'text';
+          }
+        }
+
+        return {
+          id: localId,
+          serverId: serverId || null,
+          text,
+          from,
+          senderId: senderId || null,
+          senderName: senderName || '',
+          senderAvatarImage: senderAvatarImage || '',
+          senderAvatarColor: senderAvatarColor || '',
+          type,
+          time,
+          date,
+          imageUrl: type === 'image' ? imageUrl : '',
+          audioUrl: type === 'voice' ? audioUrl : '',
+          audioDuration: Number(item.audioDuration ?? item.duration ?? 0) || 0,
+          edited: Boolean(
+            item.edited
+              ?? (item.updatedAt && item.createdAt && item.updatedAt !== item.createdAt)
+          ),
+          replyTo: null,
+          _sortValue: new Date(createdAt).getTime() || index
+        };
+      })
+      .sort((a, b) => a._sortValue - b._sortValue)
+      .map(({ _sortValue, ...message }) => message);
+
+    return nextMessages;
+  }
+
+  async syncChatsFromServer({ preserveSelection = true, renderIfChanged = true } = {}) {
+    const userId = this.getAuthUserId();
+    if (!userId) return false;
+
+    const response = await fetch(buildApiUrl('/chats'), {
+      headers: this.getApiHeaders()
+    });
+    const data = await this.readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося оновити список чатів.'));
+    }
+
+    const normalizedChats = this.normalizeServerChatsPayload(data);
+    const previousChats = Array.isArray(this.chats) ? this.chats : [];
+    const previousCurrentServerId = this.resolveChatServerId(this.currentChat);
+    const previousCurrentLocalId = this.currentChat?.id;
+    const byServerId = new Map();
+    const byParticipantId = new Map();
+    previousChats.forEach((chat) => {
+      const serverId = this.resolveChatServerId(chat);
+      if (serverId) byServerId.set(serverId, chat);
+      if (!chat.isGroup && chat.participantId) {
+        byParticipantId.set(String(chat.participantId), chat);
+      }
+    });
+
+    let nextLocalId = Math.max(0, ...previousChats.map((chat) => Number(chat?.id) || 0)) + 1;
+    let changed = previousChats.length !== normalizedChats.length;
+    const nextChats = normalizedChats.map((serverChat) => {
+      let existing = byServerId.get(serverChat.serverId) || null;
+      if (!existing && !serverChat.isGroup && serverChat.participantId) {
+        existing = byParticipantId.get(serverChat.participantId) || null;
+      }
+
+      const localId = existing?.id ?? nextLocalId++;
+      const messages = Array.isArray(existing?.messages) ? existing.messages : [];
+      const existingParticipantId = String(existing?.participantId || '').trim();
+      const incomingParticipantId = String(serverChat.participantId || '').trim();
+      const incomingConfidence = Number(serverChat.participantConfidence || 0);
+      const existingConfidence = Number(existing?.participantConfidence || 0);
+      const shouldOverrideParticipantId = Boolean(
+        incomingParticipantId
+        && (
+          !existingParticipantId
+          || (
+            incomingParticipantId !== existingParticipantId
+            && incomingConfidence >= 2
+            && incomingConfidence >= existingConfidence
+          )
+        )
+      );
+      const mergedParticipantId = shouldOverrideParticipantId
+        ? incomingParticipantId
+        : (existingParticipantId || incomingParticipantId || null);
+      const cachedParticipantMeta = this.getCachedUserMeta(mergedParticipantId);
+      const cachedParticipantName = String(cachedParticipantMeta?.name || '').trim();
+      const cachedParticipantAvatar = this.getAvatarImage(cachedParticipantMeta?.avatarImage);
+      const serverName = String(serverChat.name || '').trim();
+      const existingName = String(existing?.name || '').trim();
+      const hasValidServerName = !this.isGenericOrInvalidChatName(serverName, { isGroup: serverChat.isGroup });
+      const hasValidExistingName = !this.isGenericOrInvalidChatName(existingName, { isGroup: serverChat.isGroup });
+      const mergedName = serverChat.isGroup
+        ? (serverName || existingName || 'Новий чат')
+        : (cachedParticipantName || (hasValidServerName ? serverName : '') || (hasValidExistingName ? existingName : '') || 'Новий чат');
+      const incomingAvatarImage = this.getAvatarImage(serverChat.avatarImage || serverChat.avatarUrl);
+      const existingAvatarImage = this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl);
+      const mergedAvatarImage = this.getAvatarImage(cachedParticipantAvatar || incomingAvatarImage || existingAvatarImage);
+      const incomingAvatarColor = String(serverChat.avatarColor || '').trim();
+      const existingAvatarColor = String(existing?.avatarColor || '').trim();
+      const mergedAvatarColor = String(
+        incomingAvatarColor
+        || cachedParticipantMeta?.avatarColor
+        || existingAvatarColor
+        || ''
+      ).trim();
+
+      const updatedChat = {
+        ...(existing || {}),
+        id: localId,
+        serverId: serverChat.serverId,
+        participantId: mergedParticipantId,
+        participantConfidence: shouldOverrideParticipantId
+          ? incomingConfidence
+          : Math.max(existingConfidence, incomingConfidence),
+        name: mergedName,
+        avatarImage: mergedAvatarImage,
+        avatarUrl: mergedAvatarImage,
+        avatarColor: mergedAvatarColor,
+        isGroup: serverChat.isGroup,
+        messages
+      };
+
+      if (
+        !existing
+        || this.resolveChatServerId(existing) !== updatedChat.serverId
+        || existing.name !== updatedChat.name
+        || Boolean(existing.isGroup) !== Boolean(updatedChat.isGroup)
+        || String(existing.participantId || '') !== String(updatedChat.participantId || '')
+        || this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl) !== updatedChat.avatarImage
+        || String(existing?.avatarColor || '') !== String(updatedChat.avatarColor || '')
+      ) {
+        changed = true;
+      }
+
+      return updatedChat;
+    });
+
+    const unresolvedDirectChats = nextChats.filter((chat) => {
+      if (!chat || chat.isGroup || !chat.participantId) return false;
+      const hasReliableName = String(chat.name || '').trim()
+        && chat.name !== 'Новий чат'
+        && !this.isNameMatchingCurrentUser(chat.name);
+      const hasAvatar = Boolean(this.getAvatarImage(chat.avatarImage || chat.avatarUrl));
+      return !hasReliableName || !hasAvatar;
+    });
+
+    for (const chat of unresolvedDirectChats) {
+      const resolvedName = await this.resolveUserNameById(chat.participantId);
+      if (resolvedName && resolvedName !== chat.name) {
+        chat.name = resolvedName;
+        changed = true;
+      }
+      const cachedAvatar = this.getCachedUserAvatar(chat.participantId);
+      if (cachedAvatar && cachedAvatar !== this.getAvatarImage(chat.avatarImage || chat.avatarUrl)) {
+        chat.avatarImage = cachedAvatar;
+        chat.avatarUrl = cachedAvatar;
+        changed = true;
+      }
+    }
+
+    const previousSignature = previousChats
+      .map((chat) => `${this.resolveChatServerId(chat)}:${chat.name}:${chat.isGroup ? 1 : 0}:${chat.participantId || ''}:${this.getAvatarImage(chat.avatarImage || chat.avatarUrl)}`)
+      .join('|');
+    const nextSignature = nextChats
+      .map((chat) => `${chat.serverId}:${chat.name}:${chat.isGroup ? 1 : 0}:${chat.participantId || ''}:${this.getAvatarImage(chat.avatarImage || chat.avatarUrl)}`)
+      .join('|');
+    if (previousSignature !== nextSignature) {
+      changed = true;
+    }
+
+    if (!changed) {
+      return false;
+    }
+
+    this.chats = nextChats;
+    this.saveChats();
+
+    if (preserveSelection) {
+      const restoredCurrent = this.chats.find((chat) => {
+        const serverId = this.resolveChatServerId(chat);
+        if (previousCurrentServerId && serverId === previousCurrentServerId) return true;
+        return chat.id === previousCurrentLocalId;
+      }) || null;
+      this.currentChat = restoredCurrent;
+    }
+
+    if (renderIfChanged && changed) {
+      this.renderChatsList();
+      this.updateChatHeader();
+    }
+
+    return changed;
+  }
+
+  async fetchChatMessagesFromServer(chat) {
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) return [];
+    const response = await fetch(buildApiUrl(`/messages?chatId=${encodeURIComponent(chatServerId)}`), {
+      headers: this.getApiHeaders()
+    });
+    const data = await this.readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося завантажити повідомлення.'));
+    }
+    return this.normalizeServerMessagesPayload(data);
+  }
+
+  renderChatAfterSync({ forceScroll = false } = {}) {
+    if (!this.currentChat) return;
+    const container = document.getElementById('messagesContainer');
+    if (!container) {
+      this.renderChat();
+      return;
+    }
+
+    const previousScrollBottomGap = container.scrollHeight - container.clientHeight - container.scrollTop;
+    const shouldStickToBottom = forceScroll || previousScrollBottomGap <= 72;
+    this.renderChat();
+
+    if (!shouldStickToBottom) {
+      window.setTimeout(() => {
+        const nextGap = Math.max(0, previousScrollBottomGap);
+        container.scrollTop = Math.max(0, container.scrollHeight - container.clientHeight - nextGap);
+        this.updateMessagesScrollBottomButtonVisibility();
+      }, 24);
+    }
+  }
+
+  async syncCurrentChatMessagesFromServer({ forceScroll = false } = {}) {
+    if (!this.currentChat) return false;
+    const targetChat = this.currentChat;
+    const serverMessages = await this.fetchChatMessagesFromServer(targetChat);
+    const nextMessages = this.mapServerMessagesToLocal(targetChat, serverMessages);
+    const prevMessages = Array.isArray(targetChat.messages) ? targetChat.messages : [];
+
+    const previousSignature = prevMessages
+      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
+      .join('|');
+    const nextSignature = nextMessages
+      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
+      .join('|');
+
+    if (previousSignature === nextSignature) return false;
+
+    targetChat.messages = nextMessages;
+    if (!targetChat.isGroup) {
+      const otherMessages = nextMessages.filter((msg) => msg.from === 'other');
+      const otherMessage = otherMessages.length ? otherMessages[otherMessages.length - 1] : null;
+      const otherSenderId = String(otherMessage?.senderId || '').trim();
+      const otherSenderName = String(otherMessage?.senderName || '').trim();
+      const otherSenderAvatarImage = this.getAvatarImage(otherMessage?.senderAvatarImage || '');
+      const otherSenderAvatarColor = String(otherMessage?.senderAvatarColor || '').trim();
+      let chatMetaChanged = false;
+
+      if (otherSenderId && (!targetChat.participantId || targetChat.participantId !== otherSenderId)) {
+        targetChat.participantId = otherSenderId;
+        targetChat.participantConfidence = Math.max(2, Number(targetChat.participantConfidence || 0));
+        chatMetaChanged = true;
+      }
+      if (otherSenderId || targetChat.participantId) {
+        this.cacheKnownUserMeta(otherSenderId || targetChat.participantId, {
+          name: otherSenderName,
+          avatarImage: otherSenderAvatarImage,
+          avatarColor: otherSenderAvatarColor
+        });
+      }
+      if (otherSenderName && !this.isGenericOrInvalidChatName(otherSenderName, { isGroup: false })) {
+        this.cacheKnownUserName(otherSenderId || targetChat.participantId, otherSenderName);
+        if (targetChat.name !== otherSenderName) {
+          targetChat.name = otherSenderName;
+          chatMetaChanged = true;
+        }
+      }
+      if (
+        this.isGenericOrInvalidChatName(targetChat.name, { isGroup: false })
+        && targetChat.participantId
+      ) {
+        const cachedName = this.getCachedUserName(targetChat.participantId);
+        if (cachedName && cachedName !== targetChat.name) {
+          targetChat.name = cachedName;
+          chatMetaChanged = true;
+        }
+      }
+      const cachedAvatar = this.getCachedUserAvatar(targetChat.participantId);
+      const resolvedAvatarImage = this.getAvatarImage(otherSenderAvatarImage || cachedAvatar);
+      if (resolvedAvatarImage && resolvedAvatarImage !== this.getAvatarImage(targetChat.avatarImage || targetChat.avatarUrl)) {
+        targetChat.avatarImage = resolvedAvatarImage;
+        targetChat.avatarUrl = resolvedAvatarImage;
+        chatMetaChanged = true;
+      }
+      const cachedAvatarColor = String(this.getCachedUserMeta(targetChat.participantId)?.avatarColor || '').trim();
+      const resolvedAvatarColor = String(otherSenderAvatarColor || cachedAvatarColor || '').trim();
+      if (resolvedAvatarColor && resolvedAvatarColor !== String(targetChat.avatarColor || '').trim()) {
+        targetChat.avatarColor = resolvedAvatarColor;
+        chatMetaChanged = true;
+      }
+      if (chatMetaChanged) {
+        // Keep list/header updated if we just resolved proper counterpart identity.
+        this.updateChatHeader();
+      }
+    }
+    this.saveChats();
+    this.renderChatsList();
+    this.renderChatAfterSync({ forceScroll });
+    return true;
+  }
+
+  getServerMessageIdByLocalId(chat, localId) {
+    if (!chat || localId == null) return '';
+    const message = Array.isArray(chat.messages)
+      ? chat.messages.find((item) => Number(item?.id) === Number(localId))
+      : null;
+    return String(message?.serverId ?? '').trim();
+  }
+
+  async sendTextMessageToServer(chat, text, { replyToLocalId = null } = {}) {
+    const userId = this.getAuthUserId();
+    if (!userId) {
+      throw new Error('Не знайдено X-User-Id у сесії. Увійдіть у акаунт ще раз.');
+    }
+
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) {
+      throw new Error('Не вдалося визначити чат для надсилання повідомлення.');
+    }
+
+    const basePayload = { chatId: chatServerId };
+    const replyToServerId = this.getServerMessageIdByLocalId(chat, replyToLocalId);
+    if (replyToServerId) {
+      basePayload.replyToId = replyToServerId;
+    }
+
+    const attempts = [
+      { endpoint: '/messages', payload: { ...basePayload, content: text } },
+      { endpoint: '/messages', payload: { ...basePayload, text } },
+      { endpoint: '/messages', payload: { ...basePayload, message: text } }
+    ];
+
+    let lastError = 'Не вдалося надіслати повідомлення.';
+    let bestError = '';
+
+    for (const attempt of attempts) {
+      const response = await fetch(buildApiUrl(attempt.endpoint), {
+        method: 'POST',
+        headers: this.getApiHeaders({ json: true }),
+        body: JSON.stringify(attempt.payload)
+      });
+      const data = await this.readJsonSafe(response);
+
+      if (response.ok) {
+        return data || {};
+      }
+
+      const message = this.getRequestErrorMessage(data, lastError);
+      lastError = `HTTP ${response.status}: ${message}`;
+      if (!bestError || (response.status !== 404 && response.status !== 405)) {
+        bestError = lastError;
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(bestError || lastError);
+      }
+
+      if (response.status === 404 || response.status === 405) {
+        continue;
+      }
+    }
+
+    throw new Error(bestError || lastError);
+  }
+
   appendMessage(msg, highlightClass = '') {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer || !this.currentChat) return;
@@ -22,9 +1342,12 @@ export class ChatAppMessagingMethods {
     let senderNameHtml = '';
     
     if (msg.from === 'other') {
-      const initials = this.currentChat.name.split(' ').map(w => w[0]).join('').toUpperCase();
-      const color = this.getContactColor(this.currentChat.name);
-      avatarHtml = `<div class="message-avatar" style="background: ${color}">${initials}</div>`;
+      const otherChatAvatar = {
+        name: msg.senderName || this.currentChat?.name || 'Контакт',
+        avatarImage: this.getAvatarImage(msg.senderAvatarImage || this.currentChat?.avatarImage || this.currentChat?.avatarUrl),
+        avatarColor: msg.senderAvatarColor || this.currentChat?.avatarColor || ''
+      };
+      avatarHtml = this.getChatAvatarHtml(otherChatAvatar, 'message-avatar');
     } else {
       avatarHtml = this.getUserAvatarHtml();
     }
@@ -254,7 +1577,7 @@ export class ChatAppMessagingMethods {
     });
   }
 
-  sendMessage() {
+  async sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input?.value.trim() || '';
 
@@ -280,34 +1603,22 @@ export class ChatAppMessagingMethods {
       return;
     }
 
-    const now = new Date();
-    const time = now.getHours().toString().padStart(2, '0') + ':' + 
-                 now.getMinutes().toString().padStart(2, '0');
-
-    const newMessage = {
-      id: this.getNextMessageId(this.currentChat),
-      text: message,
-      from: 'own',
-      time: time,
-      date: now.toISOString().slice(0,10),
-      replyTo: this.replyTarget
-        ? { id: this.replyTarget.id, text: this.replyTarget.text, from: this.replyTarget.from }
-        : null
-    };
-
-    this.currentChat.messages.push(newMessage);
-    this.saveChats();
-    input.value = '';
-    this.resizeMessageInput(input);
-    this.clearReplyTarget();
-    if (this.currentChat.messages.length === 1) {
-      this.renderChat(newMessage.id);
-    } else {
-      this.appendMessage(newMessage, ' new-message');
-    }
-    this.renderChatsList();
-    if (window.innerWidth <= 900) {
-      input.focus({ preventScroll: true });
+    try {
+      if (this.currentChat && !this.currentChat.isGroup && this.currentChat.participantId) {
+        await this.ensurePrivateChatParticipantJoined(this.currentChat);
+      }
+      await this.sendTextMessageToServer(this.currentChat, message, {
+        replyToLocalId: this.replyTarget?.id ?? null
+      });
+      input.value = '';
+      this.resizeMessageInput(input);
+      this.clearReplyTarget();
+      await this.syncCurrentChatMessagesFromServer({ forceScroll: true });
+      if (window.innerWidth <= 900) {
+        input.focus({ preventScroll: true });
+      }
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося надіслати повідомлення.');
     }
   }
 
@@ -637,6 +1948,12 @@ export class ChatAppMessagingMethods {
   openNewChatModal() {
     document.getElementById('newChatModal').classList.add('active');
     document.getElementById('modalOverlay').classList.add('active');
+    this.newChatUserResults = [];
+    this.newChatSelectedUser = null;
+    this.newChatUserSearchRequestId = 0;
+    this.renderNewChatSearchState({
+      message: "Почніть вводити тег користувача (або ім'я/номер)."
+    });
     document.getElementById('newContactInput').focus();
   }
 
@@ -647,9 +1964,21 @@ export class ChatAppMessagingMethods {
     const isGroupToggle = document.getElementById('isGroupToggle');
     const groupMembersInput = document.getElementById('groupMembersInput');
     const groupFields = document.getElementById('groupFields');
+    const userSearchWrap = document.getElementById('newChatUserSearch');
     if (isGroupToggle) isGroupToggle.checked = false;
     if (groupMembersInput) groupMembersInput.value = '';
     if (groupFields) groupFields.classList.remove('active');
+    if (userSearchWrap) userSearchWrap.classList.remove('hidden');
+    if (this.newChatUserSearchTimer) {
+      clearTimeout(this.newChatUserSearchTimer);
+      this.newChatUserSearchTimer = null;
+    }
+    this.newChatUserResults = [];
+    this.newChatSelectedUser = null;
+    this.newChatUserSearchRequestId = 0;
+    this.renderNewChatSearchState({
+      message: "Почніть вводити тег користувача (або ім'я/номер)."
+    });
   }
 
   async createNewChat() {
@@ -678,28 +2007,96 @@ export class ChatAppMessagingMethods {
       }
     }
 
-    const normalized = name.toLowerCase();
-    console.log('createNewChat:', { name, normalized, chats: this.chats });
-    const existing = this.chats.find(c => (c.name || '').toLowerCase().trim() === normalized);
-    console.log('createNewChat existing:', existing);
-    if (existing) {
-      await this.showAlert('Цей контакт вже існує!');
-      return;
+    if (!isGroup) {
+      let selected = this.newChatSelectedUser;
+      if (!selected && Array.isArray(this.newChatUserResults) && this.newChatUserResults.length) {
+        const normalized = name.toLowerCase();
+        const normalizedTag = normalized.replace(/^@+/, '');
+        selected = this.newChatUserResults.find((user) => {
+          const byName = (user.name || '').toLowerCase() === normalized;
+          const byMobile = String(user.mobile || '').trim() === name;
+          const byTag = String(user.tag || '').toLowerCase() === normalizedTag;
+          return byName || byMobile || byTag;
+        }) || null;
+        if (selected) {
+          this.newChatSelectedUser = selected;
+        }
+      }
+      if (!selected) {
+        await this.showAlert('Оберіть користувача зі списку пошуку.');
+        return;
+      }
+      const existsByParticipant = this.chats.find((chat) => chat.participantId && chat.participantId === selected.id);
+      if (existsByParticipant) {
+        this.closeNewChatModal();
+        this.selectChat(existsByParticipant.id);
+        return;
+      }
     }
 
-    const newChat = {
-      id: Math.max(...this.chats.map(c => c.id), 0) + 1,
-      name: name,
-      messages: [],
-      isGroup,
-      members
-    };
+    let newChat;
+    let selectedUserForDirectChat = null;
+    try {
+      const selected = this.newChatSelectedUser;
+      selectedUserForDirectChat = !isGroup ? selected : null;
+      if (!isGroup && selected?.id) {
+        this.cacheKnownUserMeta(selected.id, {
+          name: selected.name || '',
+          avatarImage: selected.avatarImage || this.getUserAvatarImage(selected.raw),
+          avatarColor: selected.avatarColor || this.getUserAvatarColor(selected.raw)
+        });
+      }
+      const payload = {
+        name: isGroup ? name : (selected?.name || name),
+        isPrivate: !isGroup,
+        isGroup
+      };
+      const serverChat = await this.createChatOnServer(payload);
+
+      if (!isGroup && selected?.id) {
+        const createdChatId = this.extractServerChatId(serverChat);
+        if (createdChatId) {
+          // Backend routes use X-User-Id identity; add second participant explicitly
+          // so the chat appears in the other user's own /chats list.
+          const joined = await this.joinChatOnServerAsUser(createdChatId, selected.id);
+          if (!joined) {
+            throw new Error('Не вдалося додати другого користувача до чату.');
+          }
+        } else {
+          throw new Error('Сервер не повернув ідентифікатор чату.');
+        }
+      }
+
+      newChat = this.buildLocalChatFromServer(serverChat, {
+        name: payload.name,
+        isGroup,
+        members,
+        participantId: selected?.id || null,
+        avatarImage: selected?.avatarImage || this.getCachedUserAvatar(selected?.id),
+        avatarColor: selected?.avatarColor || this.getCachedUserMeta(selected?.id)?.avatarColor
+      });
+      if (!isGroup && selected?.id) {
+        newChat.participantConfidence = 2;
+        newChat.participantJoinedVerified = true;
+      }
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося створити чат.');
+      return;
+    }
 
     this.chats.push(newChat);
     this.saveChats();
     this.renderChatsList();
     this.closeNewChatModal();
     this.selectChat(newChat.id);
+    this.runServerChatSync({ forceScroll: true });
+
+    if (selectedUserForDirectChat?.id) {
+      // Refresh list shortly after create/join to reflect backend participant state.
+      window.setTimeout(() => {
+        this.runServerChatSync({ forceScroll: false });
+      }, 450);
+    }
   }
 
   beginEditMessage(messageId) {
@@ -1529,9 +2926,7 @@ export class ChatAppMessagingMethods {
     const isOwn = String(messageFrom || '').trim() === 'own';
     if (isOwn) {
       const name = this.user?.name || 'Ви';
-      const avatarImage = typeof this.user?.avatarImage === 'string'
-        ? this.user.avatarImage.trim()
-        : '';
+      const avatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
       const avatarColor = this.user?.avatarColor || this.getContactColor(name);
       return {
         name,
@@ -1542,9 +2937,12 @@ export class ChatAppMessagingMethods {
     }
 
     const contactName = this.currentChat?.name || 'Контакт';
-    const avatarImage = typeof this.currentChat?.avatarImage === 'string'
-      ? this.currentChat.avatarImage.trim()
-      : '';
+    const cachedAvatar = this.getCachedUserAvatar(this.currentChat?.participantId);
+    const avatarImage = this.getAvatarImage(
+      this.currentChat?.avatarImage
+      || this.currentChat?.avatarUrl
+      || cachedAvatar
+    );
     const avatarColor = this.currentChat?.avatarColor || this.getContactColor(contactName);
     return {
       name: contactName,
@@ -2033,10 +3431,7 @@ export class ChatAppMessagingMethods {
       button.dataset.chatId = String(chat.id);
       button.title = chat.name;
 
-      const initials = chat.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      button.innerHTML = `
-        <span class="sidebar-avatar-chip-circle" style="background: ${this.getContactColor(chat.name)}">${initials}</span>
-      `;
+      button.innerHTML = this.getChatAvatarHtml(chat, 'sidebar-avatar-chip-circle');
       button.addEventListener('click', () => this.selectChat(chat.id));
       avatarsStrip.appendChild(button);
     });

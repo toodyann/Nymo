@@ -161,7 +161,10 @@
 
 .chat-avatar,
 .avatar,
-.message-avatar {
+.message-avatar,
+.app-chat-avatar,
+.desktop-secondary-chat-avatar,
+.sidebar-avatar-chip-circle {
   display: flex;
   align-items: center;
   justify-content: center;

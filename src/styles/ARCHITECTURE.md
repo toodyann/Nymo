@@ -3,6 +3,8 @@
 ## Entry
 - `main.css`  
   Single stylesheet entry with ordered `@import` for all layers.
+- `auth-main.css`  
+  Separate auth-route entry (`/auth/`) with only base + auth page styles.
 
 ## Base Layer
 - `base/fonts.css`  
@@ -38,3 +40,4 @@
 - Keep import order in `main.css` stable to avoid regressions.
 - Add new tokens only in `base/variables.css`.
 - Place page/feature-specific rules under `features/*` or `ui/*` by ownership.
+- Place isolated route styles under `pages/*` (e.g. auth).

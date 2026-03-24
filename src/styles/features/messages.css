@@ -88,6 +88,14 @@
   width: 100%;
 }
 
+.message.other {
+  column-gap: 10px;
+}
+
+.messages-container .message.other {
+  column-gap: 10px;
+}
+
 .message.own .message-content {
   background: rgba(255, 255, 255, 0.1);
   color: #000;

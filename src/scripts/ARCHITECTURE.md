@@ -3,6 +3,8 @@
 ## Entry
 - `bootstrap.js`  
   Single startup point: mounts app shell and creates `window.app`.
+- `auth/auth-page.js`  
+  Auth route logic (`/auth/`): login/register, backend requests, session handling.
 
 ## App Layer
 - `app/ChatApp.js`  
@@ -23,6 +25,8 @@
   Reusable UI helpers (alerts, confirm, formatting, escaping, cursor insert).
 - `shared/gestures/swipe-handlers.js`  
   Reusable mobile swipe handlers.
+- `shared/auth/auth-session.js`  
+  Auth session storage, route redirects, API URL helper.
 
 ## Notes
 - Keep business logic in `app/mixins`.
