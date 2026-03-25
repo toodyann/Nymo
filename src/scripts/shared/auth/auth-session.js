@@ -13,9 +13,26 @@ function readViteEnv() {
   }
 }
 
+function detectRuntimeBasePath() {
+  if (typeof window === 'undefined') return '/';
+  const pathname = String(window.location.pathname || '/');
+  const authMarkerIndex = pathname.indexOf('/auth/');
+  if (authMarkerIndex >= 0) {
+    const beforeAuth = pathname.slice(0, authMarkerIndex);
+    return beforeAuth.endsWith('/') ? beforeAuth : `${beforeAuth}/`;
+  }
+  if (pathname.endsWith('/')) return pathname;
+  const lastSlash = pathname.lastIndexOf('/');
+  if (lastSlash >= 0) {
+    const dir = pathname.slice(0, lastSlash + 1);
+    return dir || '/';
+  }
+  return '/';
+}
+
 function normalizeBasePath() {
   const env = readViteEnv();
-  const rawBase = env.BASE_URL || '/';
+  const rawBase = env.BASE_URL || detectRuntimeBasePath() || '/';
   return rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 }
 
