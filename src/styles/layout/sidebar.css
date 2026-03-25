@@ -477,6 +477,11 @@ html.dark-theme .search-box .btn-new-chat {
   margin-top: 2px;
 }
 
+.chat-preview.is-typing {
+  color: var(--accent-color);
+  font-style: italic;
+}
+
 .chat-time {
   font-size: 12px;
   color: var(--text-secondary);
@@ -1574,6 +1579,11 @@ html.dark-theme .bottom-nav-indicator {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .desktop-secondary-chat-preview.is-typing {
+    color: color-mix(in srgb, var(--accent-color) 84%, #ffffff 16%);
+    font-style: italic;
   }
 
   .desktop-secondary-chat-time {

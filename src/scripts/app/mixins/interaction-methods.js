@@ -237,8 +237,9 @@ export class ChatAppInteractionMethods {
 
     sortedChats.forEach((chat) => {
       const lastMessage = chat.messages[chat.messages.length - 1];
-      const previewText = this.getMessagePreviewText(lastMessage);
+      const previewText = this.getChatPreviewText(chat, lastMessage);
       const safePreviewText = this.escapeHtml(previewText || 'Немає повідомлень');
+      const typingClass = this.isChatTypingActive(chat) ? ' is-typing' : '';
       const unreadCount = Math.max(0, Number(chat?.unreadCount || 0));
       const unreadBadge = unreadCount > 99 ? '99+' : String(unreadCount);
       const button = document.createElement('button');
@@ -250,7 +251,7 @@ export class ChatAppInteractionMethods {
         ${this.getChatAvatarHtml(chat, 'desktop-secondary-chat-avatar')}
         <div class="desktop-secondary-chat-info">
           <span class="desktop-secondary-chat-name">${this.escapeHtml(chat.name)}</span>
-          <span class="desktop-secondary-chat-preview">${safePreviewText}</span>
+          <span class="desktop-secondary-chat-preview${typingClass}">${safePreviewText}</span>
         </div>
         <div class="desktop-secondary-chat-meta">
           <span class="desktop-secondary-chat-time">${lastMessage?.time || ''}</span>
@@ -324,6 +325,12 @@ export class ChatAppInteractionMethods {
     }
     if (typeof this.stopActiveVoicePlayback === 'function') {
       this.stopActiveVoicePlayback();
+    }
+    if (typeof this.stopRealtimeTyping === 'function') {
+      this.stopRealtimeTyping({ emit: true });
+    }
+    if (typeof this.leaveRealtimeChatRoom === 'function') {
+      this.leaveRealtimeChatRoom();
     }
     this.currentChat = null;
     this.updateChatHeader();
@@ -1522,7 +1529,12 @@ export class ChatAppInteractionMethods {
       this.updateMessagesScrollBottomButtonVisibility();
     };
 
-    inputEl.addEventListener('input', updateHeight);
+    inputEl.addEventListener('input', () => {
+      updateHeight();
+      if (typeof this.handleRealtimeComposerInput === 'function') {
+        this.handleRealtimeComposerInput(inputEl.value);
+      }
+    });
     const forceComposerFocus = () => {
       if (this.nativePickerOpen || this.cameraCaptureOpen) return;
       this.forceComposerFocusUntil = Date.now() + 900;
@@ -1602,6 +1614,9 @@ export class ChatAppInteractionMethods {
       engageKeyboardGuard();
       if (appEl) appEl.classList.add('composer-focus');
       this.syncMobileKeyboardState(inputEl);
+      if (typeof this.handleRealtimeComposerInput === 'function' && inputEl.value.trim().length) {
+        this.handleRealtimeComposerInput(inputEl.value);
+      }
       if (inputEl.value.trim().length > 0) {
         requestAnimationFrame(updateHeight);
       }
@@ -1624,6 +1639,9 @@ export class ChatAppInteractionMethods {
         }
         if (appEl) appEl.classList.remove('composer-focus');
         this.syncMobileKeyboardState(inputEl);
+        if (typeof this.stopRealtimeTyping === 'function') {
+          this.stopRealtimeTyping({ emit: true });
+        }
       }, 80);
     });
 
@@ -1682,8 +1700,9 @@ export class ChatAppInteractionMethods {
 
     sortedChats.forEach(chat => {
       const lastMessage = chat.messages[chat.messages.length - 1];
-      const previewText = this.getMessagePreviewText(lastMessage);
+      const previewText = this.getChatPreviewText(chat, lastMessage);
       const safePreviewText = this.escapeHtml(previewText || 'Немає повідомлень');
+      const previewTypingClass = this.isChatTypingActive(chat) ? ' is-typing' : '';
       const chatItem = document.createElement('button');
       const pinnedClass = chat.isPinned ? ' pinned' : '';
       chatItem.className = `chat-item ${this.currentChat?.id === chat.id ? 'active' : ''}${pinnedClass}`;
@@ -1693,7 +1712,7 @@ export class ChatAppInteractionMethods {
         ${this.getChatAvatarHtml(chat, 'chat-avatar')}
         <div class="chat-info">
           <span class="chat-name">${chat.name}</span>
-          <span class="chat-preview">${safePreviewText}</span>
+          <span class="chat-preview${previewTypingClass}">${safePreviewText}</span>
         </div>
         <span class="chat-time">${lastMessage?.time || ''}</span>
         ${chat.isPinned ? `
@@ -1935,6 +1954,9 @@ export class ChatAppInteractionMethods {
 
   selectChat(chatId) {
     this.closeContactProfileSection();
+    if (typeof this.stopRealtimeTyping === 'function') {
+      this.stopRealtimeTyping({ emit: true });
+    }
     if (typeof this.stopVoiceRecording === 'function') {
       this.stopVoiceRecording({ discard: true, silent: true });
     }
@@ -1968,6 +1990,9 @@ export class ChatAppInteractionMethods {
     
     this.renderChatsList();
     this.updateChatHeader();
+    if (typeof this.joinRealtimeChatRoom === 'function') {
+      this.joinRealtimeChatRoom(this.currentChat);
+    }
     this.enforcePlainChatModalHeader();
     this.hideWelcomeScreen();
     this.hideBottomNavForChat();
@@ -2068,6 +2093,12 @@ export class ChatAppInteractionMethods {
 
   finalizeCloseChatState() {
     this.closeContactProfileSection();
+    if (typeof this.stopRealtimeTyping === 'function') {
+      this.stopRealtimeTyping({ emit: true });
+    }
+    if (typeof this.leaveRealtimeChatRoom === 'function') {
+      this.leaveRealtimeChatRoom();
+    }
     if (typeof this.stopVoiceRecording === 'function') {
       this.stopVoiceRecording({ discard: true, silent: true });
     }
@@ -2615,6 +2646,26 @@ export class ChatAppInteractionMethods {
     return Boolean(chatContainer?.classList.contains('profile-view-active'));
   }
 
+  updateCurrentContactProfileStatusLabel() {
+    if (!this.isContactProfileSectionActive() || !this.currentChat || this.currentChat.isGroup) return;
+    const statusEl = document.getElementById('contactProfileStatus');
+    if (!statusEl) return;
+
+    const showTypingIndicator = this.settings?.showTypingIndicator !== false;
+    const isTyping = Boolean(
+      showTypingIndicator
+      && typeof this.isChatTypingActive === 'function'
+      && this.isChatTypingActive(this.currentChat)
+    );
+    if (isTyping) {
+      statusEl.textContent = 'Друкує...';
+      return;
+    }
+
+    const isOnline = (this.currentChat.status || 'offline') !== 'offline';
+    statusEl.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
+  }
+
   syncContactProfileMediaFiltersOffset() {
     const filtersWrap = document.getElementById('contactProfileMediaFilters');
     const actionsWrap = document.querySelector('#contactProfileView .contact-profile-actions');
@@ -2845,7 +2896,7 @@ export class ChatAppInteractionMethods {
     if (!section || !chatContainer || !avatar || !name || !handle || !bio || !dob || !status || !initials) return;
 
     const chatName = this.currentChat.name || 'Контакт';
-    const chatStatus = this.currentChat.status || 'online';
+    const chatStatus = this.currentChat.status || 'offline';
     const isOnline = chatStatus !== 'offline';
     const chatDob = this.currentChat.dob || this.currentChat.birthDate || this.currentChat.dateOfBirth || '';
 
@@ -2893,6 +2944,7 @@ export class ChatAppInteractionMethods {
     section.setAttribute('aria-hidden', 'false');
     this.contactProfileMediaFilter = '';
     this.renderContactProfileMedia();
+    this.updateCurrentContactProfileStatusLabel();
     requestAnimationFrame(() => this.syncContactProfileMediaFiltersOffset());
     this.closeContactProfileActionsMenu(true);
   }
@@ -3136,12 +3188,30 @@ export class ChatAppInteractionMethods {
     headerTargets.forEach(({ contactName, contactStatus, avatar, contactDetails }) => {
       if (this.currentChat && contactName && contactStatus) {
         contactName.textContent = this.currentChat.name;
-        contactStatus.textContent = '';
-        const isOnline = this.currentChat.isGroup
-          ? false
-          : (this.currentChat.status || 'online') !== 'offline';
-        contactStatus.classList.toggle('online', isOnline);
-        contactStatus.classList.toggle('offline', !isOnline);
+        const showOnlineStatus = this.settings?.showOnlineStatus !== false;
+        const showTypingIndicator = this.settings?.showTypingIndicator !== false;
+        const isTyping = Boolean(
+          !this.currentChat.isGroup
+          && showTypingIndicator
+          && typeof this.isChatTypingActive === 'function'
+          && this.isChatTypingActive(this.currentChat)
+        );
+
+        if (isTyping) {
+          contactStatus.textContent = 'друкує...';
+          contactStatus.classList.add('typing');
+          contactStatus.classList.remove('online', 'offline', 'hidden');
+        } else if (!this.currentChat.isGroup && showOnlineStatus) {
+          contactStatus.textContent = '';
+          const isOnline = (this.currentChat.status || 'offline') !== 'offline';
+          contactStatus.classList.toggle('online', isOnline);
+          contactStatus.classList.toggle('offline', !isOnline);
+          contactStatus.classList.remove('typing', 'hidden');
+        } else {
+          contactStatus.textContent = '';
+          contactStatus.classList.remove('online', 'offline', 'typing');
+          contactStatus.classList.add('hidden');
+        }
         if (avatar) {
           this.applyChatAvatarToElement(avatar, this.currentChat);
         }
@@ -3158,7 +3228,7 @@ export class ChatAppInteractionMethods {
         if (contactName) contactName.textContent = 'Виберіть контакт';
         if (contactStatus) {
           contactStatus.textContent = '';
-          contactStatus.classList.remove('online', 'offline');
+          contactStatus.classList.remove('online', 'offline', 'typing', 'hidden');
         }
         if (avatar) {
           avatar.textContent = '';
@@ -3173,6 +3243,7 @@ export class ChatAppInteractionMethods {
         this.enforcePlainChatModalHeader();
         }
     });
+    this.updateCurrentContactProfileStatusLabel();
   }
 
   clearMessages() {

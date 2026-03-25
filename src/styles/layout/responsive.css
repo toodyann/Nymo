@@ -1513,6 +1513,13 @@
     height: 8px;
   }
 
+  .chat-modal-header .app-chat-status.typing {
+    width: auto;
+    height: auto;
+    font-size: 11px;
+    line-height: 1.1;
+  }
+
   .chat-modal-header .app-chat-avatar {
     width: 38px;
     height: 38px;

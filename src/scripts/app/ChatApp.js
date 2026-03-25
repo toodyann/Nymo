@@ -61,6 +61,15 @@ export class ChatApp {
     this.settingsParentSection = 'messenger-settings';
     this.imageViewerState = null;
     this.contactProfileMenuCloseTimer = null;
+    this.realtimeSocket = null;
+    this.realtimeSocketInitialized = false;
+    this.realtimeSocketConnected = false;
+    this.realtimeJoinedChatId = '';
+    this.realtimeOnlineUserIds = new Set();
+    this.realtimeTypingByChatId = new Map();
+    this.realtimeTypingEmitTimer = null;
+    this.realtimeTypingActiveChatId = '';
+    this.realtimeTypingInputDebounceMs = 1400;
     this.loadTheme();
     this.profileMenuPlaceholder = null;
     this.init();

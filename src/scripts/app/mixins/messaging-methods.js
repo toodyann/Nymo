@@ -489,6 +489,15 @@ export class ChatAppMessagingMethods {
     return this.getUserDisplayName(session?.user || {});
   }
 
+  normalizePresenceStatus(value) {
+    if (typeof value === 'boolean') return value ? 'online' : 'offline';
+    const safe = String(value || '').trim().toLowerCase();
+    if (!safe) return '';
+    if (['online', 'active', 'available', 'connected', '1', 'true'].includes(safe)) return 'online';
+    if (['offline', 'away', 'inactive', 'disconnected', '0', 'false'].includes(safe)) return 'offline';
+    return '';
+  }
+
   normalizeParticipantRecord(member) {
     if (!member || typeof member !== 'object') return null;
     const nestedUser = member.user && typeof member.user === 'object' ? member.user : null;
@@ -507,7 +516,13 @@ export class ChatAppMessagingMethods {
       id,
       name: this.getUserDisplayName(normalizedSource),
       avatarImage: this.getUserAvatarImage(normalizedSource),
-      avatarColor: this.getUserAvatarColor(normalizedSource)
+      avatarColor: this.getUserAvatarColor(normalizedSource),
+      status: this.normalizePresenceStatus(
+        normalizedSource.status
+          ?? normalizedSource.presence
+          ?? normalizedSource.isOnline
+          ?? normalizedSource.online
+      )
     };
   }
 
@@ -524,10 +539,14 @@ export class ChatAppMessagingMethods {
     const safeName = String(meta?.name || '').trim();
     const safeAvatar = this.getAvatarImage(meta?.avatarImage || meta?.avatarUrl);
     const safeAvatarColor = String(meta?.avatarColor || '').trim();
+    const safeStatus = this.normalizePresenceStatus(
+      meta?.status ?? meta?.presence ?? meta?.isOnline ?? meta?.online
+    );
 
     if (safeName && safeName !== 'Користувач') next.name = safeName;
     if (safeAvatar) next.avatarImage = safeAvatar;
     if (safeAvatarColor) next.avatarColor = safeAvatarColor;
+    if (safeStatus) next.status = safeStatus;
 
     this.knownUsersById.set(safeId, next);
     if (next.name) {
@@ -1184,16 +1203,368 @@ export class ChatAppMessagingMethods {
       avatarImage,
       avatarUrl: avatarImage,
       avatarColor,
+      status: 'offline',
       messages: [],
       isGroup: Boolean(payload?.isGroup ?? fallback?.isGroup),
       members: Array.isArray(fallback?.members) ? fallback.members : []
     };
   }
 
+  getSocketIoFactory() {
+    if (typeof window === 'undefined') return null;
+    if (typeof window.io === 'function') return window.io;
+    return null;
+  }
+
+  getRealtimeSocketUrl() {
+    if (typeof window === 'undefined') return '';
+    const explicit = String(window.__ORION_SOCKET_URL || '').trim();
+    if (explicit) return explicit.replace(/\/+$/, '');
+    return String(buildApiUrl('/')).replace(/\/+$/, '');
+  }
+
+  extractRealtimeUserId(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    const nestedUser = payload.user && typeof payload.user === 'object' ? payload.user : null;
+    return String(
+      payload.userId
+        ?? payload.senderId
+        ?? payload.fromUserId
+        ?? payload.authorId
+        ?? payload.id
+        ?? nestedUser?.id
+        ?? nestedUser?.userId
+        ?? ''
+    ).trim();
+  }
+
+  extractRealtimeChatId(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    const nestedChat = payload.chat && typeof payload.chat === 'object' ? payload.chat : null;
+    return String(
+      payload.chatId
+        ?? payload.roomId
+        ?? payload.conversationId
+        ?? payload.id
+        ?? nestedChat?.id
+        ?? nestedChat?.chatId
+        ?? ''
+    ).trim();
+  }
+
+  findChatByServerId(chatServerId) {
+    const safeId = String(chatServerId || '').trim();
+    if (!safeId || !Array.isArray(this.chats)) return null;
+    return this.chats.find((chat) => this.resolveChatServerId(chat) === safeId) || null;
+  }
+
+  getPresenceStatusForUser(userId, fallback = 'offline') {
+    const safeId = String(userId || '').trim();
+    if (!safeId) return fallback;
+    if (this.realtimeOnlineUserIds instanceof Set && this.realtimeOnlineUserIds.has(safeId)) {
+      return 'online';
+    }
+    return fallback;
+  }
+
+  initializeRealtimeSocket() {
+    if (this.realtimeSocketInitialized) return;
+    this.realtimeSocketInitialized = true;
+    this.connectRealtimeSocket();
+
+    if (this.realtimeVisibilityHandler) {
+      document.removeEventListener('visibilitychange', this.realtimeVisibilityHandler);
+    }
+    this.realtimeVisibilityHandler = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!this.realtimeSocketConnected) {
+        this.connectRealtimeSocket();
+      }
+    };
+    document.addEventListener('visibilitychange', this.realtimeVisibilityHandler);
+
+    if (this.realtimeBeforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this.realtimeBeforeUnloadHandler);
+    }
+    this.realtimeBeforeUnloadHandler = () => {
+      this.stopRealtimeTyping({ emit: true });
+      if (this.realtimeSocket) {
+        try {
+          this.realtimeSocket.disconnect();
+        } catch {
+          // Ignore disconnect failures on page unload.
+        }
+      }
+    };
+    window.addEventListener('beforeunload', this.realtimeBeforeUnloadHandler);
+  }
+
+  connectRealtimeSocket() {
+    const ioFactory = this.getSocketIoFactory();
+    const userId = this.getAuthUserId();
+    const socketUrl = this.getRealtimeSocketUrl();
+    if (!ioFactory || !userId || !socketUrl) return;
+
+    if (this.realtimeSocket && (this.realtimeSocket.connected || this.realtimeSocket.active)) {
+      return;
+    }
+
+    if (this.realtimeSocket) {
+      try {
+        this.realtimeSocket.removeAllListeners();
+        this.realtimeSocket.disconnect();
+      } catch {
+        // Ignore stale socket cleanup failures.
+      }
+      this.realtimeSocket = null;
+    }
+
+    const socket = ioFactory(socketUrl, {
+      transports: ['websocket', 'polling'],
+      query: { userId },
+      reconnection: true
+    });
+    this.realtimeSocket = socket;
+    this.bindRealtimeSocketEvents(socket);
+  }
+
+  bindRealtimeSocketEvents(socket) {
+    if (!socket || socket.__orionBound === true) return;
+    socket.__orionBound = true;
+
+    socket.on('connect', () => {
+      this.realtimeSocketConnected = true;
+      this.joinRealtimeChatRoom(this.currentChat);
+    });
+
+    socket.on('disconnect', () => {
+      this.realtimeSocketConnected = false;
+      this.realtimeJoinedChatId = '';
+      this.stopRealtimeTyping({ emit: false });
+    });
+
+    socket.on('userOnline', (payload) => this.handleRealtimePresenceEvent(payload, true));
+    socket.on('userOffline', (payload) => this.handleRealtimePresenceEvent(payload, false));
+
+    socket.on('userTyping', (payload) => this.handleRealtimeTypingEvent(payload));
+    socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
+    socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
+  }
+
+  joinRealtimeChatRoom(chat) {
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) {
+      this.leaveRealtimeChatRoom();
+      return;
+    }
+    if (!this.realtimeSocketConnected || !this.realtimeSocket) return;
+    if (this.realtimeJoinedChatId === chatServerId) return;
+
+    this.leaveRealtimeChatRoom();
+
+    try {
+      this.realtimeSocket.emit('joinChat', { chatId: chatServerId });
+      this.realtimeSocket.emit('joinRoom', { chatId: chatServerId });
+    } catch {
+      // Ignore transient websocket errors.
+    }
+    this.realtimeJoinedChatId = chatServerId;
+  }
+
+  leaveRealtimeChatRoom() {
+    const chatServerId = String(this.realtimeJoinedChatId || '').trim();
+    if (!chatServerId || !this.realtimeSocket) {
+      this.realtimeJoinedChatId = '';
+      return;
+    }
+    try {
+      this.realtimeSocket.emit('leaveChat', { chatId: chatServerId });
+      this.realtimeSocket.emit('leaveRoom', { chatId: chatServerId });
+    } catch {
+      // Ignore transient websocket errors.
+    }
+    this.realtimeJoinedChatId = '';
+  }
+
+  handleRealtimePresenceEvent(payload, isOnline) {
+    const userId = this.extractRealtimeUserId(payload);
+    if (!userId) return;
+
+    if (!(this.realtimeOnlineUserIds instanceof Set)) {
+      this.realtimeOnlineUserIds = new Set();
+    }
+
+    if (isOnline) {
+      this.realtimeOnlineUserIds.add(userId);
+    } else {
+      this.realtimeOnlineUserIds.delete(userId);
+    }
+
+    let changed = false;
+    const nextStatus = isOnline ? 'online' : 'offline';
+    this.cacheKnownUserMeta(userId, { status: nextStatus });
+    const chats = Array.isArray(this.chats) ? this.chats : [];
+    chats.forEach((chat) => {
+      if (!chat || chat.isGroup) return;
+      const participantId = String(chat.participantId || '').trim();
+      if (!participantId || participantId !== userId) return;
+      if (chat.status !== nextStatus) {
+        chat.status = nextStatus;
+        changed = true;
+      }
+    });
+
+    if (!changed) return;
+    this.saveChats();
+    this.updateChatHeader();
+    this.renderChatsList();
+  }
+
+  setRealtimeTypingState(chatServerId, active, userId = '') {
+    const safeChatId = String(chatServerId || '').trim();
+    if (!safeChatId) return;
+    if (!(this.realtimeTypingByChatId instanceof Map)) {
+      this.realtimeTypingByChatId = new Map();
+    }
+
+    const existing = this.realtimeTypingByChatId.get(safeChatId);
+    const safeUserId = String(userId || '').trim();
+
+    if (!active) {
+      if (!existing) return;
+      if (existing.timerId) {
+        clearTimeout(existing.timerId);
+      }
+      this.realtimeTypingByChatId.delete(safeChatId);
+      this.updateChatHeader();
+      this.renderChatsList();
+      return;
+    }
+
+    if (existing?.timerId) {
+      clearTimeout(existing.timerId);
+    }
+
+    const timerId = window.setTimeout(() => {
+      this.setRealtimeTypingState(safeChatId, false);
+    }, 2200);
+
+    const hasChanged = !existing
+      || existing.active !== true
+      || String(existing.userId || '') !== safeUserId;
+
+    this.realtimeTypingByChatId.set(safeChatId, {
+      active: true,
+      userId: safeUserId,
+      timerId
+    });
+
+    if (hasChanged) {
+      this.updateChatHeader();
+      this.renderChatsList();
+    }
+  }
+
+  isChatTypingActive(chat) {
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId || !(this.realtimeTypingByChatId instanceof Map)) return false;
+    const state = this.realtimeTypingByChatId.get(chatServerId);
+    return Boolean(state?.active);
+  }
+
+  getChatPreviewText(chat, lastMessage) {
+    if (!chat) return this.getMessagePreviewText(lastMessage);
+    const typingEnabled = this.settings?.showTypingIndicator !== false;
+    if (typingEnabled && this.isChatTypingActive(chat)) {
+      return 'Друкує...';
+    }
+    return this.getMessagePreviewText(lastMessage);
+  }
+
+  handleRealtimeTypingEvent(payload, forcedTyping = null) {
+    const senderId = this.extractRealtimeUserId(payload);
+    const selfId = this.getAuthUserId();
+    if (senderId && selfId && senderId === selfId) return;
+
+    let chatServerId = this.extractRealtimeChatId(payload);
+    if (!chatServerId && this.currentChat && senderId) {
+      const currentParticipantId = String(this.currentChat.participantId || '').trim();
+      if (currentParticipantId && currentParticipantId === senderId) {
+        chatServerId = this.resolveChatServerId(this.currentChat);
+      }
+    }
+    if (!chatServerId) return;
+
+    const payloadTyping = payload?.isTyping ?? payload?.typing ?? payload?.active;
+    const isTyping = forcedTyping == null
+      ? payloadTyping !== false
+      : Boolean(forcedTyping);
+
+    this.setRealtimeTypingState(chatServerId, isTyping, senderId);
+    if (senderId && isTyping) {
+      this.handleRealtimePresenceEvent({ userId: senderId }, true);
+    }
+  }
+
+  emitRealtimeTypingState(isTyping) {
+    const socket = this.realtimeSocket;
+    const chatServerId = this.resolveChatServerId(this.currentChat);
+    if (!socket || !this.realtimeSocketConnected || !chatServerId) return;
+    try {
+      if (isTyping) {
+        socket.emit('typingStart', { chatId: chatServerId });
+      } else {
+        socket.emit('typingStop', { chatId: chatServerId });
+      }
+      socket.emit('typing', { chatId: chatServerId, isTyping: Boolean(isTyping) });
+    } catch {
+      // Ignore transient websocket emit errors.
+    }
+  }
+
+  handleRealtimeComposerInput(textValue = '') {
+    const hasText = Boolean(String(textValue || '').trim().length);
+    if (!this.currentChat || !hasText) {
+      this.stopRealtimeTyping({ emit: true });
+      return;
+    }
+
+    const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    if (!currentChatServerId) return;
+
+    if (this.realtimeTypingActiveChatId !== currentChatServerId) {
+      this.stopRealtimeTyping({ emit: true });
+      this.realtimeTypingActiveChatId = currentChatServerId;
+      this.emitRealtimeTypingState(true);
+    } else if (!this.realtimeTypingEmitTimer) {
+      this.emitRealtimeTypingState(true);
+    }
+
+    if (this.realtimeTypingEmitTimer) {
+      clearTimeout(this.realtimeTypingEmitTimer);
+    }
+    this.realtimeTypingEmitTimer = window.setTimeout(() => {
+      this.stopRealtimeTyping({ emit: true });
+    }, this.realtimeTypingInputDebounceMs || 1400);
+  }
+
+  stopRealtimeTyping({ emit = true } = {}) {
+    if (this.realtimeTypingEmitTimer) {
+      clearTimeout(this.realtimeTypingEmitTimer);
+      this.realtimeTypingEmitTimer = null;
+    }
+    const hadActiveTyping = Boolean(this.realtimeTypingActiveChatId);
+    if (emit && hadActiveTyping) {
+      this.emitRealtimeTypingState(false);
+    }
+    this.realtimeTypingActiveChatId = '';
+  }
+
   initializeServerChatSync() {
     if (this.serverChatSyncInitialized) return;
     this.serverChatSyncInitialized = true;
     this.serverChatSyncInFlight = false;
+    this.initializeRealtimeSocket();
 
     this.runServerChatSync({ forceScroll: false });
 
@@ -1300,10 +1671,12 @@ export class ChatAppMessagingMethods {
         const participantName = String(otherParticipant?.name || '').trim();
         const participantAvatarImage = this.getAvatarImage(otherParticipant?.avatarImage || otherParticipant?.avatarUrl);
         const participantAvatarColor = String(otherParticipant?.avatarColor || '').trim();
+        const participantStatus = this.normalizePresenceStatus(otherParticipant?.status);
         this.cacheKnownUserMeta(participantId, {
           name: participantName,
           avatarImage: participantAvatarImage,
-          avatarColor: participantAvatarColor
+          avatarColor: participantAvatarColor,
+          status: participantStatus
         });
         const isGroup = Boolean(item.isGroup ?? item.group ?? item.type === 'group');
         const fallbackName = String(item.name ?? item.title ?? '').trim();
@@ -1322,6 +1695,14 @@ export class ChatAppMessagingMethods {
         const avatarImage = this.getAvatarImage(participantAvatarImage || cachedParticipantAvatar || fallbackAvatarImage);
         const fallbackAvatarColor = this.getUserAvatarColor(item);
         const avatarColor = String(participantAvatarColor || cachedParticipant?.avatarColor || fallbackAvatarColor || '').trim();
+        const status = this.normalizePresenceStatus(
+          participantStatus
+          || cachedParticipant?.status
+          || item.status
+          || item.presence
+          || item.isOnline
+          || item.online
+        );
 
         return {
           serverId,
@@ -1331,7 +1712,8 @@ export class ChatAppMessagingMethods {
           participantConfidence,
           avatarImage,
           avatarUrl: avatarImage,
-          avatarColor
+          avatarColor,
+          status
         };
       })
       .filter(Boolean);
@@ -1557,6 +1939,17 @@ export class ChatAppMessagingMethods {
         || existingAvatarColor
         || ''
       ).trim();
+      const mergedStatus = serverChat.isGroup
+        ? ''
+        : this.getPresenceStatusForUser(
+          mergedParticipantId,
+          String(
+            serverChat.status
+            || cachedParticipantMeta?.status
+            || existing?.status
+            || 'offline'
+          ).trim() || 'offline'
+        );
 
       const updatedChat = {
         ...(existing || {}),
@@ -1570,6 +1963,7 @@ export class ChatAppMessagingMethods {
         avatarImage: mergedAvatarImage,
         avatarUrl: mergedAvatarImage,
         avatarColor: mergedAvatarColor,
+        status: mergedStatus,
         isGroup: serverChat.isGroup,
         messages
       };
@@ -1582,6 +1976,7 @@ export class ChatAppMessagingMethods {
         || String(existing.participantId || '') !== String(updatedChat.participantId || '')
         || this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl) !== updatedChat.avatarImage
         || String(existing?.avatarColor || '') !== String(updatedChat.avatarColor || '')
+        || String(existing?.status || '') !== String(updatedChat.status || '')
       ) {
         changed = true;
       }
@@ -1720,6 +2115,12 @@ export class ChatAppMessagingMethods {
         return chat.id === previousCurrentLocalId;
       }) || null;
       this.currentChat = restoredCurrent;
+    }
+
+    if (this.currentChat) {
+      this.joinRealtimeChatRoom(this.currentChat);
+    } else {
+      this.leaveRealtimeChatRoom();
     }
 
     if (renderIfChanged && changed) {
@@ -2340,6 +2741,7 @@ export class ChatAppMessagingMethods {
     const message = input?.value.trim() || '';
 
     if (!message || !this.currentChat) return;
+    this.stopRealtimeTyping({ emit: true });
 
     if (this.editingMessageId) {
       const msg = this.currentChat.messages.find(m => m.id === this.editingMessageId);
@@ -2905,6 +3307,7 @@ export class ChatAppMessagingMethods {
       if (!isGroup && selected?.id) {
         newChat.participantConfidence = 2;
         newChat.participantJoinedVerified = true;
+        newChat.status = this.getPresenceStatusForUser(selected.id, 'offline');
       }
     } catch (error) {
       await this.showAlert(error?.message || 'Не вдалося створити чат.');

@@ -352,6 +352,27 @@ html:not(.dark-theme) .orion-app.chat-active .app-header-right {
   background: rgba(130, 145, 180, 0.6);
 }
 
+.app-chat-status.hidden {
+  display: none;
+}
+
+.app-chat-status.typing {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  line-height: 1.1;
+  color: var(--accent-color);
+  letter-spacing: 0.01em;
+}
+
+.orion-app.chat-open #appChatInfo .app-chat-status.typing,
+.orion-app.chat-active #appChatInfo .app-chat-status.typing {
+  width: auto;
+  height: auto;
+}
+
 .app-header .chat-brand .app-logo {
   width: 40px;
   height: 35px;
