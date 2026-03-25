@@ -1,8 +1,21 @@
 const AUTH_SESSION_KEY = 'orion_auth_session';
 const DEFAULT_API_BASE_URL = 'https://chat-app-anzi.onrender.com';
 
+function readViteEnv() {
+  try {
+    const meta = import.meta;
+    if (!meta || typeof meta !== 'object') return {};
+    const env = meta.env;
+    if (!env || typeof env !== 'object') return {};
+    return env;
+  } catch {
+    return {};
+  }
+}
+
 function normalizeBasePath() {
-  const rawBase = import.meta.env.BASE_URL || '/';
+  const env = readViteEnv();
+  const rawBase = env.BASE_URL || '/';
   return rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 }
 
@@ -90,7 +103,8 @@ export function buildApiUrl(path = '') {
   if (/^https?:\/\//i.test(normalizedPath)) return normalizedPath;
 
   const endpoint = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-  const apiBase = String(import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL)
+  const env = readViteEnv();
+  const apiBase = String(env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL)
     .trim()
     .replace(/\/+$/, '');
   return apiBase ? `${apiBase}${endpoint}` : endpoint;
