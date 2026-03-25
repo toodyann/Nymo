@@ -8,11 +8,19 @@ body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--text-primary);
   background:
-    radial-gradient(1100px 620px at 8% -10%, rgba(59, 130, 246, 0.2), transparent 52%),
-    radial-gradient(1100px 700px at 102% 112%, rgba(14, 165, 233, 0.16), transparent 58%),
+    radial-gradient(
+      1100px 620px at 8% -10%,
+      rgba(59, 130, 246, 0.2),
+      transparent 52%
+    ),
+    radial-gradient(
+      1100px 700px at 102% 112%,
+      rgba(14, 165, 233, 0.16),
+      transparent 58%
+    ),
     var(--bg-gradient);
 }
 
@@ -44,13 +52,13 @@ body {
 .auth-background-glow--one {
   top: -12%;
   left: -12%;
-  background: #38bdf8;
+  background: #31435a;
 }
 
 .auth-background-glow--two {
   right: -11%;
   bottom: -18%;
-  background: #60a5fa;
+  background: #31435a;
 }
 
 .auth-shell {
@@ -167,19 +175,19 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   transition-delay: 0s, 0s, 0s;
 }
 
-.auth-forms[data-transition='forward'] .auth-form.is-active {
+.auth-forms[data-transition="forward"] .auth-form.is-active {
   transform: translateY(0) translateX(0) scale(1);
 }
 
-.auth-forms[data-transition='forward'] .auth-form.is-leaving {
+.auth-forms[data-transition="forward"] .auth-form.is-leaving {
   transform: translateY(-6px) translateX(-14px) scale(0.992);
 }
 
-.auth-forms[data-transition='backward'] .auth-form.is-active {
+.auth-forms[data-transition="backward"] .auth-form.is-active {
   transform: translateY(0) translateX(0) scale(1);
 }
 
-.auth-forms[data-transition='backward'] .auth-form.is-leaving {
+.auth-forms[data-transition="backward"] .auth-form.is-leaving {
   transform: translateY(-6px) translateX(14px) scale(0.992);
 }
 
@@ -230,7 +238,8 @@ html:not(.dark-theme) .auth-theme-icon--sun {
 
 .auth-form input:focus {
   border-color: color-mix(in srgb, var(--primary-color) 58%, #94a3b8);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--primary-color) 20%, transparent);
 }
 
 .auth-password-toggle {
@@ -249,7 +258,9 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.16s ease, background-color 0.16s ease;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease;
 }
 
 .auth-password-toggle:hover {
@@ -293,7 +304,9 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.16s ease, filter 0.16s ease;
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
 }
 
 .auth-submit:hover {
@@ -322,7 +335,11 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text-secondary) 55%, transparent);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--text-secondary) 55%,
+    transparent
+  );
 }
 
 .auth-forms.is-pending {
@@ -331,7 +348,7 @@ html:not(.dark-theme) .auth-theme-icon--sun {
 }
 
 .auth-submit.is-loading::after {
-  content: '';
+  content: "";
   width: 14px;
   height: 14px;
   display: inline-block;

@@ -13,14 +13,42 @@ function readViteEnv() {
   }
 }
 
+function detectModuleBasePath() {
+  try {
+    const moduleUrl = new URL(import.meta.url);
+    const modulePath = String(moduleUrl.pathname || '');
+    const assetsIndex = modulePath.indexOf('/assets/');
+    if (assetsIndex >= 0) {
+      const base = modulePath.slice(0, assetsIndex + 1);
+      return base || '/';
+    }
+  } catch {
+    // Fall through to runtime path detection.
+  }
+  return '';
+}
+
 function detectRuntimeBasePath() {
   if (typeof window === 'undefined') return '/';
   const pathname = String(window.location.pathname || '/');
+  const normalizedPath = pathname.replace(/\/+$/, '');
+  if (normalizedPath.endsWith('/auth')) {
+    const beforeAuth = normalizedPath.slice(0, -('/auth'.length));
+    const safeBase = beforeAuth || '/';
+    return safeBase.endsWith('/') ? safeBase : `${safeBase}/`;
+  }
+
   const authMarkerIndex = pathname.indexOf('/auth/');
   if (authMarkerIndex >= 0) {
-    const beforeAuth = pathname.slice(0, authMarkerIndex);
+    const beforeAuth = pathname.slice(0, authMarkerIndex) || '/';
     return beforeAuth.endsWith('/') ? beforeAuth : `${beforeAuth}/`;
   }
+
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length === 1 && !segments[0].includes('.')) {
+    return `/${segments[0]}/`;
+  }
+
   if (pathname.endsWith('/')) return pathname;
   const lastSlash = pathname.lastIndexOf('/');
   if (lastSlash >= 0) {
@@ -32,7 +60,8 @@ function detectRuntimeBasePath() {
 
 function normalizeBasePath() {
   const env = readViteEnv();
-  const rawBase = env.BASE_URL || detectRuntimeBasePath() || '/';
+  const envBase = typeof env.BASE_URL === 'string' ? env.BASE_URL.trim() : '';
+  const rawBase = envBase || detectModuleBasePath() || detectRuntimeBasePath() || '/';
   return rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 }
 
