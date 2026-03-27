@@ -242,12 +242,15 @@ export class ChatAppInteractionMethods {
       const typingClass = this.isChatTypingActive(chat) ? ' is-typing' : '';
       const unreadCount = Math.max(0, Number(chat?.unreadCount || 0));
       const unreadBadge = unreadCount > 99 ? '99+' : String(unreadCount);
+      const isActive = this.currentChat?.id === chat.id;
+      const showPinnedMark = Boolean(chat?.isPinned);
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `desktop-secondary-chat-item ${this.currentChat?.id === chat.id ? 'active' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`;
+      button.className = `desktop-secondary-chat-item ${isActive ? 'active' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`;
       button.dataset.chatId = String(chat.id);
 
       button.innerHTML = `
+        ${showPinnedMark ? `<span class="desktop-secondary-chat-pin" aria-label="Закріплений чат" title="Закріплений чат"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M216,168h-9.29L185.54,48H192a8,8,0,0,0,0-16H64a8,8,0,0,0,0,16h6.46L49.29,168H40a8,8,0,0,0,0,16h80v56a8,8,0,0,0,16,0V184h80a8,8,0,0,0,0-16ZM86.71,48h82.58l21.17,120H65.54Z"></path></svg></span>` : ''}
         ${this.getChatAvatarHtml(chat, 'desktop-secondary-chat-avatar')}
         <div class="desktop-secondary-chat-info">
           <span class="desktop-secondary-chat-name">${this.escapeHtml(chat.name)}</span>
@@ -1816,10 +1819,25 @@ export class ChatAppInteractionMethods {
     if (!chat) return;
 
     const pinLabel = pinBtn.querySelector('.chat-list-menu-item-label');
+    const pinIconPath = pinBtn.querySelector('svg path');
+    const addLabel = addBtn.querySelector('.chat-list-menu-item-label');
+    const delLabel = delBtn.querySelector('.chat-list-menu-item-label');
+    const pinSvgPathPinned = 'M235.32,81.37,174.63,20.69a16,16,0,0,0-22.63,0L98.37,74.49c-10.66-3.34-35-7.37-60.4,13.14a16,16,0,0,0-1.29,23.78L85,159.71,42.34,202.34a8,8,0,0,0,11.32,11.32L96.29,171l48.29,48.29A16,16,0,0,0,155.9,224c.38,0,.75,0,1.13,0a15.93,15.93,0,0,0,11.64-6.33c19.64-26.1,17.75-47.32,13.19-60L235.33,104A16,16,0,0,0,235.32,81.37ZM224,92.69h0l-57.27,57.46a8,8,0,0,0-1.49,9.22c9.46,18.93-1.8,38.59-9.34,48.62L48,100.08c12.08-9.74,23.64-12.31,32.48-12.31A40.13,40.13,0,0,1,96.81,91a8,8,0,0,0,9.25-1.51L163.32,32,224,92.68Z';
+    const pinSvgPathUnpinned = 'M53.92,34.62A8,8,0,1,0,42.08,45.38L67.37,73.2A69.82,69.82,0,0,0,38,87.63a16,16,0,0,0-1.29,23.78L85,159.71,42.34,202.34a8,8,0,0,0,11.32,11.32L96.29,171l48.29,48.29A16,16,0,0,0,155.9,224c.38,0,.75,0,1.13,0a15.93,15.93,0,0,0,11.64-6.33,89.75,89.75,0,0,0,11.58-20.27l21.84,24a8,8,0,1,0,11.84-10.76ZM155.9,208,48,100.08C58.23,91.83,69.2,87.72,80.66,87.81l87.16,95.88C165.59,193.56,160.24,202.23,155.9,208Zm79.42-104-44.64,44.79a8,8,0,1,1-11.33-11.3L224,92.7,163.32,32,122.1,73.35a8,8,0,0,1-11.33-11.29L152,20.7a16,16,0,0,1,22.63,0l60.69,60.68A16,16,0,0,1,235.32,104Z';
+    const pinIsActive = Boolean(chat.isPinned);
     if (pinLabel) {
-      pinLabel.textContent = chat.isPinned ? 'Відкріпити' : 'Закріпити';
+      pinLabel.textContent = pinIsActive ? 'Відкріпити' : 'Закріпити';
     } else {
-      pinBtn.textContent = chat.isPinned ? 'Відкріпити' : 'Закріпити';
+      pinBtn.textContent = pinIsActive ? 'Відкріпити' : 'Закріпити';
+    }
+    if (pinIconPath) {
+      pinIconPath.setAttribute('d', pinIsActive ? pinSvgPathUnpinned : pinSvgPathPinned);
+    }
+    if (addLabel) {
+      addLabel.textContent = chat.isGroup ? 'Додати користувача' : 'Додати до групи';
+    }
+    if (delLabel) {
+      delLabel.textContent = chat.isGroup ? 'Видалити групу' : 'Видалити чат';
     }
 
     if (this.chatListMenuCloseTimer) {
@@ -1910,7 +1928,11 @@ export class ChatAppInteractionMethods {
     };
 
     addBtn.onclick = () => {
-      this.openAddToGroupModal(chat.name);
+      if (chat.isGroup) {
+        this.openAddToGroupModal({ mode: 'add-user-to-chat', chatId: chat.id });
+      } else {
+        this.openAddToGroupModal({ mode: 'direct-to-group', sourceChatId: chat.id });
+      }
       closeMenu();
     };
 
@@ -1932,25 +1954,106 @@ export class ChatAppInteractionMethods {
     window.addEventListener('resize', this.chatListMenuResizeHandler);
   }
 
-  openAddToGroupModal(memberName) {
-    const groups = this.chats.filter(c => c.isGroup);
-    if (!groups.length) {
-      this.showAlert('Спочатку створіть групу');
-      return;
-    }
+  openAddToGroupModal(target) {
     const modal = document.getElementById('addToGroupModal');
     const select = document.getElementById('addToGroupSelect');
     if (!modal || !select) return;
+    const title = modal.querySelector('.modal-header h3');
+    const caption = modal.querySelector('.group-modal-caption');
+    const confirmBtn = document.getElementById('confirmAddToGroupBtn');
 
+    const mode = target?.mode === 'add-user-to-chat' ? 'add-user-to-chat' : 'direct-to-group';
     select.innerHTML = '';
-    groups.forEach(g => {
-      const opt = document.createElement('option');
-      opt.value = g.id;
-      opt.textContent = g.name;
-      select.appendChild(opt);
-    });
 
-    this.addToGroupTarget = memberName;
+    if (mode === 'add-user-to-chat') {
+      const chatId = Number(target?.chatId);
+      const targetChat = this.chats.find((chat) => Number(chat?.id) === chatId);
+      if (!targetChat || !targetChat.isGroup) {
+        this.showAlert('Оберіть груповий чат.');
+        return;
+      }
+
+      const candidates = typeof this.collectRelatedUsersForGroupChat === 'function'
+        ? this.collectRelatedUsersForGroupChat()
+        : [];
+      const selfId = typeof this.getAuthUserId === 'function' ? String(this.getAuthUserId() || '').trim() : '';
+      const existingIds = new Set();
+      const existingNames = new Set();
+
+      if (selfId) existingIds.add(selfId);
+      if (Array.isArray(targetChat.groupParticipants)) {
+        targetChat.groupParticipants.forEach((member) => {
+          const memberId = String(member?.id || member?.userId || '').trim();
+          const memberName = String(member?.name || '').trim().toLowerCase();
+          if (memberId) existingIds.add(memberId);
+          if (memberName) existingNames.add(memberName);
+        });
+      }
+      if (Array.isArray(targetChat.members)) {
+        targetChat.members.forEach((member) => {
+          const name = String(member?.name || member || '').trim().toLowerCase();
+          if (name) existingNames.add(name);
+        });
+      }
+
+      const availableUsers = candidates.filter((user) => {
+        const userId = String(user?.id || '').trim();
+        const userName = String(user?.name || '').trim().toLowerCase();
+        if (!userId) return false;
+        if (existingIds.has(userId)) return false;
+        if (userName && existingNames.has(userName)) return false;
+        return true;
+      });
+
+      if (!availableUsers.length) {
+        this.showAlert('Немає доступних користувачів для додавання в цю групу.');
+        return;
+      }
+
+      availableUsers.forEach((user) => {
+        const opt = document.createElement('option');
+        opt.value = String(user.id);
+        opt.textContent = user.tag
+          ? `${user.name} (@${user.tag})`
+          : user.name;
+        select.appendChild(opt);
+      });
+
+      this.addToGroupTarget = {
+        mode,
+        chatId,
+        users: availableUsers
+      };
+      if (title) title.textContent = 'Додати користувача';
+      if (caption) caption.textContent = 'Користувач';
+      if (confirmBtn) confirmBtn.textContent = 'Додати';
+    } else {
+      const sourceChatId = Number(target?.sourceChatId);
+      const sourceChat = this.chats.find((chat) => Number(chat?.id) === sourceChatId);
+      if (!sourceChat) return;
+
+      const groups = this.chats.filter((chat) => chat.isGroup && chat.id !== sourceChatId);
+      if (!groups.length) {
+        this.showAlert('Спочатку створіть групу');
+        return;
+      }
+
+      groups.forEach((group) => {
+        const opt = document.createElement('option');
+        opt.value = String(group.id);
+        opt.textContent = group.name;
+        select.appendChild(opt);
+      });
+
+      this.addToGroupTarget = {
+        mode,
+        sourceChatId
+      };
+      if (title) title.textContent = 'Додати до групи';
+      if (caption) caption.textContent = 'Група';
+      if (confirmBtn) confirmBtn.textContent = 'Додати';
+    }
+
     modal.classList.add('active');
     this.syncSharedModalOverlayState();
   }
@@ -1973,23 +2076,125 @@ export class ChatAppInteractionMethods {
   async confirmAddToGroup() {
     const select = document.getElementById('addToGroupSelect');
     if (!select || !this.addToGroupTarget) return;
-    const groupId = Number(select.value);
-    const group = this.chats.find(c => c.id === groupId);
-    if (!group || !group.isGroup) return;
+    const context = this.addToGroupTarget;
 
-    const memberName = this.addToGroupTarget;
-    group.members = Array.isArray(group.members) ? group.members : [];
-    const exists = group.members.some(m => m.toLowerCase().trim() === memberName.toLowerCase().trim());
-    if (exists) {
-      await this.showAlert('Користувач вже є в цій групі');
+    if (context?.mode === 'add-user-to-chat') {
+      const targetChat = this.chats.find((chat) => Number(chat?.id) === Number(context.chatId));
+      if (!targetChat || !targetChat.isGroup) return;
+      const userId = String(select.value || '').trim();
+      const user = (Array.isArray(context.users) ? context.users : []).find((item) => String(item?.id || '') === userId);
+      if (!user) return;
+
+      const normalizedName = String(user.name || '').trim();
+      targetChat.members = Array.isArray(targetChat.members) ? targetChat.members : [];
+      targetChat.groupParticipants = Array.isArray(targetChat.groupParticipants) ? targetChat.groupParticipants : [];
+
+      const existsById = targetChat.groupParticipants.some((member) => String(member?.id || member?.userId || '').trim() === userId);
+      const existsByName = targetChat.members.some((member) => String(member?.name || member || '').trim().toLowerCase() === normalizedName.toLowerCase());
+      if (existsById || existsByName) {
+        await this.showAlert('Користувач вже є в цій групі');
+        this.closeAddToGroupModal();
+        return;
+      }
+
+      const targetServerId = typeof this.resolveChatServerId === 'function'
+        ? this.resolveChatServerId(targetChat)
+        : '';
+      if (targetServerId && typeof this.joinChatOnServerAsUser === 'function') {
+        const joined = await this.joinChatOnServerAsUser(targetServerId, userId);
+        if (!joined) {
+          await this.showAlert('Не вдалося додати користувача у групу на сервері.');
+          return;
+        }
+      }
+
+      targetChat.members.push(normalizedName);
+      if (typeof this.mergeGroupParticipants === 'function') {
+        targetChat.groupParticipants = this.mergeGroupParticipants(
+          targetChat.groupParticipants,
+          [{
+            id: userId,
+            name: normalizedName || 'Користувач',
+            avatarImage: this.getAvatarImage(user.avatarImage),
+            avatarColor: String(user.avatarColor || '').trim(),
+            status: this.getPresenceStatusForUser(userId, 'offline')
+          }]
+        );
+      }
+
+      this.saveChats();
+      this.renderChatsList();
+      if (this.currentChat && Number(this.currentChat.id) === Number(targetChat.id)) {
+        this.updateChatHeader();
+        if (document.getElementById('groupInfoModal')?.classList.contains('active')) {
+          this.openGroupInfoModal();
+        }
+      }
+      await this.showAlert('Користувача додано до групи');
       this.closeAddToGroupModal();
       return;
     }
 
-    group.members.push(memberName);
-    this.saveChats();
-    await this.showAlert('Додано до групи');
-    this.closeAddToGroupModal();
+    if (context?.mode === 'direct-to-group') {
+      const sourceChat = this.chats.find((chat) => Number(chat?.id) === Number(context.sourceChatId));
+      const groupId = Number(select.value);
+      const group = this.chats.find((chat) => Number(chat?.id) === groupId);
+      if (!sourceChat || !group || !group.isGroup) return;
+
+      const memberName = String(sourceChat.name || '').trim();
+      const memberId = String(sourceChat.participantId || '').trim();
+      group.members = Array.isArray(group.members) ? group.members : [];
+      group.groupParticipants = Array.isArray(group.groupParticipants) ? group.groupParticipants : [];
+
+      const existsByName = group.members.some((member) => String(member?.name || member || '').trim().toLowerCase() === memberName.toLowerCase());
+      const existsById = memberId
+        ? group.groupParticipants.some((member) => String(member?.id || member?.userId || '').trim() === memberId)
+        : false;
+      if (existsByName || existsById) {
+        await this.showAlert('Користувач вже є в цій групі');
+        this.closeAddToGroupModal();
+        return;
+      }
+
+      const targetServerId = typeof this.resolveChatServerId === 'function'
+        ? this.resolveChatServerId(group)
+        : '';
+      if (targetServerId && memberId && typeof this.joinChatOnServerAsUser === 'function') {
+        const joined = await this.joinChatOnServerAsUser(targetServerId, memberId);
+        if (!joined) {
+          await this.showAlert('Не вдалося додати користувача у групу на сервері.');
+          return;
+        }
+      }
+
+      if (memberName) {
+        group.members.push(memberName);
+      }
+      if (typeof this.mergeGroupParticipants === 'function') {
+        group.groupParticipants = this.mergeGroupParticipants(
+          group.groupParticipants,
+          [{
+            id: memberId || null,
+            name: memberName || 'Користувач',
+            avatarImage: this.getAvatarImage(sourceChat.avatarImage || sourceChat.avatarUrl),
+            avatarColor: String(sourceChat.avatarColor || '').trim(),
+            status: this.getPresenceStatusForUser(memberId, 'offline')
+          }]
+        );
+      }
+
+      this.saveChats();
+      this.renderChatsList();
+      if (this.currentChat && Number(this.currentChat.id) === Number(group.id)) {
+        this.updateChatHeader();
+        if (document.getElementById('groupInfoModal')?.classList.contains('active')) {
+          this.openGroupInfoModal();
+        }
+      }
+      await this.showAlert('Додано до групи');
+      this.closeAddToGroupModal();
+      return;
+    }
   }
 
   filterChats(query) {
@@ -3261,10 +3466,9 @@ export class ChatAppInteractionMethods {
     const avatar = document.getElementById('groupInfoAvatar');
     const name = document.getElementById('groupInfoName');
     const count = document.getElementById('groupInfoCount');
-    const desc = document.getElementById('groupInfoDescription');
     const membersList = document.getElementById('groupInfoMembers');
 
-    if (!modal || !avatar || !name || !count || !desc || !membersList) return;
+    if (!modal || !avatar || !name || !count || !membersList) return;
 
     const avatarImage = this.getAvatarImage(this.currentChat.avatarImage || this.currentChat.avatarUrl);
     const initials = this.getInitials(this.currentChat.name || 'Група');
@@ -3283,7 +3487,6 @@ export class ChatAppInteractionMethods {
 
     const members = this.getGroupMemberDataFromChat(this.currentChat);
     count.textContent = `${members.length} учасників`;
-    desc.value = this.currentChat.description || '';
     this.renderGroupInfoMembersList(members);
 
     const membersNeedingResolve = members.filter((member) =>
@@ -3327,12 +3530,6 @@ export class ChatAppInteractionMethods {
 
   async saveGroupInfo() {
     if (!this.currentChat || !this.currentChat.isGroup) return;
-    const desc = document.getElementById('groupInfoDescription');
-    if (desc) {
-      this.currentChat.description = desc.value.trim();
-      this.saveChats();
-      await this.showNotice('Деталі групи збережено', 'Група');
-    }
     this.closeGroupInfoModal();
   }
 

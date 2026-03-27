@@ -870,7 +870,32 @@ export class ChatAppCoreMethods {
     const primaryKey = this.getChatsStorageKey();
     const stored = this.readJsonStorage(primaryKey, null);
     if (Array.isArray(stored)) {
-      return stored;
+      return stored.map((chat) => {
+        if (!chat || typeof chat !== 'object') return chat;
+        const participantId = String(chat.participantId || '').trim();
+        const groupParticipants = Array.isArray(chat.groupParticipants) ? chat.groupParticipants : [];
+        const members = Array.isArray(chat.members) ? chat.members : [];
+        let isGroup = chat.isGroup;
+        if (typeof this.normalizeBooleanLike === 'function') {
+          isGroup = this.normalizeBooleanLike(isGroup, false);
+        } else if (typeof isGroup === 'string') {
+          const normalized = isGroup.trim().toLowerCase();
+          isGroup = !['false', '0', 'no', 'off'].includes(normalized) && Boolean(normalized);
+        } else {
+          isGroup = Boolean(isGroup);
+        }
+
+        // Legacy repair: some direct chats were persisted as groups.
+        if (isGroup && participantId && groupParticipants.length <= 1 && members.length <= 1) {
+          isGroup = false;
+        }
+
+        return {
+          ...chat,
+          isGroup,
+          participantId: participantId || null
+        };
+      });
     }
     return [];
   }

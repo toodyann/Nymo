@@ -650,12 +650,8 @@ export function mountAppShell() {
       </div>
       <button class="btn btn-secondary group-appearance-open-btn" id="openGroupAppearanceBtn">Керування виглядом</button>
     </div>
-    <div class="group-info-section">
-      <label class="group-info-label" for="groupInfoDescription">Опис</label>
-      <textarea id="groupInfoDescription" class="group-info-textarea" rows="3" placeholder="Додайте опис групи..."></textarea>
-    </div>
-    <div class="group-info-section">
-      <div class="group-info-label">Учасники</div>
+    <div>
+      <div class="group-modal-caption">Учасники</div>
       <ul class="group-info-members" id="groupInfoMembers"></ul>
     </div>
   </div>
@@ -684,8 +680,8 @@ export function mountAppShell() {
         <button class="btn btn-secondary" id="groupAppearanceAvatarResetBtn">Скинути фото</button>
       </div>
     </div>
-    <div class="group-info-section">
-      <label class="group-info-label" for="groupAppearanceNameInput">Назва групи</label>
+    <div>
+      <div class="group-modal-caption">Назва групи</div>
       <input type="text" id="groupAppearanceNameInput" class="group-appearance-name-input" placeholder="Введіть назву групи" maxlength="80" />
     </div>
   </div>
@@ -759,7 +755,7 @@ export function mountAppShell() {
     </button>
   </div>
   <div class="modal-body">
-    <label class="group-info-label" for="addToGroupSelect">Група</label>
+    <div class="group-modal-caption">Група</div>
     <select id="addToGroupSelect" class="group-select"></select>
   </div>
   <div class="modal-footer">

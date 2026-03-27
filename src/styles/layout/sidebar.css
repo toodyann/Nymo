@@ -1534,6 +1534,27 @@ html.dark-theme .bottom-nav-indicator {
     margin: 0;
     width: 100%;
     cursor: pointer;
+    position: relative;
+  }
+
+  .desktop-secondary-chat-pin {
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.92);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .desktop-secondary-chat-pin svg {
+    width: 13px;
+    height: 13px;
+    display: block;
   }
 
   .desktop-secondary-chat-item.has-unread .desktop-secondary-chat-name {
@@ -1550,6 +1571,10 @@ html.dark-theme .bottom-nav-indicator {
 
   .desktop-secondary-chat-item.active {
     background: rgba(255, 255, 255, 0.14);
+  }
+
+  html:not(.dark-theme) .desktop-secondary-chat-pin {
+    color: rgba(22, 22, 22, 0.86);
   }
 
   .desktop-secondary-chat-avatar {

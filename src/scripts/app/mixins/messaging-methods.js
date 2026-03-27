@@ -698,6 +698,22 @@ export class ChatAppMessagingMethods {
     return lower === 'новий чат' || lower === 'користувач';
   }
 
+  normalizeBooleanLike(value, fallback = false) {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') {
+      if (value === 1) return true;
+      if (value === 0) return false;
+      return Boolean(value);
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) return fallback;
+      if (['true', '1', 'yes', 'y', 'on', 'group'].includes(normalized)) return true;
+      if (['false', '0', 'no', 'n', 'off', 'direct', 'private'].includes(normalized)) return false;
+    }
+    return fallback;
+  }
+
   extractMessageSenderName(message) {
     if (!message || typeof message !== 'object') return '';
     const senderCandidates = [
@@ -1493,7 +1509,10 @@ export class ChatAppMessagingMethods {
       avatarColor,
       status: 'offline',
       messages: [],
-      isGroup: Boolean(payload?.isGroup ?? fallback?.isGroup),
+      isGroup: this.normalizeBooleanLike(
+        payload?.isGroup,
+        this.normalizeBooleanLike(fallback?.isGroup, false)
+      ),
       members: Array.isArray(fallback?.members) ? fallback.members : [],
       groupParticipants: this.mergeGroupParticipants(
         Array.isArray(fallback?.groupParticipants) ? fallback.groupParticipants : [],
@@ -2010,7 +2029,13 @@ export class ChatAppMessagingMethods {
           avatarColor: participantAvatarColor,
           status: participantStatus
         });
-        const isGroup = Boolean(item.isGroup ?? item.group ?? item.type === 'group');
+        const isGroup = this.normalizeBooleanLike(
+          item.isGroup,
+          this.normalizeBooleanLike(
+            item.group,
+            String(item.type || '').trim().toLowerCase() === 'group'
+          )
+        );
         const fallbackName = String(item.name ?? item.title ?? '').trim();
         const cachedParticipant = this.getCachedUserMeta(participantId);
         const cachedParticipantName = String(cachedParticipant?.name || '').trim();
@@ -2764,6 +2789,16 @@ export class ChatAppMessagingMethods {
     const deduplicatedVisibleChats = this.deduplicateNormalizedServerChats(visibleChats);
 
     const previousChats = Array.isArray(this.chats) ? this.chats : [];
+    previousChats.forEach((chat) => {
+      if (!chat || typeof chat !== 'object') return;
+      const participantId = String(chat.participantId || '').trim();
+      const groupParticipants = Array.isArray(chat.groupParticipants) ? chat.groupParticipants : [];
+      const members = Array.isArray(chat.members) ? chat.members : [];
+      chat.isGroup = this.normalizeBooleanLike(chat.isGroup, false);
+      if (chat.isGroup && participantId && groupParticipants.length <= 1 && members.length <= 1) {
+        chat.isGroup = false;
+      }
+    });
     const previousCurrentServerId = this.resolveChatServerId(this.currentChat);
     const previousCurrentLocalId = this.currentChat?.id;
     const byServerId = new Map();

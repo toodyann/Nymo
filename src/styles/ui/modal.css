@@ -1624,32 +1624,114 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   color: #f87171;
 }
 
+#groupInfoModal.modal,
+#groupAppearanceModal.modal {
+  width: min(94vw, 620px);
+  max-width: 620px;
+  max-height: min(88vh, 820px);
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--surface-soft) 92%, transparent),
+    color-mix(in srgb, var(--bg-elevated) 84%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(26px) saturate(165%);
+}
+
+html:not(.dark-theme) #groupInfoModal.modal,
+html:not(.dark-theme) #groupAppearanceModal.modal {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.86),
+    rgba(243, 247, 255, 0.68)
+  );
+  border-color: rgba(20, 24, 36, 0.14);
+  box-shadow:
+    0 24px 68px rgba(15, 19, 32, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+#groupInfoModal .modal-header,
+#groupAppearanceModal .modal-header {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+}
+
+#groupInfoModal .modal-header h3,
+#groupAppearanceModal .modal-header h3 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+#groupInfoModal .modal-footer,
+#groupAppearanceModal .modal-footer {
+  padding: 12px 22px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  gap: 10px;
+}
+
+#groupInfoModal .modal-footer .btn,
+#groupAppearanceModal .modal-footer .btn,
+#groupInfoModal .modal-footer .btn-primary,
+#groupInfoModal .modal-footer .btn-secondary,
+#groupAppearanceModal .modal-footer .btn-primary,
+#groupAppearanceModal .modal-footer .btn-secondary {
+  min-height: 42px;
+  min-width: 132px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+#groupInfoModal .modal-footer .btn:hover,
+#groupAppearanceModal .modal-footer .btn:hover {
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 96%, transparent);
+  color: var(--text-primary);
+}
+
+.group-info-modal-body,
+.group-appearance-modal-body {
+  padding: 18px 22px 16px;
+}
+
 .group-info-header {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
 }
 
 .group-avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(
-    135deg,
+    145deg,
     var(--primary-color),
-    var(--secondary-color)
+    color-mix(in srgb, var(--primary-color) 62%, var(--secondary-color))
   );
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, rgba(255, 255, 255, 0.24));
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   flex-shrink: 0;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
 }
 
 .group-avatar.is-image {
@@ -1657,24 +1739,25 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
 }
 
 .group-avatar--xl {
-  width: 88px;
-  height: 88px;
-  font-size: 26px;
+  width: 98px;
+  height: 98px;
+  font-size: 30px;
 }
 
 .group-info-main {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   flex: 1;
 }
 
 .group-info-name {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.15;
+  word-break: break-word;
 }
 
 .group-info-count {
@@ -1682,41 +1765,38 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   color: var(--text-secondary);
 }
 
-.group-info-section {
-  margin-top: 14px;
-}
-
-.group-info-label {
+.group-modal-caption {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
   color: var(--text-secondary);
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 
-.group-info-textarea {
+.group-appearance-name-input {
+  display: block;
   width: 100%;
-  min-height: 92px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  max-width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 11px 13px;
   font-size: 14px;
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
-  resize: vertical;
-  line-height: 1.45;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.group-select {
-  width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 14px;
-  color: var(--text-primary);
-  background: var(--bg-secondary);
+.group-appearance-name-input:focus {
+  border-color: color-mix(in srgb, var(--primary-color) 64%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--primary-color) 14%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  outline: none;
 }
 
 .group-info-members {
@@ -1726,13 +1806,13 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 260px;
+  max-height: 300px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .group-info-members li {
-  padding: 9px 11px;
+  padding: 10px 11px;
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
@@ -1740,12 +1820,12 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   font-size: 13px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
 }
 
 .group-member-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1790,32 +1870,33 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   color: var(--text-secondary);
 }
 
-#groupInfoModal.modal,
-#groupAppearanceModal.modal {
-  width: min(92vw, 560px);
-  max-width: 560px;
-  border-radius: 20px;
-}
-
-.group-info-modal-body,
-.group-appearance-modal-body {
-  padding-top: 14px;
-  padding-bottom: 16px;
-}
-
 .group-appearance-open-btn {
   margin-left: auto;
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 40px;
+  padding: 0 14px;
   border-radius: 10px;
-  font-size: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
+  box-shadow: none;
+}
+
+.group-appearance-open-btn:hover {
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 96%, transparent);
 }
 
 .group-appearance-avatar-wrap {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-radius: 14px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
 }
 
 .group-appearance-avatar-actions {
@@ -1823,23 +1904,87 @@ html:not(.dark-theme) .contact-profile-voice-shell.message-content.has-voice {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+  flex: 1;
 }
 
 .group-appearance-avatar-actions .btn {
-  min-height: 34px;
+  min-height: 38px;
   border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
   font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
 }
 
-.group-appearance-name-input {
-  width: 100%;
-  min-height: 44px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
-  color: var(--text-primary);
-  font-size: 14px;
+.group-appearance-avatar-actions .btn:hover {
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 96%, transparent);
+}
+
+@media (max-width: 768px) {
+  #groupInfoModal.modal,
+  #groupAppearanceModal.modal {
+    width: min(96vw, 520px);
+    border-radius: 18px;
+    max-height: 86vh;
+  }
+
+  #groupInfoModal .modal-header,
+  #groupAppearanceModal .modal-header {
+    padding: 16px 16px 13px;
+  }
+
+  #groupInfoModal .modal-header h3,
+  #groupAppearanceModal .modal-header h3 {
+    font-size: 20px;
+  }
+
+  .group-info-modal-body,
+  .group-appearance-modal-body {
+    padding: 14px 16px 12px;
+  }
+
+  .group-info-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .group-avatar {
+    width: 58px;
+    height: 58px;
+    font-size: 18px;
+  }
+
+  .group-avatar--xl {
+    width: 84px;
+    height: 84px;
+    font-size: 24px;
+  }
+
+  .group-appearance-avatar-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .group-appearance-avatar-actions {
+    width: 100%;
+  }
+
+  #groupInfoModal .modal-footer,
+  #groupAppearanceModal .modal-footer {
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  #groupInfoModal .modal-footer .btn,
+  #groupAppearanceModal .modal-footer .btn {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .alert-overlay {
