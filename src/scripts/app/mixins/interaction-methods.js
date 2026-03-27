@@ -3120,7 +3120,10 @@ export class ChatAppInteractionMethods {
 
   getNextMessageId(chat) {
     if (!chat || !Array.isArray(chat.messages) || chat.messages.length === 0) return 1;
-    const maxId = Math.max(...chat.messages.map(m => m.id || 0));
+    const numericIds = chat.messages
+      .map((m) => Number(m?.id))
+      .filter((id) => Number.isFinite(id) && id > 0);
+    const maxId = numericIds.length ? Math.max(...numericIds) : 0;
     return maxId + 1;
   }
 

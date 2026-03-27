@@ -2550,9 +2550,10 @@ export class ChatAppMessagingMethods {
           if (prevMessageSignature !== nextMessageSignature) {
             changed = true;
           }
-          if (!isActiveChat) {
-            chat.messages = nextMessages;
-          }
+          // Keep message state for every chat entry in the next snapshot.
+          // For active chat this prevents a transient "empty/stale messages"
+          // replacement right before syncCurrentChatMessagesFromServer runs.
+          chat.messages = nextMessages;
 
           let hasReadState = Boolean(
             chat.readTrackingInitialized
@@ -3173,15 +3174,15 @@ export class ChatAppMessagingMethods {
     }
 
     const { primaryKey, fallbackKey } = this.getMessageAnimationIdentity(msg);
-    const keys = [primaryKey, fallbackKey].filter(Boolean);
-    if (!keys.length) return true;
+    const dedupeKeys = primaryKey ? [primaryKey] : [fallbackKey].filter(Boolean);
+    if (!dedupeKeys.length) return true;
 
-    const alreadyAnimated = keys.some((key) => this.recentAnimatedMessageKeys.has(key));
+    const alreadyAnimated = dedupeKeys.some((key) => this.recentAnimatedMessageKeys.has(key));
     if (alreadyAnimated) {
       return false;
     }
 
-    keys.forEach((key) => this.recentAnimatedMessageKeys.set(key, now));
+    dedupeKeys.forEach((key) => this.recentAnimatedMessageKeys.set(key, now));
     return true;
   }
 
@@ -3387,9 +3388,6 @@ export class ChatAppMessagingMethods {
     const message = input?.value.trim() || '';
 
     if (!message || !this.currentChat) return;
-    const nowTs = Date.now();
-    if (nowTs - Number(this.lastSendDispatchAt || 0) < 180) return;
-    this.lastSendDispatchAt = nowTs;
     this.stopRealtimeTyping({ emit: true });
 
     if (this.editingMessageId) {
@@ -3488,13 +3486,9 @@ export class ChatAppMessagingMethods {
       this.saveChats();
       this.renderChatsList();
 
-      const activeChatServerId = this.resolveChatServerId(this.currentChat);
-      window.setTimeout(() => {
-        if (!this.currentChat) return;
-        const currentServerId = this.resolveChatServerId(this.currentChat);
-        if (activeChatServerId && currentServerId !== activeChatServerId) return;
-        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
-      }, 900);
+      // Do not trigger an extra delayed sync here.
+      // Regular realtime/poll sync will reconcile server state without causing
+      // an immediate second render cycle (which can look like flicker).
     } catch (error) {
       if (!sentToServer) {
         const rollbackIndex = this.currentChat.messages.findIndex((item) => {
