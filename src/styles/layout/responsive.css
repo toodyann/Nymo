@@ -245,7 +245,10 @@
   }
 
   .orion-app.swipe-peek .app-header .chat-brand .app-title,
-  .orion-app.swipe-peek:has(#chatContainer.active) .app-header .chat-brand .app-title {
+  .orion-app.swipe-peek:has(#chatContainer.active)
+    .app-header
+    .chat-brand
+    .app-title {
     display: block !important;
     opacity: 1 !important;
     transform: none !important;
@@ -283,7 +286,11 @@
     border-radius: 12px !important;
     border: 1px solid transparent !important;
     background: transparent !important;
-    color: color-mix(in srgb, var(--text-secondary) 88%, #ffffff 12%) !important;
+    color: color-mix(
+      in srgb,
+      var(--text-secondary) 88%,
+      #ffffff 12%
+    ) !important;
     font-weight: 500 !important;
     transition:
       background 0.18s ease,
@@ -524,7 +531,10 @@
     pointer-events: none !important;
   }
 
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-title {
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-title {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -542,7 +552,10 @@
     font-size: 16px !important;
   }
 
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-back {
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-back {
     position: absolute !important;
     left: 12px !important;
     top: 10px !important;
@@ -630,8 +643,16 @@
     min-height: 48px !important;
     padding: 0 14px !important;
     border-radius: 14px !important;
-    border-color: color-mix(in srgb, var(--border-color) 84%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 94%, transparent) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--border-color) 84%,
+      transparent
+    ) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 94%,
+      transparent
+    ) !important;
     display: grid !important;
     grid-template-columns: 18px 1fr 18px !important;
     align-items: center !important;
@@ -648,7 +669,7 @@
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-trigger::after {
-    content: '' !important;
+    content: "" !important;
     grid-column: 3 !important;
     width: 18px !important;
     height: 18px !important;
@@ -663,13 +684,20 @@
     transform: none !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-trigger.is-open svg {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-trigger.is-open
+    svg {
     transform: rotate(180deg) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-trigger.is-open {
     color: #ffffff !important;
-    border-color: color-mix(in srgb, #9ca3af 52%, var(--border-color)) !important;
+    border-color: color-mix(
+      in srgb,
+      #9ca3af 52%,
+      var(--border-color)
+    ) !important;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, #6b7280 86%, #9ca3af 14%),
@@ -684,8 +712,16 @@
     padding: 0 14px !important;
     border-radius: 14px !important;
     box-sizing: border-box !important;
-    border-color: color-mix(in srgb, var(--border-color) 84%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 88%, transparent) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--border-color) 84%,
+      transparent
+    ) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 88%,
+      transparent
+    ) !important;
     font-size: 13px !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
@@ -700,7 +736,11 @@
   #settingsContainerMobile #messenger-settings .shop-item-card,
   #settingsContainerMobile #messenger-settings .shop-item-card.equipped {
     border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 88%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 88%,
+      transparent
+    ) !important;
     box-shadow:
       0 10px 24px rgba(15, 19, 32, 0.07),
       inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
@@ -717,7 +757,9 @@
     top: calc(var(--app-header-height, 56px) + 10px) !important;
     left: 8px !important;
     right: 8px !important;
-    bottom: calc(var(--bottom-nav-height, 72px) + 72px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(
+      var(--bottom-nav-height, 72px) + 72px + env(safe-area-inset-bottom)
+    ) !important;
     z-index: 90 !important;
     max-height: none !important;
     overflow: hidden !important;
@@ -735,8 +777,10 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::before {
-    content: '';
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::before {
+    content: "";
     position: absolute;
     top: 8px;
     left: 50%;
@@ -749,7 +793,10 @@
     pointer-events: none;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -757,29 +804,53 @@
     -webkit-overflow-scrolling: touch !important;
     scrollbar-gutter: stable !important;
     scrollbar-width: thin !important;
-    scrollbar-color: color-mix(in srgb, var(--primary-color) 56%, var(--border-color)) transparent !important;
+    scrollbar-color: color-mix(
+        in srgb,
+        var(--primary-color) 56%,
+        var(--border-color)
+      )
+      transparent !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar {
     width: 6px;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-track {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar-track {
     margin: 10px 0;
     background: transparent;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-thumb {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-color) 56%, var(--border-color));
+    background: color-mix(
+      in srgb,
+      var(--primary-color) 56%,
+      var(--border-color)
+    );
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::-webkit-scrollbar-thumb {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-color) 56%, var(--border-color));
+    background: color-mix(
+      in srgb,
+      var(--primary-color) 56%,
+      var(--border-color)
+    );
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-panel-head {
@@ -804,8 +875,16 @@
     width: 38px !important;
     height: 38px !important;
     border-radius: 12px !important;
-    border-color: color-mix(in srgb, var(--border-color) 84%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 90%, transparent) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--border-color) 84%,
+      transparent
+    ) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 90%,
+      transparent
+    ) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-section {
@@ -813,7 +892,11 @@
     padding: 10px !important;
     border-radius: 14px !important;
     border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 88%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 88%,
+      transparent
+    ) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-section-title {
@@ -841,7 +924,11 @@
 
   #settingsContainerMobile #messenger-settings .shop-filter-btn.active {
     color: #ffffff !important;
-    border-color: color-mix(in srgb, #9ca3af 54%, var(--border-color)) !important;
+    border-color: color-mix(
+      in srgb,
+      #9ca3af 54%,
+      var(--border-color)
+    ) !important;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, #6b7280 88%, #9ca3af 12%),
@@ -858,7 +945,10 @@
     font-size: 12px !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-price-range input[type="range"] {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-price-range
+    input[type="range"] {
     height: 20px !important;
   }
 
@@ -886,7 +976,11 @@
 
   #settingsContainerMobile #messenger-settings .shop-filter-apply {
     color: #ffffff !important;
-    border-color: color-mix(in srgb, #9ca3af 54%, var(--border-color)) !important;
+    border-color: color-mix(
+      in srgb,
+      #9ca3af 54%,
+      var(--border-color)
+    ) !important;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, #6b7280 88%, #9ca3af 12%),
@@ -909,12 +1003,16 @@
     overflow: hidden !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     height: 100% !important;
     max-height: none !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 14px) !important;
+    padding: calc(env(safe-area-inset-top) + 14px) 14px
+      calc(env(safe-area-inset-bottom) + 14px) !important;
     gap: 12px !important;
   }
 
@@ -932,7 +1030,11 @@
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-section {
-    background: color-mix(in srgb, var(--surface-soft) 90%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 90%,
+      transparent
+    ) !important;
     border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent) !important;
   }
 
@@ -944,14 +1046,22 @@
   #settingsContainerMobile #messenger-settings .shop-filter-btn {
     min-height: 42px !important;
     border-radius: 11px !important;
-    border-color: color-mix(in srgb, var(--border-color) 80%, transparent) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--border-color) 80%,
+      transparent
+    ) !important;
     background: color-mix(in srgb, var(--bg-color) 86%, transparent) !important;
     color: color-mix(in srgb, var(--text-primary) 86%, #ffffff 14%) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-btn.active {
     color: #ffffff !important;
-    border-color: color-mix(in srgb, #a7b1bf 64%, var(--border-color)) !important;
+    border-color: color-mix(
+      in srgb,
+      #a7b1bf 64%,
+      var(--border-color)
+    ) !important;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, #6b7280 72%, #9ca3af 28%) 0%,
@@ -1013,7 +1123,10 @@
     transform: none !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-trigger.is-open svg {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-trigger.is-open
+    svg {
     transform: rotate(180deg) !important;
   }
 
@@ -1038,17 +1151,26 @@
     padding: 0 !important;
     border-radius: 14px !important;
     border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 92%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 92%,
+      transparent
+    ) !important;
     box-shadow:
       0 10px 24px rgba(15, 19, 32, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::before {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::before {
     display: none !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
@@ -1206,7 +1328,10 @@
     pointer-events: auto !important;
   }
 
-  #settingsContainerMobile #profile-settings .settings-header .profile-settings-title {
+  #settingsContainerMobile
+    #profile-settings
+    .settings-header
+    .profile-settings-title {
     width: 100% !important;
     max-width: none !important;
     margin: 0 auto !important;
@@ -1229,7 +1354,10 @@
   #settingsContainerMobile #calls .calls-header h2,
   #settingsContainerMobile #wallet .calls-header h2,
   #settingsContainerMobile #profile-items .profile-items-header h2,
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-title,
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-title,
   #settingsContainerMobile #profile-settings .settings-header h2 {
     font-size: 16px !important;
     border: none !important;
@@ -1244,7 +1372,11 @@
   #settingsContainerMobile #calls .calls-header h2 svg,
   #settingsContainerMobile #wallet .calls-header h2 svg,
   #settingsContainerMobile #profile-items .profile-items-header h2 svg,
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-title svg,
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-title
+    svg,
   #settingsContainerMobile #profile-settings .settings-header h2 svg {
     display: none !important;
   }
@@ -1470,7 +1602,10 @@
     position: absolute !important;
     left: 50% !important;
     top: 50% !important;
-    transform: translate(calc(-50% + var(--app-chat-info-offset-x, 0px)), -50%) !important;
+    transform: translate(
+      calc(-50% + var(--app-chat-info-offset-x, 0px)),
+      -50%
+    ) !important;
     margin: 0 !important;
     min-width: 0;
     max-width: calc(100% - 96px);
@@ -1597,7 +1732,9 @@
   .orion-app:has(#chatContainer.active) .chat-modal-header .btn-back,
   .orion-app:has(#chatContainer.active) .chat-modal-header .app-chat-info,
   .orion-app:has(#chatContainer.active) .chat-modal-header-right .btn-icon,
-  .orion-app:has(#chatContainer.active) .chat-modal-header-right #chatModalMenuBtn {
+  .orion-app:has(#chatContainer.active)
+    .chat-modal-header-right
+    #chatModalMenuBtn {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -1704,7 +1841,9 @@
   }
 
   .orion-app.keyboard-open .messages-scroll-bottom-btn {
-    bottom: calc(82px + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px));
+    bottom: calc(
+      82px + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px)
+    );
   }
 
   .orion-app.keyboard-open .profile-menu-wrapper {
@@ -2116,7 +2255,10 @@
   }
 
   /* Final shop filter fallback: clean full-screen mobile modal */
-  .orion-app:has(#settingsContainerMobile #messenger-settings #shopFilterPanel.is-open) .profile-menu-wrapper {
+  .orion-app:has(
+      #settingsContainerMobile #messenger-settings #shopFilterPanel.is-open
+    )
+    .profile-menu-wrapper {
     display: none !important;
   }
 
@@ -2129,7 +2271,11 @@
     min-height: 44px !important;
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 92%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 92%,
+      transparent
+    ) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-trigger {
@@ -2177,15 +2323,21 @@
     overflow: hidden !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::before {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::before {
     display: none !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px) !important;
+    padding: calc(env(safe-area-inset-top) + 12px) 12px
+      calc(env(safe-area-inset-bottom) + 12px) !important;
     gap: 10px !important;
   }
 
@@ -2208,7 +2360,11 @@
     padding: 10px !important;
     border-radius: 12px !important;
     border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent) !important;
-    background: color-mix(in srgb, var(--surface-soft) 90%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--surface-soft) 90%,
+      transparent
+    ) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-section-title {
@@ -2232,7 +2388,11 @@
 
   #settingsContainerMobile #messenger-settings .shop-filter-btn.active {
     color: #fff !important;
-    border-color: color-mix(in srgb, var(--primary-color) 56%, var(--border-color)) !important;
+    border-color: color-mix(
+      in srgb,
+      var(--primary-color) 56%,
+      var(--border-color)
+    ) !important;
     background: linear-gradient(
       135deg,
       var(--primary-color),
@@ -2371,8 +2531,12 @@
     border-radius: 0 !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
-    padding: calc(env(safe-area-inset-top) + 12px) 10px calc(env(safe-area-inset-bottom) + 12px) !important;
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
+    padding: calc(env(safe-area-inset-top) + 12px) 10px
+      calc(env(safe-area-inset-bottom) + 12px) !important;
   }
 
   #settingsContainerMobile #messenger-settings .shop-filter-options {
@@ -2394,7 +2558,7 @@
   }
 
   .date-separator {
-    margin: 14px 0;
+    margin: 25px 0;
   }
 
   .date-separator-text {
@@ -2451,8 +2615,12 @@
     border-radius: 0 !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
-    padding: calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 10px) !important;
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
+    padding: calc(env(safe-area-inset-top) + 10px) 10px
+      calc(env(safe-area-inset-bottom) + 10px) !important;
   }
 }
 
@@ -2588,7 +2756,10 @@
     pointer-events: auto !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     height: 100% !important;
     max-height: none !important;
     overflow-y: auto !important;
@@ -2600,9 +2771,21 @@
     align-items: center !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll > .shop-filter-section,
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll > .shop-price-range,
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll > .shop-filter-summary {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll
+    > .shop-filter-section,
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll
+    > .shop-price-range,
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll
+    > .shop-filter-summary {
     width: min(calc(100% - 4px), 352px) !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -2620,7 +2803,8 @@
     box-sizing: border-box !important;
     display: block !important;
     background: var(--bg-color) !important;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent) !important;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--border-color) 70%, transparent) !important;
     pointer-events: auto !important;
   }
 
@@ -2706,8 +2890,10 @@
     transform: rotate(-90deg) !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::after {
-    content: '' !important;
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::after {
+    content: "" !important;
     position: fixed !important;
     left: 0 !important;
     right: 0 !important;
@@ -2715,7 +2901,8 @@
     height: calc(env(safe-area-inset-bottom) + 72px) !important;
     z-index: 10 !important;
     pointer-events: none !important;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent) !important;
+    border-top: 1px solid
+      color-mix(in srgb, var(--border-color) 62%, transparent) !important;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--bg-color) 0%, transparent) 0%,
@@ -2724,7 +2911,10 @@
     ) !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-actions {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-actions {
     position: fixed !important;
     left: 8px !important;
     right: 8px !important;
@@ -2746,15 +2936,29 @@
   }
 
   /* Disable custom scrollbar styling for mobile shop filter */
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll {
     scrollbar-width: auto !important;
     scrollbar-color: auto !important;
   }
 
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar,
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-track,
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open .shop-filter-panel-scroll::-webkit-scrollbar-thumb,
-  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open::-webkit-scrollbar-thumb {
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar,
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar-track,
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open
+    .shop-filter-panel-scroll::-webkit-scrollbar-thumb,
+  #settingsContainerMobile
+    #messenger-settings
+    .shop-filter-panel.is-open::-webkit-scrollbar-thumb {
     width: initial !important;
     height: initial !important;
     margin: initial !important;
@@ -2845,7 +3049,10 @@
   }
 
   #settingsContainerMobile .settings-header button,
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-back,
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-back,
   #settingsContainerMobile #profile-items .profile-items-back-island {
     position: absolute !important;
     left: 8px !important;
@@ -2862,7 +3069,10 @@
     background: transparent !important;
   }
 
-  #settingsContainerMobile .settings-subsection .settings-header .settings-subsection-title,
+  #settingsContainerMobile
+    .settings-subsection
+    .settings-header
+    .settings-subsection-title,
   #settingsContainerMobile #messenger-settings .shop-header h2,
   #settingsContainerMobile #calls .calls-header h2,
   #settingsContainerMobile #notifications-center .calls-header h2,

@@ -856,27 +856,22 @@ export class ChatAppMessagingMethods {
 
   renderNewChatSearchState({
     loading = false,
-    message = '',
     users = [],
     selectedUserId = ''
   } = {}) {
-    const statusEl = document.getElementById('newChatUserSearchStatus');
     const listEl = document.getElementById('newChatUserSearchResults');
-    if (!statusEl || !listEl) return;
+    if (!listEl) return;
 
     if (loading) {
-      statusEl.textContent = 'Пошук користувачів...';
       listEl.innerHTML = '';
       return;
     }
 
     if (!users.length) {
-      statusEl.textContent = message || 'Користувачів не знайдено.';
       listEl.innerHTML = '';
       return;
     }
 
-    statusEl.textContent = '';
     listEl.innerHTML = users.map((user) => {
       const tagText = user.tag ? `@${user.tag}` : '';
       const secondary = [tagText, user.mobile || user.email || ''].filter(Boolean).join(' · ');
@@ -1007,6 +1002,263 @@ export class ChatAppMessagingMethods {
         });
       }
     }, 260);
+  }
+
+  getNewChatGroupSelectedIds() {
+    if (!(this.newChatGroupSelectedIds instanceof Set)) {
+      this.newChatGroupSelectedIds = new Set();
+    }
+    return this.newChatGroupSelectedIds;
+  }
+
+  collectRelatedUsersForGroupChat() {
+    const selfId = this.getAuthUserId();
+    const relatedById = new Map();
+
+    const mergeUser = (userId, meta = {}) => {
+      const safeId = String(userId || '').trim();
+      if (!safeId || (selfId && safeId === selfId)) return;
+
+      const prev = relatedById.get(safeId) || {
+        id: safeId,
+        name: '',
+        tag: '',
+        mobile: '',
+        email: '',
+        avatarImage: '',
+        avatarColor: '',
+        raw: null
+      };
+
+      const nextName = String(meta.name || '').trim();
+      const nextAvatarImage = this.getAvatarImage(meta.avatarImage);
+      const nextAvatarColor = String(meta.avatarColor || '').trim();
+      const nextTag = String(meta.tag || '').trim();
+      const nextMobile = String(meta.mobile || '').trim();
+      const nextEmail = String(meta.email || '').trim();
+
+      const next = {
+        ...prev,
+        name: prev.name || nextName || 'Користувач',
+        tag: prev.tag || nextTag,
+        mobile: prev.mobile || nextMobile,
+        email: prev.email || nextEmail,
+        avatarImage: prev.avatarImage || nextAvatarImage,
+        avatarColor: prev.avatarColor || nextAvatarColor
+      };
+      relatedById.set(safeId, next);
+    };
+
+    const chats = Array.isArray(this.chats) ? this.chats : [];
+    chats.forEach((chat) => {
+      if (!chat || typeof chat !== 'object') return;
+
+      const participantId = String(chat.participantId || '').trim();
+      if (participantId && !chat.isGroup) {
+        const cached = this.getCachedUserMeta(participantId);
+        const fallbackName = !this.isGenericOrInvalidChatName(chat.name, { isGroup: false })
+          ? String(chat.name || '').trim()
+          : '';
+        mergeUser(participantId, {
+          name: cached?.name || fallbackName,
+          avatarImage: this.getAvatarImage(chat.avatarImage || chat.avatarUrl || cached?.avatarImage),
+          avatarColor: String(chat.avatarColor || cached?.avatarColor || '').trim()
+        });
+      }
+
+      const messages = Array.isArray(chat.messages) ? chat.messages : [];
+      messages.forEach((msg) => {
+        const senderId = String(msg?.senderId || '').trim();
+        if (!senderId || (selfId && senderId === selfId)) return;
+        const cached = this.getCachedUserMeta(senderId);
+        mergeUser(senderId, {
+          name: String(msg?.senderName || '').trim() || cached?.name || '',
+          avatarImage: this.getAvatarImage(
+            msg?.senderAvatarImage
+              || msg?.senderAvatar
+              || msg?.avatarImage
+              || cached?.avatarImage
+          ),
+          avatarColor: String(msg?.senderAvatarColor || cached?.avatarColor || '').trim()
+        });
+      });
+    });
+
+    return Array.from(relatedById.values()).sort((a, b) =>
+      String(a.name || '').localeCompare(String(b.name || ''), 'uk', { sensitivity: 'base' })
+    );
+  }
+
+  syncNewChatGroupMembersInputFromSelection() {
+    const input = document.getElementById('groupMembersInput');
+    if (!input) return;
+    const selectedIds = this.getNewChatGroupSelectedIds();
+    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
+    const members = users
+      .filter((user) => selectedIds.has(user.id))
+      .map((user) => String(user.name || '').trim())
+      .filter(Boolean);
+    input.value = members.join(', ');
+  }
+
+  renderNewChatGroupSelectionSummary() {
+    const selectedWrap = document.getElementById('newChatGroupSelectedUsers');
+    const countEl = document.getElementById('newChatGroupCount');
+    if (!selectedWrap) return;
+
+    if (!this.newChatGroupMode) {
+      selectedWrap.innerHTML = '';
+      if (countEl) countEl.textContent = '0';
+      return;
+    }
+
+    const selectedIds = this.getNewChatGroupSelectedIds();
+    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
+    const selectedUsers = users.filter((user) => selectedIds.has(user.id));
+
+    if (countEl) {
+      countEl.textContent = String(selectedUsers.length);
+    }
+
+    if (!selectedUsers.length) {
+      selectedWrap.innerHTML = '<span class="new-chat-group-selected-empty">Ще нікого не обрано</span>';
+      return;
+    }
+
+    selectedWrap.innerHTML = selectedUsers.map((user) => {
+      const avatarHtml = this.getChatAvatarHtml(
+        {
+          name: user.name,
+          avatarImage: user.avatarImage,
+          avatarColor: user.avatarColor
+        },
+        'new-chat-group-chip-avatar'
+      );
+      return `
+        <button type="button" class="new-chat-group-chip" data-user-id="${this.escapeHtml(user.id)}" title="Прибрати ${this.escapeHtml(user.name)}">
+          ${avatarHtml}
+          <span class="new-chat-group-chip-name">${this.escapeHtml(user.name)}</span>
+          <span class="new-chat-group-chip-remove" aria-hidden="true">×</span>
+        </button>
+      `;
+    }).join('');
+
+    selectedWrap.querySelectorAll('.new-chat-group-chip').forEach((button) => {
+      button.addEventListener('click', () => {
+        const userId = String(button.getAttribute('data-user-id') || '').trim();
+        if (!userId) return;
+        const selected = this.getNewChatGroupSelectedIds();
+        selected.delete(userId);
+        this.syncNewChatGroupMembersInputFromSelection();
+        this.renderNewChatGroupUsersList();
+      });
+    });
+  }
+
+  renderNewChatGroupUsersList() {
+    const listEl = document.getElementById('newChatGroupUsersList');
+    if (!listEl) return;
+    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
+    const selectedIds = this.getNewChatGroupSelectedIds();
+
+    if (!this.newChatGroupMode) {
+      listEl.innerHTML = '';
+      this.renderNewChatGroupSelectionSummary();
+      return;
+    }
+
+    this.renderNewChatGroupSelectionSummary();
+
+    if (!users.length) {
+      listEl.innerHTML = '<div class="new-chat-group-users-empty">Немає користувачів для групи. Спочатку створіть або відкрийте діалог.</div>';
+      return;
+    }
+
+    listEl.innerHTML = users.map((user) => {
+      const tagText = user.tag ? `@${user.tag}` : '';
+      const secondary = [tagText, user.mobile || user.email || ''].filter(Boolean).join(' · ');
+      const isSelected = selectedIds.has(user.id);
+      const activeClass = isSelected ? ' active' : '';
+      const avatarHtml = this.getChatAvatarHtml(
+        {
+          name: user.name,
+          avatarImage: user.avatarImage,
+          avatarColor: user.avatarColor
+        },
+        'new-chat-user-result-avatar'
+      );
+
+      return `
+        <button type="button" class="new-chat-user-result new-chat-group-user${activeClass}" data-user-id="${this.escapeHtml(user.id)}" aria-pressed="${isSelected ? 'true' : 'false'}">
+          ${avatarHtml}
+          <span class="new-chat-user-result-copy">
+            <span class="new-chat-user-result-main">${this.escapeHtml(user.name)}</span>
+            <span class="new-chat-user-result-secondary">${this.escapeHtml(secondary || 'Користувач зі списку контактів')}</span>
+          </span>
+          <span class="new-chat-group-user-indicator" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+            </svg>
+          </span>
+        </button>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.new-chat-group-user').forEach((button) => {
+      button.addEventListener('click', () => {
+        const userId = String(button.getAttribute('data-user-id') || '').trim();
+        if (!userId) return;
+        if (selectedIds.has(userId)) {
+          selectedIds.delete(userId);
+        } else {
+          selectedIds.add(userId);
+        }
+        this.syncNewChatGroupMembersInputFromSelection();
+        this.renderNewChatGroupUsersList();
+      });
+    });
+  }
+
+  setNewChatGroupMode(active) {
+    const next = Boolean(active);
+    this.newChatGroupMode = next;
+
+    const button = document.getElementById('newChatGroupModeBtn');
+    const groupFields = document.getElementById('groupFields');
+    const userSearchWrap = document.getElementById('newChatUserSearch');
+
+    if (button) {
+      button.classList.toggle('active', next);
+      button.setAttribute('aria-expanded', next ? 'true' : 'false');
+    }
+    if (groupFields) {
+      groupFields.classList.toggle('active', next);
+    }
+    if (userSearchWrap) {
+      userSearchWrap.classList.toggle('hidden', next);
+    }
+
+    if (next) {
+      this.newChatSelectedUser = null;
+      this.newChatGroupUsers = this.collectRelatedUsersForGroupChat();
+      this.renderNewChatSearchState({ users: [], selectedUserId: '' });
+      this.renderNewChatGroupUsersList();
+      this.syncNewChatGroupMembersInputFromSelection();
+      return;
+    }
+
+    const selectedIds = this.getNewChatGroupSelectedIds();
+    selectedIds.clear();
+    this.newChatGroupUsers = [];
+    this.syncNewChatGroupMembersInputFromSelection();
+    this.renderNewChatGroupSelectionSummary();
+    this.renderNewChatGroupUsersList();
+    const value = document.getElementById('newContactInput')?.value || '';
+    this.scheduleUserSearch(value);
+  }
+
+  toggleNewChatGroupMode() {
+    this.setNewChatGroupMode(!this.newChatGroupMode);
   }
 
   async updateCurrentUserProfileOnServer(payload = {}) {
@@ -1242,7 +1494,11 @@ export class ChatAppMessagingMethods {
       status: 'offline',
       messages: [],
       isGroup: Boolean(payload?.isGroup ?? fallback?.isGroup),
-      members: Array.isArray(fallback?.members) ? fallback.members : []
+      members: Array.isArray(fallback?.members) ? fallback.members : [],
+      groupParticipants: this.mergeGroupParticipants(
+        Array.isArray(fallback?.groupParticipants) ? fallback.groupParticipants : [],
+        []
+      )
     };
   }
 
@@ -1780,6 +2036,18 @@ export class ChatAppMessagingMethods {
           || item.online
         );
         const activityAt = this.getChatActivityTimestampValue(item);
+        const groupParticipants = isGroup
+          ? this.mergeGroupParticipants(
+            normalizedParticipants.map((member) => ({
+              id: String(member.id || '').trim() || null,
+              name: String(member.name || '').trim() || 'Користувач',
+              avatarImage: this.getAvatarImage(member.avatarImage || member.avatarUrl),
+              avatarColor: String(member.avatarColor || '').trim(),
+              status: this.normalizePresenceStatus(member.status)
+            })),
+            []
+          )
+          : [];
 
         return {
           serverId,
@@ -1791,6 +2059,7 @@ export class ChatAppMessagingMethods {
           avatarUrl: avatarImage,
           avatarColor,
           status,
+          groupParticipants,
           activityAt
         };
       })
@@ -1918,6 +2187,10 @@ export class ChatAppMessagingMethods {
     const mergedStatus = this.normalizePresenceStatus(primary?.status)
       || this.normalizePresenceStatus(secondary?.status)
       || '';
+    const mergedGroupParticipants = this.mergeGroupParticipants(
+      primary?.groupParticipants,
+      secondary?.groupParticipants
+    );
 
     return {
       ...secondary,
@@ -1932,11 +2205,41 @@ export class ChatAppMessagingMethods {
       avatarUrl: primaryAvatar || secondaryAvatar,
       avatarColor: String(primary?.avatarColor || secondary?.avatarColor || '').trim(),
       status: mergedStatus,
+      groupParticipants: mergedGroupParticipants,
       activityAt: Math.max(
         this.getChatActivityTimestampValue(primary),
         this.getChatActivityTimestampValue(secondary)
       )
     };
+  }
+
+  mergeGroupParticipants(primaryList = [], secondaryList = []) {
+    const map = new Map();
+    const append = (candidate) => {
+      if (!candidate || typeof candidate !== 'object') return;
+      const id = String(candidate.id || candidate.userId || '').trim();
+      const name = String(candidate.name || '').trim();
+      const key = id || (name ? `name:${name.toLowerCase()}` : '');
+      if (!key) return;
+
+      const previous = map.get(key) || {};
+      const avatarImage = this.getAvatarImage(candidate.avatarImage || candidate.avatarUrl || previous.avatarImage || previous.avatarUrl);
+      const avatarColor = String(candidate.avatarColor || previous.avatarColor || '').trim();
+      const status = this.normalizePresenceStatus(candidate.status || previous.status);
+
+      map.set(key, {
+        id: id || String(previous.id || '').trim() || null,
+        name: name || String(previous.name || '').trim() || 'Користувач',
+        avatarImage,
+        avatarUrl: avatarImage,
+        avatarColor,
+        status
+      });
+    };
+
+    (Array.isArray(secondaryList) ? secondaryList : []).forEach(append);
+    (Array.isArray(primaryList) ? primaryList : []).forEach(append);
+    return Array.from(map.values());
   }
 
   pickPreferredNormalizedServerChat(a, b) {
@@ -2511,19 +2814,44 @@ export class ChatAppMessagingMethods {
       const existingName = String(existing?.name || '').trim();
       const hasValidServerName = !this.isGenericOrInvalidChatName(serverName, { isGroup: serverChat.isGroup });
       const hasValidExistingName = !this.isGenericOrInvalidChatName(existingName, { isGroup: serverChat.isGroup });
+      const localGroupAppearanceUpdatedAt = Number(existing?.localGroupAppearanceUpdatedAt || 0);
+      const shouldPreferLocalGroupAppearance = Boolean(
+        serverChat.isGroup
+        && localGroupAppearanceUpdatedAt > 0
+      );
       const mergedName = serverChat.isGroup
-        ? (serverName || existingName || 'Новий чат')
+        ? (
+          shouldPreferLocalGroupAppearance
+            ? (existingName || serverName || 'Новий чат')
+            : (serverName || existingName || 'Новий чат')
+        )
         : (cachedParticipantName || (hasValidServerName ? serverName : '') || (hasValidExistingName ? existingName : '') || 'Новий чат');
       const incomingAvatarImage = this.getAvatarImage(serverChat.avatarImage || serverChat.avatarUrl);
       const existingAvatarImage = this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl);
-      const mergedAvatarImage = this.getAvatarImage(cachedParticipantAvatar || incomingAvatarImage || existingAvatarImage);
+      const mergedAvatarImage = this.getAvatarImage(
+        serverChat.isGroup
+          ? (
+            shouldPreferLocalGroupAppearance
+              ? (existingAvatarImage || incomingAvatarImage)
+              : (incomingAvatarImage || existingAvatarImage)
+          )
+          : (cachedParticipantAvatar || incomingAvatarImage || existingAvatarImage)
+      );
       const incomingAvatarColor = String(serverChat.avatarColor || '').trim();
       const existingAvatarColor = String(existing?.avatarColor || '').trim();
       const mergedAvatarColor = String(
-        incomingAvatarColor
-        || cachedParticipantMeta?.avatarColor
-        || existingAvatarColor
-        || ''
+        serverChat.isGroup
+          ? (
+            shouldPreferLocalGroupAppearance
+              ? (existingAvatarColor || incomingAvatarColor || '')
+              : (incomingAvatarColor || existingAvatarColor || '')
+          )
+          : (
+            incomingAvatarColor
+            || cachedParticipantMeta?.avatarColor
+            || existingAvatarColor
+            || ''
+          )
       ).trim();
       const mergedStatus = serverChat.isGroup
         ? ''
@@ -2551,6 +2879,13 @@ export class ChatAppMessagingMethods {
         avatarColor: mergedAvatarColor,
         status: mergedStatus,
         isGroup: serverChat.isGroup,
+        groupParticipants: this.mergeGroupParticipants(
+          serverChat.groupParticipants,
+          existing?.groupParticipants
+        ),
+        localGroupAppearanceUpdatedAt: shouldPreferLocalGroupAppearance
+          ? localGroupAppearanceUpdatedAt
+          : Number(existing?.localGroupAppearanceUpdatedAt || 0),
         messages
       };
 
@@ -2563,6 +2898,7 @@ export class ChatAppMessagingMethods {
         || this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl) !== updatedChat.avatarImage
         || String(existing?.avatarColor || '') !== String(updatedChat.avatarColor || '')
         || String(existing?.status || '') !== String(updatedChat.status || '')
+        || JSON.stringify(Array.isArray(existing?.groupParticipants) ? existing.groupParticipants : []) !== JSON.stringify(Array.isArray(updatedChat.groupParticipants) ? updatedChat.groupParticipants : [])
       ) {
         changed = true;
       }
@@ -2604,18 +2940,22 @@ export class ChatAppMessagingMethods {
     previousChats.forEach((prevChat) => {
       if (!prevChat) return;
       const prevServerId = this.resolveChatServerId(prevChat);
-      if (!prevServerId || presentServerIds.has(prevServerId)) return;
+      if (!prevServerId) {
+        // Keep local-only chats (without server id) to prevent accidental disappearance
+        // when backend payload is partial or delayed.
+        const localKey = `local:${String(prevChat.id ?? '').trim()}`;
+        if (!presentServerIds.has(localKey)) {
+          nextChats.push({
+            ...prevChat,
+            messages: Array.isArray(prevChat.messages) ? [...prevChat.messages] : []
+          });
+          presentServerIds.add(localKey);
+        }
+        return;
+      }
+      if (presentServerIds.has(prevServerId)) return;
 
-      const nextMissingCycles = Number(missingCyclesById.get(prevServerId) || 0) + 1;
-      missingCyclesById.set(prevServerId, nextMissingCycles);
-
-      const isPreviouslyActive = Boolean(
-        (previousCurrentServerId && prevServerId === previousCurrentServerId)
-        || (previousCurrentLocalId != null && prevChat.id === previousCurrentLocalId)
-      );
-      const hasLocalMessages = Array.isArray(prevChat.messages) && prevChat.messages.length > 0;
-      const hasPendingLocalMessages = hasLocalMessages
-        && prevChat.messages.some((item) => item?.from === 'own' && item?.pending === true);
+      missingCyclesById.set(prevServerId, Number(missingCyclesById.get(prevServerId) || 0) + 1);
 
       const directParticipantId = String(prevChat.participantId || '').trim();
       const wouldDuplicateDirectByParticipant = Boolean(
@@ -2624,11 +2964,12 @@ export class ChatAppMessagingMethods {
         && presentDirectParticipantIds.has(directParticipantId)
       );
 
-      const shouldKeepTransiently = nextMissingCycles <= 3
-        && !wouldDuplicateDirectByParticipant
-        && (isPreviouslyActive || hasLocalMessages || hasPendingLocalMessages);
+      // Never auto-remove missing chats during sync.
+      // We keep them locally unless there is a known duplicate direct chat
+      // for the same participant.
+      const shouldKeepLocally = !wouldDuplicateDirectByParticipant;
 
-      if (!shouldKeepTransiently) {
+      if (!shouldKeepLocally) {
         return;
       }
 
@@ -4055,6 +4396,7 @@ export class ChatAppMessagingMethods {
     this.newChatUserResults = [];
     this.newChatSelectedUser = null;
     this.newChatUserSearchRequestId = 0;
+    this.setNewChatGroupMode(false);
     this.renderNewChatSearchState({
       message: "Почніть вводити тег користувача (або ім'я/номер)."
     });
@@ -4065,14 +4407,8 @@ export class ChatAppMessagingMethods {
     document.getElementById('newChatModal').classList.remove('active');
     document.getElementById('modalOverlay').classList.remove('active');
     document.getElementById('newContactInput').value = '';
-    const isGroupToggle = document.getElementById('isGroupToggle');
     const groupMembersInput = document.getElementById('groupMembersInput');
-    const groupFields = document.getElementById('groupFields');
-    const userSearchWrap = document.getElementById('newChatUserSearch');
-    if (isGroupToggle) isGroupToggle.checked = false;
     if (groupMembersInput) groupMembersInput.value = '';
-    if (groupFields) groupFields.classList.remove('active');
-    if (userSearchWrap) userSearchWrap.classList.remove('hidden');
     if (this.newChatUserSearchTimer) {
       clearTimeout(this.newChatUserSearchTimer);
       this.newChatUserSearchTimer = null;
@@ -4080,6 +4416,7 @@ export class ChatAppMessagingMethods {
     this.newChatUserResults = [];
     this.newChatSelectedUser = null;
     this.newChatUserSearchRequestId = 0;
+    this.setNewChatGroupMode(false);
     this.renderNewChatSearchState({
       message: "Почніть вводити тег користувача (або ім'я/номер)."
     });
@@ -4087,26 +4424,38 @@ export class ChatAppMessagingMethods {
 
   async createNewChat() {
     const input = document.getElementById('newContactInput');
-    const isGroupToggle = document.getElementById('isGroupToggle');
     const groupMembersInput = document.getElementById('groupMembersInput');
     const raw = input.value || '';
     const name = raw.trim();
+    const isGroup = Boolean(this.newChatGroupMode);
 
-    if (!name) {
+    if (!isGroup && !name) {
       await this.showAlert('Будь ласка, введіть ім\'я контакту');
       return;
     }
 
-    const isGroup = !!isGroupToggle?.checked;
     let members = [];
+    const groupMemberIds = [];
     if (isGroup) {
-      const rawMembers = groupMembersInput?.value || '';
-      members = rawMembers
-        .split(',')
-        .map(m => m.trim())
+      const selectedIds = this.getNewChatGroupSelectedIds();
+      const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
+      const selectedUsers = users.filter((user) => selectedIds.has(user.id));
+      members = selectedUsers
+        .map((user) => String(user.name || '').trim())
         .filter(Boolean);
-      if (members.length === 0) {
-        await this.showAlert('Додайте хоча б одного учасника групи');
+      groupMemberIds.push(...selectedUsers.map((user) => user.id).filter(Boolean));
+      if (groupMembersInput) {
+        groupMembersInput.value = members.join(', ');
+      }
+      const rawMembers = groupMembersInput?.value || '';
+      if (!members.length && rawMembers) {
+        members = rawMembers
+          .split(',')
+          .map((member) => member.trim())
+          .filter(Boolean);
+      }
+      if (!members.length) {
+        await this.showAlert('Оберіть хоча б одного користувача для групи.');
         return;
       }
     }
@@ -4140,9 +4489,15 @@ export class ChatAppMessagingMethods {
 
     let newChat;
     let selectedUserForDirectChat = null;
+    let selectedGroupUsers = [];
     try {
       const selected = this.newChatSelectedUser;
       selectedUserForDirectChat = !isGroup ? selected : null;
+      if (isGroup) {
+        const selectedIds = this.getNewChatGroupSelectedIds();
+        const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
+        selectedGroupUsers = users.filter((user) => selectedIds.has(user.id));
+      }
       if (!isGroup && selected?.id) {
         this.cacheKnownUserMeta(selected.id, {
           name: selected.name || '',
@@ -4151,11 +4506,20 @@ export class ChatAppMessagingMethods {
         });
       }
       const payload = {
-        name: isGroup ? name : (selected?.name || name),
+        name: isGroup ? (name || 'Нова група') : (selected?.name || name),
         isPrivate: !isGroup,
         isGroup
       };
       const serverChat = await this.createChatOnServer(payload);
+
+      if (isGroup && groupMemberIds.length) {
+        const createdChatId = this.extractServerChatId(serverChat);
+        if (createdChatId) {
+          await Promise.allSettled(
+            groupMemberIds.map((userId) => this.joinChatOnServerAsUser(createdChatId, userId))
+          );
+        }
+      }
 
       if (!isGroup && selected?.id) {
         const createdChatId = this.extractServerChatId(serverChat);
@@ -4175,6 +4539,15 @@ export class ChatAppMessagingMethods {
         name: payload.name,
         isGroup,
         members,
+        groupParticipants: isGroup
+          ? selectedGroupUsers.map((user) => ({
+            id: String(user.id || '').trim() || null,
+            name: String(user.name || '').trim() || 'Користувач',
+            avatarImage: this.getAvatarImage(user.avatarImage),
+            avatarColor: String(user.avatarColor || '').trim(),
+            status: ''
+          }))
+          : [],
         participantId: selected?.id || null,
         avatarImage: selected?.avatarImage || this.getCachedUserAvatar(selected?.id),
         avatarColor: selected?.avatarColor || this.getCachedUserMeta(selected?.id)?.avatarColor

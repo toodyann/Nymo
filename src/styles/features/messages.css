@@ -5,12 +5,12 @@
   align-self: center;
   width: 100%;
   max-width: calc(100% - 24px);
-  margin: 12px 0;
+  margin: 25px 0;
   position: relative;
   z-index: 1;
   text-align: center;
+  top: 50px;
 }
-
 
 .date-separator-text {
   display: inline-flex;
@@ -260,7 +260,7 @@ html.dark-theme .message.other .message-content {
 }
 
 .message-content.with-tail::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   pointer-events: none;
@@ -448,7 +448,9 @@ html.dark-theme .message.other .message-content {
   background: color-mix(in srgb, var(--text-secondary) 58%, #fff);
   transform-origin: center bottom;
   opacity: 0.36;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease;
   position: relative;
   z-index: 2;
 }
@@ -464,7 +466,11 @@ html.dark-theme .message.other .message-content {
 }
 
 .message.other .voice-wave-bar {
-  background: color-mix(in srgb, var(--text-secondary) 52%, var(--text-primary));
+  background: color-mix(
+    in srgb,
+    var(--text-secondary) 52%,
+    var(--text-primary)
+  );
 }
 
 .message.other .voice-wave-bar.is-played {
@@ -541,7 +547,7 @@ html.dark-theme .message.other .message-content {
 }
 
 .message-meta .message-edited::before {
-  content: '•';
+  content: "•";
   opacity: 0.75;
   margin-right: 4px;
 }
@@ -627,7 +633,8 @@ html.dark-theme .message.other .message-content {
 
   .message-input:focus {
     border-color: var(--border-color);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--border-color) 70%, transparent);
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--border-color) 70%, transparent);
   }
 }
 

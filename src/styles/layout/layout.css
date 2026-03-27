@@ -261,7 +261,11 @@ html:not(.dark-theme) .app-header {
   align-items: center;
   border-radius: 14px;
   border: 1px solid var(--border-color) !important;
-  background: color-mix(in srgb, var(--bg-elevated) 84%, transparent) !important;
+  background: color-mix(
+    in srgb,
+    var(--bg-elevated) 84%,
+    transparent
+  ) !important;
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
@@ -929,7 +933,7 @@ html.dark-theme .app-chat-typing {
   overflow-anchor: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-height: 0;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;

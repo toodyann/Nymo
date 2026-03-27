@@ -903,6 +903,20 @@ export class ChatAppCoreMethods {
       });
     }
 
+    const groupAppearanceModal = document.getElementById('groupAppearanceModal');
+    if (groupAppearanceModal) {
+      groupAppearanceModal.addEventListener('keydown', (e) => {
+        if (!groupAppearanceModal.classList.contains('active')) return;
+        if (e.key === 'Enter' && !e.shiftKey) {
+          const target = e.target;
+          if (target?.id === 'groupAppearanceNameInput') {
+            e.preventDefault();
+            this.saveGroupAppearance();
+          }
+        }
+      });
+    }
+
     const addToGroupModal = document.getElementById('addToGroupModal');
     if (addToGroupModal) {
       addToGroupModal.addEventListener('keydown', (e) => {

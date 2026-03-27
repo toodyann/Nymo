@@ -554,9 +554,13 @@ export class ChatAppInteractionMethods {
       modalOverlay.addEventListener('click', () => {
         const newChatModal = document.getElementById('newChatModal');
         const groupInfoModal = document.getElementById('groupInfoModal');
+        const groupAppearanceModal = document.getElementById('groupAppearanceModal');
         const addToGroupModal = document.getElementById('addToGroupModal');
         if (newChatModal?.classList.contains('active')) this.closeNewChatModal();
         if (groupInfoModal?.classList.contains('active')) this.closeGroupInfoModal();
+        if (groupAppearanceModal?.classList.contains('active')) {
+          this.closeGroupAppearanceModal({ restoreGroupInfo: false });
+        }
         if (addToGroupModal?.classList.contains('active')) this.closeAddToGroupModal();
       });
     }
@@ -777,8 +781,7 @@ export class ChatAppInteractionMethods {
     document.getElementById('searchInput').addEventListener('input', (e) => this.filterChats(e.target.value));
 
     document.getElementById('newContactInput').addEventListener('input', (e) => {
-      const isGroupToggle = document.getElementById('isGroupToggle');
-      if (isGroupToggle?.checked) return;
+      if (this.newChatGroupMode) return;
       if (typeof this.scheduleUserSearch === 'function') {
         this.scheduleUserSearch(e.target.value || '');
       }
@@ -790,25 +793,16 @@ export class ChatAppInteractionMethods {
       }
     });
 
-    const isGroupToggle = document.getElementById('isGroupToggle');
-    const groupFields = document.getElementById('groupFields');
-    const userSearchWrap = document.getElementById('newChatUserSearch');
-    if (isGroupToggle && groupFields) {
-      const toggleGroupFields = () => {
-        if (isGroupToggle.checked) {
-          groupFields.classList.add('active');
-          if (userSearchWrap) userSearchWrap.classList.add('hidden');
-        } else {
-          groupFields.classList.remove('active');
-          if (userSearchWrap) userSearchWrap.classList.remove('hidden');
-          if (typeof this.scheduleUserSearch === 'function') {
-            const value = document.getElementById('newContactInput')?.value || '';
-            this.scheduleUserSearch(value);
-          }
+    const newChatGroupModeBtn = document.getElementById('newChatGroupModeBtn');
+    if (newChatGroupModeBtn) {
+      newChatGroupModeBtn.addEventListener('click', () => {
+        if (typeof this.toggleNewChatGroupMode === 'function') {
+          this.toggleNewChatGroupMode();
         }
-      };
-      isGroupToggle.addEventListener('change', toggleGroupFields);
-      toggleGroupFields();
+      });
+      if (typeof this.setNewChatGroupMode === 'function') {
+        this.setNewChatGroupMode(false);
+      }
     }
 
     const callBtn = document.getElementById('callBtn');
@@ -1012,9 +1006,33 @@ export class ChatAppInteractionMethods {
     const closeGroupInfoBtn = document.getElementById('closeGroupInfoBtn');
     const closeGroupInfoBtn2 = document.getElementById('closeGroupInfoBtn2');
     const saveGroupInfoBtn = document.getElementById('saveGroupInfoBtn');
+    const openGroupAppearanceBtn = document.getElementById('openGroupAppearanceBtn');
+    const closeGroupAppearanceBtn = document.getElementById('closeGroupAppearanceBtn');
+    const cancelGroupAppearanceBtn = document.getElementById('cancelGroupAppearanceBtn');
+    const saveGroupAppearanceBtn = document.getElementById('saveGroupAppearanceBtn');
+    const groupAppearanceAvatarBtn = document.getElementById('groupAppearanceAvatarBtn');
+    const groupAppearanceAvatarInput = document.getElementById('groupAppearanceAvatarInput');
+    const groupAppearanceNameInput = document.getElementById('groupAppearanceNameInput');
+    const groupAppearanceAvatarResetBtn = document.getElementById('groupAppearanceAvatarResetBtn');
     if (closeGroupInfoBtn) closeGroupInfoBtn.addEventListener('click', () => this.closeGroupInfoModal());
     if (closeGroupInfoBtn2) closeGroupInfoBtn2.addEventListener('click', () => this.closeGroupInfoModal());
     if (saveGroupInfoBtn) saveGroupInfoBtn.addEventListener('click', () => this.saveGroupInfo());
+    if (openGroupAppearanceBtn) openGroupAppearanceBtn.addEventListener('click', () => this.openGroupAppearanceModal());
+    if (closeGroupAppearanceBtn) closeGroupAppearanceBtn.addEventListener('click', () => this.closeGroupAppearanceModal());
+    if (cancelGroupAppearanceBtn) cancelGroupAppearanceBtn.addEventListener('click', () => this.closeGroupAppearanceModal());
+    if (saveGroupAppearanceBtn) saveGroupAppearanceBtn.addEventListener('click', () => this.saveGroupAppearance());
+    if (groupAppearanceAvatarBtn && groupAppearanceAvatarInput) {
+      groupAppearanceAvatarBtn.addEventListener('click', () => groupAppearanceAvatarInput.click());
+    }
+    if (groupAppearanceAvatarInput) {
+      groupAppearanceAvatarInput.addEventListener('change', (event) => this.handleGroupAppearanceAvatarChange(event));
+    }
+    if (groupAppearanceNameInput) {
+      groupAppearanceNameInput.addEventListener('input', () => this.renderGroupAppearanceAvatarPreview());
+    }
+    if (groupAppearanceAvatarResetBtn) {
+      groupAppearanceAvatarResetBtn.addEventListener('click', () => this.resetGroupAppearanceAvatar());
+    }
 
     const contactProfileBackBtn = document.getElementById('contactProfileBackBtn');
     const contactProfileCallBtn = document.getElementById('contactProfileCallBtn');
@@ -1763,6 +1781,26 @@ export class ChatAppInteractionMethods {
     const normal = [];
     sourceChats.forEach(c => (c.isPinned ? pinned : normal).push(c));
     pinned.sort((a, b) => (b.pinnedAt || 0) - (a.pinnedAt || 0));
+
+    const getChatActivityTs = (chat) => {
+      if (!chat || !Array.isArray(chat.messages) || chat.messages.length === 0) return 0;
+      const last = chat.messages[chat.messages.length - 1];
+      if (!last) return 0;
+      const ts = Number(typeof this.getMessageTimestampValue === 'function'
+        ? this.getMessageTimestampValue(last)
+        : NaN);
+      if (Number.isFinite(ts) && ts > 0) return ts;
+      const fallback = Date.parse(String(last.createdAt || (last.date && last.time ? `${last.date}T${last.time}` : last.date || '')));
+      return Number.isFinite(fallback) ? fallback : 0;
+    };
+
+    normal.sort((a, b) => {
+      const aTs = getChatActivityTs(a);
+      const bTs = getChatActivityTs(b);
+      if (aTs !== bTs) return bTs - aTs;
+      return Number(b.id || 0) - Number(a.id || 0);
+    });
+
     return [...pinned, ...normal];
   }
 
@@ -1914,14 +1952,22 @@ export class ChatAppInteractionMethods {
 
     this.addToGroupTarget = memberName;
     modal.classList.add('active');
-    document.getElementById('modalOverlay').classList.add('active');
+    this.syncSharedModalOverlayState();
   }
 
   closeAddToGroupModal() {
     const modal = document.getElementById('addToGroupModal');
     if (modal) modal.classList.remove('active');
-    document.getElementById('modalOverlay').classList.remove('active');
+    this.syncSharedModalOverlayState();
     this.addToGroupTarget = null;
+  }
+
+  syncSharedModalOverlayState() {
+    const overlay = document.getElementById('modalOverlay');
+    if (!overlay) return;
+    const modalIds = ['newChatModal', 'groupInfoModal', 'groupAppearanceModal', 'addToGroupModal'];
+    const shouldShow = modalIds.some((id) => document.getElementById(id)?.classList.contains('active'));
+    overlay.classList.toggle('active', shouldShow);
   }
 
   async confirmAddToGroup() {
@@ -3058,6 +3104,154 @@ export class ChatAppInteractionMethods {
     this.closeContactProfileActionsMenu();
   }
 
+  getGroupMemberDataFromChat(chat) {
+    const currentChat = chat && typeof chat === 'object' ? chat : this.currentChat;
+    if (!currentChat || !currentChat.isGroup) return [];
+
+    const selfId = typeof this.getAuthUserId === 'function' ? String(this.getAuthUserId() || '').trim() : '';
+    const selfName = String(this.user?.name || 'Ви').trim() || 'Ви';
+    const selfAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
+    const selfAvatarColor = String(this.user?.avatarColor || '').trim();
+    const byKey = new Map();
+
+    const appendMember = ({
+      id = '',
+      name = '',
+      avatarImage = '',
+      avatarColor = '',
+      status = '',
+      isSelf = false
+    } = {}) => {
+      const safeId = String(id || '').trim();
+      const safeName = String(name || '').trim();
+      const key = safeId || (safeName ? `name:${safeName.toLowerCase()}` : '');
+      if (!key) return;
+
+      const previous = byKey.get(key) || {};
+      const resolvedName = String(
+        safeName
+        || previous.name
+        || (safeId && typeof this.getCachedUserName === 'function' ? this.getCachedUserName(safeId) : '')
+        || 'Користувач'
+      ).trim() || 'Користувач';
+      const resolvedAvatarImage = this.getAvatarImage(
+        avatarImage
+        || previous.avatarImage
+        || (safeId && typeof this.getCachedUserAvatar === 'function' ? this.getCachedUserAvatar(safeId) : '')
+      );
+      const cachedMeta = safeId && typeof this.getCachedUserMeta === 'function'
+        ? this.getCachedUserMeta(safeId)
+        : {};
+      const resolvedAvatarColor = String(
+        avatarColor
+        || previous.avatarColor
+        || cachedMeta?.avatarColor
+        || this.getContactColor(resolvedName)
+      ).trim();
+      const resolvedStatus = this.normalizePresenceStatus(
+        status
+        || previous.status
+        || cachedMeta?.status
+      );
+      const shouldMarkSelf = Boolean(isSelf || previous.isSelf || (safeId && selfId && safeId === selfId));
+
+      byKey.set(key, {
+        id: safeId || String(previous.id || '').trim() || null,
+        name: resolvedName,
+        avatarImage: resolvedAvatarImage,
+        avatarColor: resolvedAvatarColor,
+        status: resolvedStatus,
+        isSelf: shouldMarkSelf
+      });
+    };
+
+    appendMember({
+      id: selfId,
+      name: selfName,
+      avatarImage: selfAvatarImage,
+      avatarColor: selfAvatarColor,
+      status: 'online',
+      isSelf: true
+    });
+
+    const explicitParticipants = Array.isArray(currentChat.groupParticipants) ? currentChat.groupParticipants : [];
+    explicitParticipants.forEach((member) => {
+      appendMember({
+        id: member?.id,
+        name: member?.name,
+        avatarImage: member?.avatarImage || member?.avatarUrl,
+        avatarColor: member?.avatarColor,
+        status: member?.status
+      });
+    });
+
+    const legacyMembers = Array.isArray(currentChat.members) ? currentChat.members : [];
+    legacyMembers.forEach((member) => {
+      if (member && typeof member === 'object') {
+        appendMember({
+          id: member.id || member.userId,
+          name: member.name || member.nickname || member.mobile,
+          avatarImage: member.avatarImage || member.avatarUrl,
+          avatarColor: member.avatarColor,
+          status: member.status
+        });
+        return;
+      }
+      appendMember({ name: String(member || '').trim() });
+    });
+
+    const messages = Array.isArray(currentChat.messages) ? currentChat.messages : [];
+    messages.forEach((message) => {
+      if (!message || typeof message !== 'object') return;
+      const senderId = String(message.senderId || '').trim();
+      const senderName = String(message.senderName || '').trim()
+        || (message.from === 'own' ? selfName : '');
+      appendMember({
+        id: senderId,
+        name: senderName,
+        avatarImage: message.senderAvatarImage || message.senderAvatar || '',
+        avatarColor: message.senderAvatarColor || '',
+        status: senderId ? this.getPresenceStatusForUser(senderId, 'offline') : ''
+      });
+    });
+
+    return Array.from(byKey.values())
+      .filter((member) => member && (member.id || member.name))
+      .sort((a, b) => {
+        if (a.isSelf && !b.isSelf) return -1;
+        if (!a.isSelf && b.isSelf) return 1;
+        const aOnline = this.normalizePresenceStatus(a.status) === 'online';
+        const bOnline = this.normalizePresenceStatus(b.status) === 'online';
+        if (aOnline !== bOnline) return aOnline ? -1 : 1;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'uk', { sensitivity: 'base' });
+      });
+  }
+
+  renderGroupInfoMembersList(members = []) {
+    const membersList = document.getElementById('groupInfoMembers');
+    if (!membersList) return;
+    membersList.innerHTML = '';
+    members.forEach((member) => {
+      const li = document.createElement('li');
+      const safeName = this.escapeHtml(String(member.name || 'Користувач'));
+      const isOnline = this.normalizePresenceStatus(member.status) === 'online';
+      const avatarImage = this.getAvatarImage(member.avatarImage || '');
+      const initials = this.getInitials(member.name || 'Користувач');
+      const avatarHtml = avatarImage
+        ? `<div class="group-member-avatar is-image" style="background-image: url(&quot;${this.escapeAttr(avatarImage)}&quot;);" aria-hidden="true"></div>`
+        : `<div class="group-member-avatar" style="background: ${member.avatarColor || this.getContactColor(member.name || 'Користувач')}" aria-hidden="true">${this.escapeHtml(initials)}</div>`;
+
+      li.innerHTML = `
+        ${avatarHtml}
+        <div class="group-member-name">
+          <span>${safeName}${member.isSelf ? ' <span class="group-member-self">(Ви)</span>' : ''}</span>
+          <span class="group-member-role">${isOnline ? 'онлайн' : 'офлайн'}</span>
+        </div>
+      `;
+      membersList.appendChild(li);
+    });
+  }
+
   openGroupInfoModal() {
     if (!this.currentChat || !this.currentChat.isGroup) {
       this.showAlert('Це не груповий чат');
@@ -3072,39 +3266,63 @@ export class ChatAppInteractionMethods {
 
     if (!modal || !avatar || !name || !count || !desc || !membersList) return;
 
-    const initials = this.currentChat.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    avatar.textContent = initials;
-    avatar.style.background = this.getContactColor(this.currentChat.name);
+    const avatarImage = this.getAvatarImage(this.currentChat.avatarImage || this.currentChat.avatarUrl);
+    const initials = this.getInitials(this.currentChat.name || 'Група');
+    avatar.classList.toggle('is-image', Boolean(avatarImage));
+    if (avatarImage) {
+      avatar.textContent = '';
+      avatar.style.backgroundImage = `url("${this.escapeAttr(avatarImage)}")`;
+      avatar.style.backgroundColor = 'transparent';
+    } else {
+      avatar.textContent = initials;
+      avatar.style.backgroundImage = '';
+      avatar.style.backgroundColor = '';
+      avatar.style.background = this.currentChat.avatarColor || this.getContactColor(this.currentChat.name || 'Група');
+    }
     name.textContent = this.currentChat.name;
 
-    const members = Array.isArray(this.currentChat.members) ? this.currentChat.members : [];
-    const total = members.length + 1;
-    count.textContent = `учасників: ${total}`;
+    const members = this.getGroupMemberDataFromChat(this.currentChat);
+    count.textContent = `${members.length} учасників`;
     desc.value = this.currentChat.description || '';
+    this.renderGroupInfoMembersList(members);
 
-    membersList.innerHTML = '';
-    const allMembers = [this.user.name, ...members];
-    allMembers.forEach((m, index) => {
-      const initials = m.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <div class="group-member-avatar" style="background: ${this.getContactColor(m)}">${initials}</div>
-        <div class="group-member-name">
-          <span>${m}</span>
-          ${index === 0 ? '<span class="group-member-self">(Ви)</span>' : ''}
-        </div>
-      `;
-      membersList.appendChild(li);
-    });
+    const membersNeedingResolve = members.filter((member) =>
+      member?.id
+      && (!member.name || member.name === 'Користувач')
+      && typeof this.resolveUserNameById === 'function'
+    );
+    if (membersNeedingResolve.length) {
+      const activeChatId = this.currentChat.id;
+      Promise.all(
+        membersNeedingResolve.map(async (member) => {
+          const resolvedName = await this.resolveUserNameById(member.id);
+          return { member, resolvedName };
+        })
+      ).then((resolvedItems) => {
+        let changed = false;
+        resolvedItems.forEach(({ member, resolvedName }) => {
+          const safeName = String(resolvedName || '').trim();
+          if (!safeName || safeName === 'Користувач') return;
+          member.name = safeName;
+          changed = true;
+        });
+        if (!changed) return;
+        if (!document.getElementById('groupInfoModal')?.classList.contains('active')) return;
+        if (!this.currentChat || this.currentChat.id !== activeChatId) return;
+        this.renderGroupInfoMembersList(members);
+      }).catch(() => {
+        // Ignore optional name resolution failures.
+      });
+    }
 
     modal.classList.add('active');
-    document.getElementById('modalOverlay').classList.add('active');
+    this.syncSharedModalOverlayState();
   }
 
   closeGroupInfoModal() {
     const modal = document.getElementById('groupInfoModal');
     if (modal) modal.classList.remove('active');
-    document.getElementById('modalOverlay').classList.remove('active');
+    this.syncSharedModalOverlayState();
   }
 
   async saveGroupInfo() {
@@ -3113,9 +3331,155 @@ export class ChatAppInteractionMethods {
     if (desc) {
       this.currentChat.description = desc.value.trim();
       this.saveChats();
-      await this.showAlert('Деталі групи збережено');
+      await this.showNotice('Деталі групи збережено', 'Група');
     }
     this.closeGroupInfoModal();
+  }
+
+  openGroupAppearanceModal() {
+    if (!this.currentChat || !this.currentChat.isGroup) return;
+    const modal = document.getElementById('groupAppearanceModal');
+    const groupInfoModal = document.getElementById('groupInfoModal');
+    const nameInput = document.getElementById('groupAppearanceNameInput');
+    if (!modal || !nameInput) return;
+
+    const shouldReturnToInfo = Boolean(groupInfoModal?.classList.contains('active'));
+    this.groupAppearanceReturnToInfo = shouldReturnToInfo;
+    if (shouldReturnToInfo) {
+      groupInfoModal.classList.remove('active');
+    }
+
+    this.groupAppearanceDraft = {
+      name: String(this.currentChat.name || '').trim() || 'Нова група',
+      avatarImage: this.getAvatarImage(this.currentChat.avatarImage || this.currentChat.avatarUrl),
+      avatarColor: String(this.currentChat.avatarColor || '').trim()
+    };
+
+    nameInput.value = this.groupAppearanceDraft.name;
+    this.renderGroupAppearanceAvatarPreview();
+    modal.classList.add('active');
+    this.syncSharedModalOverlayState();
+    window.setTimeout(() => {
+      nameInput.focus();
+      nameInput.select();
+    }, 0);
+  }
+
+  closeGroupAppearanceModal(options = {}) {
+    const restoreGroupInfo = options?.restoreGroupInfo !== false;
+    const modal = document.getElementById('groupAppearanceModal');
+    const shouldReturnToInfo = Boolean(restoreGroupInfo && this.groupAppearanceReturnToInfo);
+    this.groupAppearanceReturnToInfo = false;
+    if (modal) modal.classList.remove('active');
+    const input = document.getElementById('groupAppearanceAvatarInput');
+    if (input) input.value = '';
+    if (shouldReturnToInfo && this.currentChat?.isGroup) {
+      this.openGroupInfoModal();
+      return;
+    }
+    this.syncSharedModalOverlayState();
+  }
+
+  renderGroupAppearanceAvatarPreview() {
+    const preview = document.getElementById('groupAppearanceAvatarPreview');
+    if (!preview) return;
+    const nameInput = document.getElementById('groupAppearanceNameInput');
+    const draft = this.groupAppearanceDraft && typeof this.groupAppearanceDraft === 'object'
+      ? this.groupAppearanceDraft
+      : {};
+    const draftName = String(nameInput?.value || draft.name || this.currentChat?.name || 'Нова група').trim() || 'Нова група';
+    const avatarImage = this.getAvatarImage(draft.avatarImage || '');
+    const avatarColor = String(draft.avatarColor || this.currentChat?.avatarColor || this.getContactColor(draftName)).trim();
+    const initials = this.getInitials(draftName);
+
+    preview.classList.toggle('is-image', Boolean(avatarImage));
+    if (avatarImage) {
+      preview.textContent = '';
+      preview.style.backgroundImage = `url("${this.escapeAttr(avatarImage)}")`;
+      preview.style.backgroundColor = 'transparent';
+    } else {
+      preview.textContent = initials;
+      preview.style.backgroundImage = '';
+      preview.style.backgroundColor = '';
+      preview.style.background = avatarColor || this.getContactColor(draftName);
+    }
+  }
+
+  async handleGroupAppearanceAvatarChange(event) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.showAlert('Оберіть файл зображення');
+      input.value = '';
+      return;
+    }
+
+    try {
+      let dataUrl = '';
+      if (typeof this.buildProfileAvatarDataUrl === 'function') {
+        dataUrl = await this.buildProfileAvatarDataUrl(file);
+      } else {
+        dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('Не вдалося прочитати зображення'));
+          reader.readAsDataURL(file);
+        });
+      }
+      if (!dataUrl) {
+        throw new Error('Не вдалося обробити зображення');
+      }
+      if (!this.groupAppearanceDraft || typeof this.groupAppearanceDraft !== 'object') {
+        this.groupAppearanceDraft = {};
+      }
+      this.groupAppearanceDraft.avatarImage = dataUrl;
+      this.renderGroupAppearanceAvatarPreview();
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося обробити зображення групи');
+    } finally {
+      input.value = '';
+    }
+  }
+
+  resetGroupAppearanceAvatar() {
+    if (!this.groupAppearanceDraft || typeof this.groupAppearanceDraft !== 'object') {
+      this.groupAppearanceDraft = {};
+    }
+    this.groupAppearanceDraft.avatarImage = '';
+    this.renderGroupAppearanceAvatarPreview();
+  }
+
+  async saveGroupAppearance() {
+    if (!this.currentChat || !this.currentChat.isGroup) return;
+    const nameInput = document.getElementById('groupAppearanceNameInput');
+    const nextName = String(nameInput?.value || '').trim();
+    if (!nextName) {
+      await this.showAlert('Введіть назву групи');
+      return;
+    }
+
+    const draft = this.groupAppearanceDraft && typeof this.groupAppearanceDraft === 'object'
+      ? this.groupAppearanceDraft
+      : {};
+    const nextAvatarImage = this.getAvatarImage(draft.avatarImage || '');
+
+    this.currentChat.name = nextName;
+    this.currentChat.avatarImage = nextAvatarImage;
+    this.currentChat.avatarUrl = nextAvatarImage;
+    if (!nextAvatarImage) {
+      this.currentChat.avatarColor = String(draft.avatarColor || this.currentChat.avatarColor || this.getContactColor(nextName)).trim();
+    }
+    this.currentChat.localGroupAppearanceUpdatedAt = Date.now();
+
+    this.saveChats();
+    this.renderChatsList();
+    this.updateChatHeader();
+    this.closeGroupAppearanceModal();
+    if (document.getElementById('groupInfoModal')?.classList.contains('active')) {
+      this.openGroupInfoModal();
+    }
+    await this.showNotice('Вигляд групи оновлено', 'Група');
   }
 
   getNextMessageId(chat) {

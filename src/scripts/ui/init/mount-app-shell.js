@@ -547,29 +547,31 @@ export function mountAppShell() {
           >
         </label>
         <div class="new-chat-user-search" id="newChatUserSearch">
-          <div class="new-chat-user-search-status" id="newChatUserSearchStatus">Почніть вводити тег користувача (або ім'я/номер).</div>
           <div class="new-chat-user-search-results" id="newChatUserSearchResults"></div>
         </div>
-        <label class="group-toggle new-chat-mode">
-          <input type="checkbox" id="isGroupToggle" />
+        <button type="button" class="new-chat-mode new-chat-mode-btn" id="newChatGroupModeBtn" aria-expanded="false" aria-controls="groupFields">
+          <span class="new-chat-mode-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"></path>
+            </svg>
+          </span>
           <span class="new-chat-mode-copy">
             <strong>Створити групу</strong>
-            <small>Увімкніть, якщо це чат на кілька учасників.</small>
           </span>
-        </label>
+        </button>
       </div>
       <div class="group-fields" id="groupFields">
-        <label class="new-chat-field">
-          <span class="new-chat-field-label">Учасники</span>
-          <input
-            type="text"
-            id="groupMembersInput"
-            class="contact-input"
-            placeholder="Наприклад: Анна, Ігор, Марта"
-            autocomplete="off"
-          >
-        </label>
-        <p class="new-chat-note">Вкажіть учасників через кому. Після створення чат відкриється автоматично.</p>
+        <input type="hidden" id="groupMembersInput" value="" />
+        <div class="new-chat-group-header">
+          <div class="new-chat-group-header-copy">
+            <strong>Учасники групи</strong>
+            <span>Оберіть контакти для нового групового чату</span>
+          </div>
+          <span class="new-chat-group-count" id="newChatGroupCount">0</span>
+        </div>
+        <div class="new-chat-group-selected" id="newChatGroupSelectedUsers"></div>
+        <p class="new-chat-note">Оберіть користувачів зі списку нижче для створення групи.</p>
+        <div class="new-chat-group-users" id="newChatGroupUsersList"></div>
       </div>
       <div class="new-chat-tips" aria-hidden="true">
         <div class="new-chat-tip">
@@ -632,20 +634,21 @@ export function mountAppShell() {
 <!-- Group info modal -->
 <div class="modal" id="groupInfoModal">
   <div class="modal-header">
-    <h3>Деталі групи</h3>
+    <h3>Профіль групи</h3>
     <button class="btn-close" id="closeGroupInfoBtn" aria-label="Закрити">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
   </div>
-  <div class="modal-body">
+  <div class="modal-body group-info-modal-body">
     <div class="group-info-header">
       <div class="group-avatar" id="groupInfoAvatar"></div>
       <div class="group-info-main">
         <div class="group-info-name" id="groupInfoName"></div>
         <div class="group-info-count" id="groupInfoCount"></div>
       </div>
+      <button class="btn btn-secondary group-appearance-open-btn" id="openGroupAppearanceBtn">Керування виглядом</button>
     </div>
     <div class="group-info-section">
       <label class="group-info-label" for="groupInfoDescription">Опис</label>
@@ -659,6 +662,36 @@ export function mountAppShell() {
   <div class="modal-footer">
     <button class="btn btn-secondary" id="closeGroupInfoBtn2">Закрити</button>
     <button class="btn btn-primary" id="saveGroupInfoBtn">Зберегти</button>
+  </div>
+</div>
+
+<!-- Group appearance modal -->
+<div class="modal" id="groupAppearanceModal">
+  <div class="modal-header">
+    <h3>Керування виглядом групи</h3>
+    <button class="btn-close" id="closeGroupAppearanceBtn" aria-label="Закрити">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="modal-body group-appearance-modal-body">
+    <div class="group-appearance-avatar-wrap">
+      <div class="group-avatar group-avatar--xl" id="groupAppearanceAvatarPreview"></div>
+      <input type="file" id="groupAppearanceAvatarInput" accept="image/*" hidden />
+      <div class="group-appearance-avatar-actions">
+        <button class="btn btn-secondary" id="groupAppearanceAvatarBtn">Завантажити фото</button>
+        <button class="btn btn-secondary" id="groupAppearanceAvatarResetBtn">Скинути фото</button>
+      </div>
+    </div>
+    <div class="group-info-section">
+      <label class="group-info-label" for="groupAppearanceNameInput">Назва групи</label>
+      <input type="text" id="groupAppearanceNameInput" class="group-appearance-name-input" placeholder="Введіть назву групи" maxlength="80" />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" id="cancelGroupAppearanceBtn">Скасувати</button>
+    <button class="btn btn-primary" id="saveGroupAppearanceBtn">Зберегти</button>
   </div>
 </div>
 
