@@ -1397,6 +1397,9 @@ html.dark-theme .bottom-nav-indicator {
     .desktop-secondary-chat-time,
   html:not(.dark-theme)
     .desktop-secondary-menu.active
+    .desktop-secondary-chat-status,
+  html:not(.dark-theme)
+    .desktop-secondary-menu.active
     .desktop-secondary-chat-empty {
     color: rgba(27, 27, 27, 0.62);
   }
@@ -1646,6 +1649,31 @@ html.dark-theme .bottom-nav-indicator {
     font-size: 12px;
     line-height: 1;
     flex-shrink: 0;
+  }
+
+  .desktop-secondary-chat-time-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .desktop-secondary-chat-status {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    color: rgba(241, 241, 241, 0.6);
+    flex-shrink: 0;
+  }
+
+  .desktop-secondary-chat-status .message-status-check {
+    width: 11px;
+    height: 11px;
+    display: block;
+    fill: currentColor;
+  }
+
+  .desktop-secondary-chat-status.read .message-status-check + .message-status-check {
+    margin-left: -4px;
   }
 
   .desktop-secondary-chat-meta {

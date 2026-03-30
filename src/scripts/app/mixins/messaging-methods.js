@@ -296,6 +296,125 @@ export class ChatAppMessagingMethods {
     return NaN;
   }
 
+  normalizeMessageReadByUserIds(readBy) {
+    const source = Array.isArray(readBy)
+      ? readBy
+      : (readBy == null ? [] : [readBy]);
+    if (!source.length) return [];
+
+    const normalized = [];
+    source.forEach((entry) => {
+      if (entry == null) return;
+      if (typeof entry === 'string' || typeof entry === 'number') {
+        const id = String(entry).trim();
+        if (id) normalized.push(id);
+        return;
+      }
+      if (typeof entry !== 'object') return;
+
+      const nestedUser = entry.user && typeof entry.user === 'object'
+        ? entry.user
+        : null;
+      const id = String(
+        entry.userId
+          ?? entry.readerId
+          ?? entry.id
+          ?? entry.memberId
+          ?? entry.fromUserId
+          ?? nestedUser?.id
+          ?? nestedUser?.userId
+          ?? ''
+      ).trim();
+      if (id) normalized.push(id);
+    });
+
+    return [...new Set(normalized)];
+  }
+
+  mergeUniqueUserIds(...parts) {
+    const merged = [];
+    parts.forEach((part) => {
+      const ids = this.normalizeMessageReadByUserIds(part);
+      ids.forEach((id) => {
+        if (!merged.includes(id)) merged.push(id);
+      });
+    });
+    return merged;
+  }
+
+  extractMessageReadByUserIds(messagePayload) {
+    if (!messagePayload || typeof messagePayload !== 'object') return [];
+    const direct = [
+      messagePayload.readBy,
+      messagePayload.readers,
+      messagePayload.seenBy,
+      messagePayload.viewedBy
+    ];
+    for (const candidate of direct) {
+      const ids = this.normalizeMessageReadByUserIds(candidate);
+      if (ids.length) return ids;
+    }
+
+    const nestedReadBy = messagePayload.readBy && typeof messagePayload.readBy === 'object'
+      ? messagePayload.readBy
+      : null;
+    if (nestedReadBy) {
+      const ids = this.normalizeMessageReadByUserIds(
+        nestedReadBy.users
+          ?? nestedReadBy.members
+          ?? nestedReadBy.items
+          ?? nestedReadBy.data
+      );
+      if (ids.length) return ids;
+    }
+
+    const nestedData = messagePayload.data && typeof messagePayload.data === 'object'
+      ? messagePayload.data
+      : null;
+    if (nestedData) {
+      const ids = this.extractMessageReadByUserIds(nestedData);
+      if (ids.length) return ids;
+    }
+
+    return [];
+  }
+
+  getMessageReadStateSignature(message) {
+    const readBy = this.normalizeMessageReadByUserIds(message?.readBy);
+    if (!readBy.length) return '';
+    return [...readBy].sort().join(',');
+  }
+
+  isOwnMessageReadByOthers(message) {
+    if (!message || message.from !== 'own') return false;
+    const readBy = this.normalizeMessageReadByUserIds(message.readBy);
+    if (!readBy.length) return false;
+    const selfId = this.getAuthUserId();
+    if (!selfId) return readBy.length > 0;
+    return readBy.some((id) => id !== selfId);
+  }
+
+  getMessageDeliveryState(message) {
+    if (!message || message.from !== 'own') return '';
+    const hasServerId = Boolean(String(message.serverId || '').trim());
+    if (!hasServerId) return '';
+    return this.isOwnMessageReadByOthers(message) ? 'read' : 'sent';
+  }
+
+  getMessageStatusCheckSvg() {
+    return '<svg class="message-status-check" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>';
+  }
+
+  getMessageDeliveryStatusHtml(message) {
+    const state = this.getMessageDeliveryState(message);
+    if (!state) return '';
+    const icon = this.getMessageStatusCheckSvg();
+    if (state === 'read') {
+      return `<span class="message-status read" aria-label="Прочитано">${icon}${icon}</span>`;
+    }
+    return `<span class="message-status sent" aria-label="Надіслано">${icon}</span>`;
+  }
+
   getLatestLocalMessageMarker(messages = []) {
     const source = Array.isArray(messages) ? messages : [];
     if (!source.length) {
@@ -399,10 +518,177 @@ export class ChatAppMessagingMethods {
     if (!chat || typeof chat !== 'object') return false;
     const messages = Array.isArray(chat.messages) ? chat.messages : [];
     const changed = this.applyChatUnreadState(chat, messages, { markAsRead: true });
+    this.flushReadReceiptsForChat(chat, messages);
     if (changed && persist) {
       this.saveChats();
     }
     return changed;
+  }
+
+  isReadReceiptsEnabled() {
+    return this.settings?.readReceipts !== false;
+  }
+
+  getSentReadReceiptsSet(chatServerId) {
+    const safeChatId = String(chatServerId || '').trim();
+    if (!safeChatId) return new Set();
+    if (!(this.sentReadReceiptsByChatId instanceof Map)) {
+      this.sentReadReceiptsByChatId = new Map();
+    }
+    const existing = this.sentReadReceiptsByChatId.get(safeChatId);
+    if (existing instanceof Set) return existing;
+    const next = new Set();
+    this.sentReadReceiptsByChatId.set(safeChatId, next);
+    return next;
+  }
+
+  getPendingReadReceiptsSet(chatServerId) {
+    const safeChatId = String(chatServerId || '').trim();
+    if (!safeChatId) return new Set();
+    if (!(this.pendingReadReceiptsByChatId instanceof Map)) {
+      this.pendingReadReceiptsByChatId = new Map();
+    }
+    const existing = this.pendingReadReceiptsByChatId.get(safeChatId);
+    if (existing instanceof Set) return existing;
+    const next = new Set();
+    this.pendingReadReceiptsByChatId.set(safeChatId, next);
+    return next;
+  }
+
+  collectServerMessageIdsForReadReceipts(chat, messages = []) {
+    const chatServerId = this.resolveChatServerId(chat);
+    const selfId = this.getAuthUserId();
+    if (!chatServerId || !selfId) return [];
+
+    const source = Array.isArray(messages) ? messages : [];
+    if (!source.length) return [];
+
+    const sentSet = this.getSentReadReceiptsSet(chatServerId);
+    const pendingSet = this.getPendingReadReceiptsSet(chatServerId);
+    const result = [];
+
+    source.forEach((message) => {
+      if (!message || message.from !== 'other') return;
+      const serverId = String(message.serverId || '').trim();
+      if (!serverId) return;
+
+      const readBy = this.normalizeMessageReadByUserIds(message.readBy);
+      if (readBy.includes(selfId)) {
+        sentSet.add(serverId);
+        pendingSet.delete(serverId);
+        return;
+      }
+      if (sentSet.has(serverId) || pendingSet.has(serverId)) return;
+      result.push(serverId);
+    });
+
+    return [...new Set(result)];
+  }
+
+  markLocalMessagesReadByUser(chatServerId, messageIds = [], readerUserId = '') {
+    const safeChatId = String(chatServerId || '').trim();
+    const safeReaderId = String(readerUserId || '').trim();
+    const messageIdSet = new Set(
+      (Array.isArray(messageIds) ? messageIds : [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean)
+    );
+    if (!safeChatId || !safeReaderId || !messageIdSet.size) return false;
+
+    let changed = false;
+    const sourceChats = Array.isArray(this.chats) ? this.chats : [];
+    sourceChats.forEach((chat) => {
+      if (!chat) return;
+      if (this.resolveChatServerId(chat) !== safeChatId) return;
+      const messages = Array.isArray(chat.messages) ? chat.messages : [];
+      messages.forEach((message) => {
+        const serverId = String(message?.serverId || '').trim();
+        if (!serverId || !messageIdSet.has(serverId)) return;
+        const current = this.normalizeMessageReadByUserIds(message.readBy);
+        if (current.includes(safeReaderId)) return;
+        message.readBy = [...current, safeReaderId];
+        changed = true;
+      });
+    });
+
+    return changed;
+  }
+
+  async sendReadReceiptsToServer(chatServerId, messageIds = []) {
+    const safeChatId = String(chatServerId || '').trim();
+    const normalizedIds = [...new Set(
+      (Array.isArray(messageIds) ? messageIds : [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean)
+    )];
+    if (!safeChatId || !normalizedIds.length) return {};
+
+    const payload = { chatId: safeChatId, messageIds: normalizedIds };
+    const attempts = [
+      { endpoint: '/messages/read-receipts', method: 'POST', payload },
+      { endpoint: '/messages/read', method: 'POST', payload }
+    ];
+
+    let lastError = 'Не вдалося позначити повідомлення прочитаними.';
+    for (const attempt of attempts) {
+      const response = await fetch(buildApiUrl(attempt.endpoint), {
+        method: attempt.method,
+        headers: this.getApiHeaders({ json: true }),
+        body: JSON.stringify(attempt.payload)
+      });
+      const data = await this.readJsonSafe(response);
+      if (response.ok) return data || {};
+      lastError = `HTTP ${response.status}: ${this.getRequestErrorMessage(data, lastError)}`;
+      if (response.status === 404 || response.status === 405) continue;
+      throw new Error(lastError);
+    }
+
+    throw new Error(lastError);
+  }
+
+  flushReadReceiptsForChat(chat, messages = []) {
+    if (!this.isReadReceiptsEnabled()) return;
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) return;
+
+    if (!(this.readReceiptsInFlightByChatId instanceof Set)) {
+      this.readReceiptsInFlightByChatId = new Set();
+    }
+    if (this.readReceiptsInFlightByChatId.has(chatServerId)) return;
+
+    const pendingIds = this.collectServerMessageIdsForReadReceipts(chat, messages);
+    if (!pendingIds.length) return;
+
+    const pendingSet = this.getPendingReadReceiptsSet(chatServerId);
+    pendingIds.forEach((id) => pendingSet.add(id));
+    this.readReceiptsInFlightByChatId.add(chatServerId);
+    let requestSucceeded = false;
+
+    this.sendReadReceiptsToServer(chatServerId, pendingIds)
+      .then(() => {
+        requestSucceeded = true;
+        const selfId = this.getAuthUserId();
+        if (selfId) {
+          this.markLocalMessagesReadByUser(chatServerId, pendingIds, selfId);
+        }
+        const sentSet = this.getSentReadReceiptsSet(chatServerId);
+        pendingIds.forEach((id) => sentSet.add(id));
+      })
+      .catch(() => {
+        // Ignore transient read-receipt failures.
+      })
+      .finally(() => {
+        const pendingAfter = this.getPendingReadReceiptsSet(chatServerId);
+        pendingIds.forEach((id) => pendingAfter.delete(id));
+        this.readReceiptsInFlightByChatId.delete(chatServerId);
+        if (!requestSucceeded) return;
+        const liveChat = this.findChatByServerId(chatServerId) || chat;
+        const liveMessages = Array.isArray(liveChat?.messages) ? liveChat.messages : messages;
+        const nextBatch = this.collectServerMessageIdsForReadReceipts(liveChat, liveMessages);
+        if (nextBatch.length) {
+          this.flushReadReceiptsForChat(liveChat, liveMessages);
+        }
+      });
   }
 
   async hasNewServerMessageAfterSelfDelete(chatServerId, marker = {}) {
@@ -1695,6 +1981,7 @@ export class ChatAppMessagingMethods {
     socket.on('userTyping', (payload) => this.handleRealtimeTypingEvent(payload));
     socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
     socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
+    socket.on('messagesRead', (payload) => this.handleRealtimeMessagesReadEvent(payload));
   }
 
   joinRealtimeChatRoom(chat) {
@@ -1848,6 +2135,79 @@ export class ChatAppMessagingMethods {
     this.setRealtimeTypingState(chatServerId, isTyping, senderId);
     if (senderId && isTyping) {
       this.handleRealtimePresenceEvent({ userId: senderId }, true);
+    }
+  }
+
+  extractRealtimeMessageIds(payload) {
+    if (!payload || typeof payload !== 'object') return [];
+    const directIds = [
+      payload.messageId,
+      payload.lastReadMessageId,
+      payload.untilMessageId,
+      payload.readToMessageId,
+      payload.data?.messageId,
+      payload.data?.lastReadMessageId
+    ];
+    const arrays = [
+      payload.messageIds,
+      payload.ids,
+      payload.messages,
+      payload.items,
+      payload.data?.messageIds,
+      payload.data?.ids,
+      payload.data?.messages
+    ];
+
+    const normalized = [];
+    directIds.forEach((id) => {
+      const safeId = String(id || '').trim();
+      if (safeId) normalized.push(safeId);
+    });
+
+    arrays.forEach((entry) => {
+      if (!Array.isArray(entry)) return;
+      entry.forEach((item) => {
+        if (item == null) return;
+        if (typeof item === 'string' || typeof item === 'number') {
+          const safeId = String(item).trim();
+          if (safeId) normalized.push(safeId);
+          return;
+        }
+        if (typeof item !== 'object') return;
+        const safeId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
+        if (safeId) normalized.push(safeId);
+      });
+    });
+
+    return [...new Set(normalized)];
+  }
+
+  handleRealtimeMessagesReadEvent(payload) {
+    const readerUserId = this.extractRealtimeUserId(payload);
+    if (!readerUserId) return;
+
+    let chatServerId = this.extractRealtimeChatId(payload);
+    if (!chatServerId && this.currentChat) {
+      chatServerId = this.resolveChatServerId(this.currentChat);
+    }
+    if (!chatServerId) return;
+
+    const messageIds = this.extractRealtimeMessageIds(payload);
+    if (!messageIds.length) return;
+
+    const changed = this.markLocalMessagesReadByUser(chatServerId, messageIds, readerUserId);
+    if (!changed) return;
+
+    const selfId = this.getAuthUserId();
+    if (selfId && readerUserId === selfId) {
+      const sentSet = this.getSentReadReceiptsSet(chatServerId);
+      messageIds.forEach((id) => sentSet.add(id));
+    }
+
+    this.saveChats();
+    this.renderChatsList();
+    if (this.currentChat && this.resolveChatServerId(this.currentChat) === chatServerId) {
+      this.renderChatAfterSync({ forceScroll: false });
     }
   }
 
@@ -2348,6 +2708,8 @@ export class ChatAppMessagingMethods {
           includeTime ? String(msg?.time || '') : '',
           includeTime ? String(msg?.date || '') : '',
           msg?.edited ? '1' : '0',
+          this.getMessageDeliveryState(msg),
+          this.getMessageReadStateSignature(msg),
           String(msg?.imageUrl || ''),
           String(msg?.audioUrl || ''),
           String(msg?.replyTo?.from || ''),
@@ -2355,6 +2717,19 @@ export class ChatAppMessagingMethods {
         ].join(':');
       })
       .join('|');
+  }
+
+  getMessageSyncSignature(message) {
+    if (!message || typeof message !== 'object') return '';
+    return [
+      String(message.serverId || message.id || ''),
+      String(message.text || ''),
+      String(message.time || ''),
+      String(message.date || ''),
+      message.edited ? '1' : '0',
+      message.pending ? '1' : '0',
+      this.getMessageReadStateSignature(message)
+    ].join(':');
   }
 
   getMessageMergeKey(message) {
@@ -2644,6 +3019,9 @@ export class ChatAppMessagingMethods {
         const explicitEditedFlag = item.edited ?? item.isEdited ?? item.wasEdited;
         const serverEdited = explicitEditedFlag === true || explicitEditedFlag === 1 || explicitEditedFlag === 'true';
         const localEdited = Boolean(existingLocalMessage?.edited);
+        const serverReadByIds = this.extractMessageReadByUserIds(item);
+        const localReadByIds = this.normalizeMessageReadByUserIds(existingLocalMessage?.readBy);
+        const mergedReadByIds = this.mergeUniqueUserIds(serverReadByIds, localReadByIds);
         if (!type) {
           if (audioUrl || attachmentMime.startsWith('audio/')) {
             type = 'voice';
@@ -2722,6 +3100,7 @@ export class ChatAppMessagingMethods {
           audioUrl: type === 'voice' ? audioUrl : '',
           audioDuration: Number(item.audioDuration ?? item.duration ?? 0) || 0,
           edited: serverEdited || localEdited,
+          readBy: mergedReadByIds,
           replyTo: preservedReplyTo,
           pending: false,
           clientEcho: Boolean(matchedLocalMessage?.clientEcho),
@@ -3055,10 +3434,10 @@ export class ChatAppMessagingMethods {
             });
           }
           const prevMessageSignature = Array.isArray(chat.messages)
-            ? chat.messages.map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`).join('|')
+            ? chat.messages.map((msg) => this.getMessageSyncSignature(msg)).join('|')
             : '';
           const nextMessageSignature = nextMessages
-            .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
+            .map((msg) => this.getMessageSyncSignature(msg))
             .join('|');
           const isActiveChat = Boolean(
             (activeServerId && chat.serverId === activeServerId)
@@ -3092,6 +3471,9 @@ export class ChatAppMessagingMethods {
 
           if (this.applyChatUnreadState(chat, nextMessages, { markAsRead: isActiveChat })) {
             changed = true;
+          }
+          if (isActiveChat) {
+            this.flushReadReceiptsForChat(chat, nextMessages);
           }
         } catch {
           // Keep chat list resilient if single chat messages endpoint fails.
@@ -3296,10 +3678,10 @@ export class ChatAppMessagingMethods {
     nextMessages = this.mergeServerMessagesWithLocalHistory(nextMessages, prevMessages);
 
     const previousSignature = prevMessages
-      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
+      .map((msg) => this.getMessageSyncSignature(msg))
       .join('|');
     const nextSignature = nextMessages
-      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
+      .map((msg) => this.getMessageSyncSignature(msg))
       .join('|');
     const previousVisualSignature = this.getMessagesVisualSignature(prevMessages);
     const nextVisualSignature = this.getMessagesVisualSignature(nextMessages);
@@ -3324,6 +3706,7 @@ export class ChatAppMessagingMethods {
 
     targetChat.messages = nextMessages;
     this.applyChatUnreadState(targetChat, nextMessages, { markAsRead: true });
+    this.flushReadReceiptsForChat(targetChat, nextMessages);
     let chatMetaChanged = false;
     if (!targetChat.isGroup) {
       const otherMessages = nextMessages.filter((msg) => msg.from === 'other');
@@ -3679,6 +4062,7 @@ export class ChatAppMessagingMethods {
     }
     
     const editedLabel = msg.edited ? '<span class="message-edited">редаговано</span>' : '';
+    const deliveryStatus = this.getMessageDeliveryStatusHtml(msg);
     const editedClass = msg.edited ? ' edited' : '';
     const imageClass = msg.type === 'image' && msg.imageUrl ? ' has-image' : '';
     const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
@@ -3699,7 +4083,7 @@ export class ChatAppMessagingMethods {
         <div class="message-content${editedClass}${imageClass}${voiceClass}${inlineMetaClass}${tailClass}">
           ${replyHtml}
           ${this.buildMessageBodyHtml(msg)}
-          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}</span>
+          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}${deliveryStatus}</span>
         </div>
       </div>
     `;

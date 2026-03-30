@@ -240,6 +240,15 @@ export class ChatAppInteractionMethods {
       const previewText = this.getChatPreviewText(chat, lastMessage);
       const safePreviewText = this.escapeHtml(previewText || 'Немає повідомлень');
       const typingClass = this.isChatTypingActive(chat) ? ' is-typing' : '';
+      const deliveryState = (lastMessage && typeof this.getMessageDeliveryState === 'function')
+        ? this.getMessageDeliveryState(lastMessage)
+        : '';
+      const statusCheckIcon = typeof this.getMessageStatusCheckSvg === 'function'
+        ? this.getMessageStatusCheckSvg()
+        : '<svg class="message-status-check" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>';
+      const deliveryStatusHtml = deliveryState
+        ? `<span class="desktop-secondary-chat-status ${deliveryState}" aria-label="${deliveryState === 'read' ? 'Прочитано' : 'Надіслано'}">${statusCheckIcon}${deliveryState === 'read' ? statusCheckIcon : ''}</span>`
+        : '';
       const unreadCount = Math.max(0, Number(chat?.unreadCount || 0));
       const unreadBadge = unreadCount > 99 ? '99+' : String(unreadCount);
       const isActive = this.currentChat?.id === chat.id;
@@ -257,7 +266,7 @@ export class ChatAppInteractionMethods {
           <span class="desktop-secondary-chat-preview${typingClass}">${safePreviewText}</span>
         </div>
         <div class="desktop-secondary-chat-meta">
-          <span class="desktop-secondary-chat-time">${lastMessage?.time || ''}</span>
+          <span class="desktop-secondary-chat-time-wrap">${deliveryStatusHtml}<span class="desktop-secondary-chat-time">${lastMessage?.time || ''}</span></span>
           ${unreadCount > 0 ? `<span class="desktop-secondary-chat-unread">${unreadBadge}</span>` : ''}
         </div>
       `;
@@ -2641,6 +2650,9 @@ export class ChatAppInteractionMethods {
       }
       
       const editedLabel = msg.edited ? '<span class="message-edited">редаговано</span>' : '';
+      const deliveryStatus = typeof this.getMessageDeliveryStatusHtml === 'function'
+        ? this.getMessageDeliveryStatusHtml(msg)
+        : '';
       const editedClass = msg.edited ? ' edited' : '';
       const imageClass = msg.type === 'image' && msg.imageUrl ? ' has-image' : '';
       const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
@@ -2661,7 +2673,7 @@ export class ChatAppInteractionMethods {
           <div class="message-content${editedClass}${imageClass}${voiceClass}${inlineMetaClass}${tailClass}">
             ${replyHtml}
             ${this.buildMessageBodyHtml(msg)}
-            <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}</span>
+            <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}${deliveryStatus}</span>
           </div>
         </div>
       `;

@@ -530,12 +530,30 @@ html.dark-theme .message.other .message-content {
   color: var(--text-secondary);
 }
 
+.message-meta .message-status {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.message-meta .message-status .message-status-check {
+  width: 12px;
+  height: 12px;
+  display: block;
+  fill: currentColor;
+}
+
+.message-meta .message-status.read .message-status-check + .message-status-check {
+  margin-left: -4px;
+}
+
 .message.own .message-meta {
   opacity: 0.86;
 }
 
 .message.own .message-meta .message-time,
-.message.own .message-meta .message-edited {
+.message.own .message-meta .message-edited,
+.message.own .message-meta .message-status {
   color: color-mix(in srgb, #ffffff 84%, transparent);
 }
 
