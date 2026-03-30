@@ -1888,14 +1888,22 @@ export class ChatAppMessagingMethods {
   extractRealtimeUserId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedUser = payload.user && typeof payload.user === 'object' ? payload.user : null;
+    const nestedData = payload.data && typeof payload.data === 'object' ? payload.data : null;
+    const nestedDataUser = nestedData?.user && typeof nestedData.user === 'object' ? nestedData.user : null;
     return String(
       payload.userId
         ?? payload.senderId
         ?? payload.fromUserId
         ?? payload.authorId
+        ?? nestedData?.userId
+        ?? nestedData?.senderId
+        ?? nestedData?.fromUserId
+        ?? nestedData?.authorId
         ?? payload.id
         ?? nestedUser?.id
         ?? nestedUser?.userId
+        ?? nestedDataUser?.id
+        ?? nestedDataUser?.userId
         ?? ''
     ).trim();
   }
@@ -1903,15 +1911,239 @@ export class ChatAppMessagingMethods {
   extractRealtimeChatId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedChat = payload.chat && typeof payload.chat === 'object' ? payload.chat : null;
+    const nestedData = payload.data && typeof payload.data === 'object' ? payload.data : null;
+    const nestedDataChat = nestedData?.chat && typeof nestedData.chat === 'object' ? nestedData.chat : null;
     return String(
       payload.chatId
         ?? payload.roomId
         ?? payload.conversationId
+        ?? nestedData?.chatId
+        ?? nestedData?.roomId
+        ?? nestedData?.conversationId
         ?? payload.id
+        ?? nestedChat?.id
+        ?? nestedChat?.chatId
+        ?? nestedDataChat?.id
+        ?? nestedDataChat?.chatId
+        ?? ''
+    ).trim();
+  }
+
+  extractChatIdFromMessagePayload(messagePayload) {
+    if (!messagePayload || typeof messagePayload !== 'object') return '';
+    const nestedChat = messagePayload.chat && typeof messagePayload.chat === 'object'
+      ? messagePayload.chat
+      : null;
+    return String(
+      messagePayload.chatId
+        ?? messagePayload.roomId
+        ?? messagePayload.conversationId
+        ?? messagePayload.threadId
         ?? nestedChat?.id
         ?? nestedChat?.chatId
         ?? ''
     ).trim();
+  }
+
+  isLikelyServerMessagePayload(item) {
+    if (!item || typeof item !== 'object') return false;
+    const directId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
+    if (directId) return true;
+    return Boolean(
+      item.content != null
+      || item.text != null
+      || item.message != null
+      || item.attachmentUrl != null
+      || item.imageUrl != null
+      || item.audioUrl != null
+      || item.createdAt != null
+      || item.timestamp != null
+      || item.date != null
+    );
+  }
+
+  shouldProcessRealtimeServerMessage(chatServerId, messagePayload) {
+    const safeChatId = String(chatServerId || '').trim();
+    if (!safeChatId || !messagePayload || typeof messagePayload !== 'object') return false;
+
+    const directId = String(
+      messagePayload.id
+      ?? messagePayload.messageId
+      ?? messagePayload._id
+      ?? ''
+    ).trim();
+    const senderId = String(
+      messagePayload.senderId
+      ?? messagePayload.fromUserId
+      ?? messagePayload.authorId
+      ?? messagePayload.userId
+      ?? messagePayload.user?.id
+      ?? ''
+    ).trim();
+    const type = String(messagePayload.type ?? '').trim() || 'text';
+    const content = String(messagePayload.content ?? messagePayload.text ?? messagePayload.message ?? '').trim();
+    const attachment = String(
+      messagePayload.attachmentUrl
+      ?? messagePayload.imageUrl
+      ?? messagePayload.audioUrl
+      ?? ''
+    ).trim();
+    const replyTo = String(
+      messagePayload.replyToId
+      ?? messagePayload.replyToMessageId
+      ?? messagePayload.replyTo?.id
+      ?? ''
+    ).trim();
+
+    const keys = [];
+    if (directId) {
+      keys.push(`${safeChatId}:id:${directId}`);
+    }
+    keys.push(`${safeChatId}:fp:${senderId}|${type}|${content}|${attachment}|${replyTo}`);
+
+    if (!(this.realtimeProcessedMessageKeys instanceof Map)) {
+      this.realtimeProcessedMessageKeys = new Map();
+    }
+
+    const now = Date.now();
+    const ttlMs = 2500;
+    for (const [existingKey, ts] of this.realtimeProcessedMessageKeys.entries()) {
+      if (!Number.isFinite(ts) || now - ts > ttlMs) {
+        this.realtimeProcessedMessageKeys.delete(existingKey);
+      }
+    }
+
+    for (const key of keys) {
+      const lastProcessedAt = Number(this.realtimeProcessedMessageKeys.get(key) || 0);
+      if (lastProcessedAt > 0 && now - lastProcessedAt < ttlMs) {
+        return false;
+      }
+    }
+
+    keys.forEach((key) => this.realtimeProcessedMessageKeys.set(key, now));
+    return true;
+  }
+
+  extractRealtimeCreatedMessages(payload) {
+    if (!payload || typeof payload !== 'object') return [];
+
+    const collectFromArray = (source) => {
+      if (!Array.isArray(source)) return [];
+      return source.filter((entry) => entry && typeof entry === 'object' && this.isLikelyServerMessagePayload(entry));
+    };
+
+    const arrayCandidates = this.dedupeServerMessages([
+      ...collectFromArray(payload.messages),
+      ...collectFromArray(payload.items),
+      ...collectFromArray(payload.results),
+      ...collectFromArray(payload.data?.messages),
+      ...collectFromArray(payload.data?.items),
+      ...collectFromArray(payload.data?.results)
+    ]);
+    if (arrayCandidates.length) return arrayCandidates;
+
+    const directMessageCandidates = this.dedupeServerMessages([
+      payload.message,
+      payload.data?.message
+    ].filter((entry) => entry && typeof entry === 'object' && this.isLikelyServerMessagePayload(entry)));
+    if (directMessageCandidates.length) return directMessageCandidates;
+
+    if (payload.data && typeof payload.data === 'object' && this.isLikelyServerMessagePayload(payload.data)) {
+      return [payload.data];
+    }
+    if (this.isLikelyServerMessagePayload(payload)) {
+      return [payload];
+    }
+
+    return [];
+  }
+
+  async sendTextMessageViaRealtime(chat, text, { replyToLocalId = null } = {}) {
+    const socket = this.realtimeSocket;
+    if (!socket || !this.realtimeSocketConnected) {
+      throw new Error('Realtime socket не підключений.');
+    }
+
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) {
+      throw new Error('Не вдалося визначити чат для надсилання повідомлення.');
+    }
+
+    const payload = {
+      chatId: chatServerId,
+      content: text
+    };
+    const replyToServerId = this.getServerMessageIdByLocalId(chat, replyToLocalId);
+    if (replyToServerId) {
+      payload.replyToId = replyToServerId;
+    }
+
+    if (typeof window !== 'undefined') {
+      if (!window.__orionRealtimeEmitGuard || typeof window.__orionRealtimeEmitGuard !== 'object') {
+        window.__orionRealtimeEmitGuard = { key: '', at: 0 };
+      }
+      const emitKey = `${chatServerId}|${String(text || '').trim()}|${String(replyToServerId || '').trim()}`;
+      const nowTs = Date.now();
+      const lastKey = String(window.__orionRealtimeEmitGuard.key || '');
+      const lastTs = Number(window.__orionRealtimeEmitGuard.at || 0);
+      if (lastKey === emitKey && Number.isFinite(lastTs) && nowTs - lastTs < 1400) {
+        return { ...payload, skippedDuplicate: true };
+      }
+      window.__orionRealtimeEmitGuard.key = emitKey;
+      window.__orionRealtimeEmitGuard.at = nowTs;
+    }
+
+    try {
+      socket.emit('sendMessage', payload);
+      return { ...payload };
+    } catch (error) {
+      throw new Error(error?.message || 'Не вдалося надіслати повідомлення через WebSocket.');
+    }
+  }
+
+  scheduleRealtimePendingMessageSyncFallback({
+    chatServerId = '',
+    localMessageId = null,
+    text = ''
+  } = {}) {
+    const safeChatId = String(chatServerId || '').trim();
+    const safeLocalId = Number(localMessageId);
+    const safeText = String(text || '');
+    if (!safeChatId || !Number.isFinite(safeLocalId) || !safeText.trim()) return;
+
+    if (!(this.realtimePendingMessageSyncTimers instanceof Map)) {
+      this.realtimePendingMessageSyncTimers = new Map();
+    }
+    const existingTimer = this.realtimePendingMessageSyncTimers.get(safeLocalId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timerId = window.setTimeout(async () => {
+      this.realtimePendingMessageSyncTimers.delete(safeLocalId);
+
+      const liveChat = this.findChatByServerId(safeChatId);
+      if (!liveChat) return;
+
+      const liveMessage = Array.isArray(liveChat.messages)
+        ? liveChat.messages.find((item) => Number(item?.id) === safeLocalId)
+        : null;
+      if (!liveMessage || !liveMessage.pending || String(liveMessage.serverId || '').trim()) return;
+
+      try {
+        if (this.currentChat && this.resolveChatServerId(this.currentChat) === safeChatId) {
+          await this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false });
+          return;
+        }
+
+        const serverMessages = await this.fetchChatMessagesFromServer(liveChat);
+        this.applyRealtimeIncomingMessagesToChat(liveChat, serverMessages, { forceScroll: false });
+      } catch {
+        // Keep optimistic message pending; next regular sync can reconcile later.
+      }
+    }, 4200);
+
+    this.realtimePendingMessageSyncTimers.set(safeLocalId, timerId);
   }
 
   findChatByServerId(chatServerId) {
@@ -2032,12 +2264,19 @@ export class ChatAppMessagingMethods {
     socket.on('connect', () => {
       this.realtimeSocketConnected = true;
       this.joinRealtimeChatRoom(this.currentChat);
+      if (this.serverChatSyncInitialized) {
+        this.runServerChatSync({ forceScroll: false }).catch(() => {});
+      }
     });
 
     socket.on('disconnect', () => {
       this.realtimeSocketConnected = false;
       this.realtimeJoinedChatId = '';
       this.stopRealtimeTyping({ emit: false });
+      this.serverChatLastRunAt = 0;
+      if (this.serverChatSyncInitialized) {
+        this.runServerChatSync({ forceScroll: false }).catch(() => {});
+      }
     });
 
     socket.on('userOnline', (payload) => this.handleRealtimePresenceEvent(payload, true));
@@ -2047,6 +2286,7 @@ export class ChatAppMessagingMethods {
     socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
     socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
     socket.on('messagesRead', (payload) => this.handleRealtimeMessagesReadEvent(payload));
+    socket.on('messageCreated', (payload) => this.handleRealtimeMessageCreatedEvent(payload));
   }
 
   joinRealtimeChatRoom(chat) {
@@ -2062,7 +2302,6 @@ export class ChatAppMessagingMethods {
 
     try {
       this.realtimeSocket.emit('joinChat', { chatId: chatServerId });
-      this.realtimeSocket.emit('joinRoom', { chatId: chatServerId });
     } catch {
       // Ignore transient websocket errors.
     }
@@ -2077,7 +2316,6 @@ export class ChatAppMessagingMethods {
     }
     try {
       this.realtimeSocket.emit('leaveChat', { chatId: chatServerId });
-      this.realtimeSocket.emit('leaveRoom', { chatId: chatServerId });
     } catch {
       // Ignore transient websocket errors.
     }
@@ -2276,6 +2514,89 @@ export class ChatAppMessagingMethods {
     }
   }
 
+  applyRealtimeIncomingMessagesToChat(chat, serverMessages = [], { forceScroll = false } = {}) {
+    if (!chat || !Array.isArray(serverMessages) || !serverMessages.length) return false;
+
+    const prevMessages = Array.isArray(chat.messages) ? chat.messages : [];
+    let nextMessages = this.mapServerMessagesToLocal(chat, serverMessages);
+    nextMessages = this.mergeServerMessagesWithLocalHistory(nextMessages, prevMessages);
+
+    const previousSignature = prevMessages
+      .map((msg) => this.getMessageSyncSignature(msg))
+      .join('|');
+    const nextSignature = nextMessages
+      .map((msg) => this.getMessageSyncSignature(msg))
+      .join('|');
+    if (previousSignature === nextSignature) return false;
+
+    const previousKeys = new Set(
+      prevMessages
+        .map((msg) => String(msg?.serverId || `local:${msg?.id ?? ''}`))
+        .filter(Boolean)
+    );
+    let newestAppendedMessageId = null;
+    for (let i = nextMessages.length - 1; i >= 0; i -= 1) {
+      const item = nextMessages[i];
+      const key = String(item?.serverId || `local:${item?.id ?? ''}`);
+      if (!previousKeys.has(key)) {
+        if (item?.from === 'own') continue;
+        newestAppendedMessageId = item?.id ?? null;
+        break;
+      }
+    }
+
+    chat.messages = nextMessages;
+    const chatServerId = this.resolveChatServerId(chat);
+    const isActiveChat = Boolean(
+      this.currentChat
+      && chatServerId
+      && this.resolveChatServerId(this.currentChat) === chatServerId
+    );
+    this.applyChatUnreadState(chat, nextMessages, { markAsRead: isActiveChat });
+    if (isActiveChat) {
+      this.flushReadReceiptsForChat(chat, nextMessages);
+    }
+
+    this.saveChats();
+    this.renderChatsList();
+    this.updateChatHeader();
+
+    if (isActiveChat) {
+      this.renderChatAfterSync({ forceScroll, highlightId: newestAppendedMessageId });
+    }
+    return true;
+  }
+
+  handleRealtimeMessageCreatedEvent(payload) {
+    const realtimeMessages = this.extractRealtimeCreatedMessages(payload);
+    if (!realtimeMessages.length) return;
+
+    const chatIdFromPayload = this.extractRealtimeChatId(payload);
+    const chatIdFromMessage = this.extractChatIdFromMessagePayload(realtimeMessages[0]);
+    const chatServerId = String(chatIdFromPayload || chatIdFromMessage || '').trim();
+    if (!chatServerId) return;
+    const filteredMessages = realtimeMessages.filter((item) => {
+      const hasStableServerId = Boolean(this.extractServerMessageIdFromPayload(item));
+      if (!hasStableServerId) return false;
+      return this.shouldProcessRealtimeServerMessage(chatServerId, item);
+    });
+    if (!filteredMessages.length) return;
+
+    const targetChat = this.findChatByServerId(chatServerId);
+    if (targetChat) {
+      this.applyRealtimeIncomingMessagesToChat(targetChat, filteredMessages, { forceScroll: false });
+      return;
+    }
+
+    this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true })
+      .then(() => {
+        const liveChat = this.findChatByServerId(chatServerId);
+        if (!liveChat) return;
+        this.applyRealtimeIncomingMessagesToChat(liveChat, filteredMessages, { forceScroll: false });
+      })
+      .catch(() => {});
+  }
+
   emitRealtimeTypingState(isTyping) {
     if (!this.isOwnTypingVisibilityEnabled()) return;
     const socket = this.realtimeSocket;
@@ -2336,10 +2657,27 @@ export class ChatAppMessagingMethods {
     this.realtimeTypingActiveChatId = '';
   }
 
+  shouldThrottleServerChatPoll() {
+    const realtimeConnected = Boolean(this.realtimeSocketConnected && this.isOwnOnlineVisibilityEnabled());
+    if (!realtimeConnected) return false;
+
+    const fallbackIntervalMs = Number(this.serverChatSyncFallbackIntervalMs || 15000);
+    const safeIntervalMs = Number.isFinite(fallbackIntervalMs) && fallbackIntervalMs > 0
+      ? fallbackIntervalMs
+      : 15000;
+    const lastRunAt = Number(this.serverChatLastRunAt || 0);
+    if (!Number.isFinite(lastRunAt) || lastRunAt <= 0) return false;
+
+    return (Date.now() - lastRunAt) < safeIntervalMs;
+  }
+
   initializeServerChatSync() {
     if (this.serverChatSyncInitialized) return;
     this.serverChatSyncInitialized = true;
     this.serverChatSyncInFlight = false;
+    this.serverChatLastRunAt = 0;
+    this.serverChatSyncTickIntervalMs = 2500;
+    this.serverChatSyncFallbackIntervalMs = 15000;
     this.initializeRealtimeSocket();
 
     this.runServerChatSync({ forceScroll: false });
@@ -2348,8 +2686,12 @@ export class ChatAppMessagingMethods {
       window.clearInterval(this.serverChatSyncTimer);
     }
     this.serverChatSyncTimer = window.setInterval(() => {
-      this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
-    }, 2500);
+      this.runServerChatSync({
+        forceScroll: false,
+        skipWhenHidden: true,
+        allowThrottle: true
+      });
+    }, this.serverChatSyncTickIntervalMs);
 
     if (this.serverChatVisibilityHandler) {
       document.removeEventListener('visibilitychange', this.serverChatVisibilityHandler);
@@ -2362,10 +2704,12 @@ export class ChatAppMessagingMethods {
     document.addEventListener('visibilitychange', this.serverChatVisibilityHandler);
   }
 
-  async runServerChatSync({ forceScroll = false, skipWhenHidden = false } = {}) {
+  async runServerChatSync({ forceScroll = false, skipWhenHidden = false, allowThrottle = false } = {}) {
     if (skipWhenHidden && document.visibilityState === 'hidden') return;
+    if (allowThrottle && this.shouldThrottleServerChatPoll()) return;
     if (this.serverChatSyncInFlight) return;
     this.serverChatSyncInFlight = true;
+    this.serverChatLastRunAt = Date.now();
     try {
       await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
       await this.syncCurrentChatMessagesFromServer({ forceScroll, highlightOwn: false });
@@ -2754,7 +3098,9 @@ export class ChatAppMessagingMethods {
   getComparableMessageKey(message) {
     if (!message || typeof message !== 'object') return '';
     const type = String(message.type || 'text');
-    const text = String(message.text || '').trim();
+    const text = String(message.text || '')
+      .replace(/\s+/g, ' ')
+      .trim();
     const imageUrl = String(message.imageUrl || '').trim();
     const audioUrl = String(message.audioUrl || '').trim();
     return [type, text, imageUrl, audioUrl].join('|');
@@ -2799,11 +3145,11 @@ export class ChatAppMessagingMethods {
 
   getMessageMergeKey(message) {
     if (!message || typeof message !== 'object') return '';
-    const serverId = String(message.serverId || '').trim();
-    if (serverId) return `server:${serverId}`;
-
     const localId = Number(message.id);
     if (Number.isFinite(localId) && localId > 0) return `local:${localId}`;
+
+    const serverId = String(message.serverId || '').trim();
+    if (serverId) return `server:${serverId}`;
 
     const from = String(message.from || '').trim();
     const type = String(message.type || 'text').trim();
@@ -3097,7 +3443,15 @@ export class ChatAppMessagingMethods {
           }
         }
 
-        if (!existingLocalMessage && (from === 'own' || !senderId)) {
+        const canAttemptPendingOwnReconcile = Boolean(
+          !existingLocalMessage
+          && (
+            from === 'own'
+            || !senderId
+            || !selfId
+          )
+        );
+        if (canAttemptPendingOwnReconcile) {
           const comparableKey = this.getComparableMessageKey({
             type,
             text,
@@ -3905,59 +4259,10 @@ export class ChatAppMessagingMethods {
   }
 
   async sendTextMessageToServer(chat, text, { replyToLocalId = null } = {}) {
-    const userId = this.getAuthUserId();
-    if (!userId) {
-      throw new Error('Не знайдено X-User-Id у сесії. Увійдіть у акаунт ще раз.');
-    }
-
-    const chatServerId = this.resolveChatServerId(chat);
-    if (!chatServerId) {
-      throw new Error('Не вдалося визначити чат для надсилання повідомлення.');
-    }
-
-    const basePayload = { chatId: chatServerId };
-    const replyToServerId = this.getServerMessageIdByLocalId(chat, replyToLocalId);
-    if (replyToServerId) {
-      basePayload.replyToId = replyToServerId;
-    }
-
-    const attempts = [
-      { endpoint: '/messages', payload: { ...basePayload, content: text } },
-      { endpoint: '/messages', payload: { ...basePayload, text } },
-      { endpoint: '/messages', payload: { ...basePayload, message: text } }
-    ];
-
-    let lastError = 'Не вдалося надіслати повідомлення.';
-    let bestError = '';
-
-    for (const attempt of attempts) {
-      const response = await fetch(buildApiUrl(attempt.endpoint), {
-        method: 'POST',
-        headers: this.getApiHeaders({ json: true }),
-        body: JSON.stringify(attempt.payload)
-      });
-      const data = await this.readJsonSafe(response);
-
-      if (response.ok) {
-        return data || {};
-      }
-
-      const message = this.getRequestErrorMessage(data, lastError);
-      lastError = `HTTP ${response.status}: ${message}`;
-      if (!bestError || (response.status !== 404 && response.status !== 405)) {
-        bestError = lastError;
-      }
-
-      if (response.status === 401 || response.status === 403) {
-        throw new Error(bestError || lastError);
-      }
-
-      if (response.status === 404 || response.status === 405) {
-        continue;
-      }
-    }
-
-    throw new Error(bestError || lastError);
+    void chat;
+    void text;
+    void replyToLocalId;
+    throw new Error('HTTP-відправка повідомлень вимкнена. Використовується тільки WebSocket.');
   }
 
   async updateMessageOnServer(chat, message, text) {
@@ -4490,6 +4795,27 @@ export class ChatAppMessagingMethods {
       return;
     }
 
+    const dedupeChatId = this.resolveChatServerId(this.currentChat) || String(this.currentChat?.id || '').trim();
+    const dedupeKey = `${dedupeChatId}|${message}`;
+    const nowTs = Date.now();
+    if (typeof window !== 'undefined') {
+      if (!window.__orionOutgoingMessageGuard || typeof window.__orionOutgoingMessageGuard !== 'object') {
+        window.__orionOutgoingMessageGuard = { key: '', at: 0 };
+      }
+      const globalKey = String(window.__orionOutgoingMessageGuard.key || '');
+      const globalTs = Number(window.__orionOutgoingMessageGuard.at || 0);
+      if (globalKey === dedupeKey && Number.isFinite(globalTs) && nowTs - globalTs < 1200) return;
+      window.__orionOutgoingMessageGuard.key = dedupeKey;
+      window.__orionOutgoingMessageGuard.at = nowTs;
+    }
+    const lastKey = String(this.lastOutgoingMessageDedupeKey || '');
+    const lastTs = Number(this.lastOutgoingMessageDedupeAt || 0);
+    if (this.outgoingMessageDispatchLock) return;
+    if (lastKey === dedupeKey && Number.isFinite(lastTs) && nowTs - lastTs < 1200) return;
+    this.outgoingMessageDispatchLock = true;
+    this.lastOutgoingMessageDedupeKey = dedupeKey;
+    this.lastOutgoingMessageDedupeAt = nowTs;
+
     const now = new Date();
     const optimisticMessage = {
       id: this.getNextMessageId(this.currentChat),
@@ -4532,9 +4858,26 @@ export class ChatAppMessagingMethods {
       if (this.currentChat && !this.currentChat.isGroup && this.currentChat.participantId) {
         await this.ensurePrivateChatParticipantJoined(this.currentChat);
       }
-      const sendResponse = await this.sendTextMessageToServer(this.currentChat, message, {
+      if (!this.realtimeSocketConnected || !this.realtimeSocket) {
+        throw new Error('Немає зʼєднання з WebSocket. Перевір підключення.');
+      }
+      const sendResponse = await this.sendTextMessageViaRealtime(this.currentChat, message, {
         replyToLocalId: restoreReplyTarget?.id ?? null
       });
+
+      if (sendResponse?.skippedDuplicate) {
+        const duplicateOptimisticIndex = this.currentChat.messages.findIndex((item) => {
+          return Number(item?.id) === Number(optimisticMessage.id) && !String(item?.serverId || '').trim();
+        });
+        if (duplicateOptimisticIndex !== -1) {
+          this.currentChat.messages.splice(duplicateOptimisticIndex, 1);
+          this.saveChats();
+          this.renderChat();
+          this.renderChatsList();
+        }
+        return;
+      }
+
       sentToServer = true;
 
       const optimisticCurrent = this.currentChat.messages.find((item) => {
@@ -4545,16 +4888,11 @@ export class ChatAppMessagingMethods {
         if (serverMessageId) {
           optimisticCurrent.serverId = serverMessageId;
         }
-        // Keep optimistic message visible until server list confirms it.
-        // This prevents a brief "disappear -> reappear" flicker on eventual-consistent backends.
+        // Keep optimistic state until realtime event confirms delivery.
         optimisticCurrent.pending = true;
       }
       this.saveChats();
       this.renderChatsList();
-
-      // Do not trigger an extra delayed sync here.
-      // Regular realtime/poll sync will reconcile server state without causing
-      // an immediate second render cycle (which can look like flicker).
     } catch (error) {
       if (!sentToServer) {
         const rollbackIndex = this.currentChat.messages.findIndex((item) => {
@@ -4579,6 +4917,8 @@ export class ChatAppMessagingMethods {
         }
         await this.showAlert(error?.message || 'Не вдалося надіслати повідомлення.');
       }
+    } finally {
+      this.outgoingMessageDispatchLock = false;
     }
   }
 

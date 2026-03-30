@@ -764,9 +764,6 @@ export class ChatAppInteractionMethods {
         e.preventDefault();
         const now = Date.now();
         const source = String(e?.type || 'click');
-        if (source === 'click' && this.lastSendTriggerSource === 'touchend' && now - this.lastSendTriggerAt < 800) {
-          return;
-        }
         if (now - this.lastSendTriggerAt < 220) return;
         this.lastSendTriggerAt = now;
         this.lastSendTriggerSource = source;
@@ -774,7 +771,6 @@ export class ChatAppInteractionMethods {
       };
       sendBtn.addEventListener('mousedown', keepComposerFocus);
       sendBtn.addEventListener('touchstart', keepComposerFocus, { passive: false });
-      sendBtn.addEventListener('touchend', triggerPrimaryAction, { passive: false });
       sendBtn.addEventListener('click', triggerPrimaryAction);
     }
     const messageInput = document.getElementById('messageInput');
