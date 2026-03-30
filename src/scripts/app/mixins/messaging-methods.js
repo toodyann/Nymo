@@ -396,8 +396,6 @@ export class ChatAppMessagingMethods {
 
   getMessageDeliveryState(message) {
     if (!message || message.from !== 'own') return '';
-    const hasServerId = Boolean(String(message.serverId || '').trim());
-    if (!hasServerId) return '';
     return this.isOwnMessageReadByOthers(message) ? 'read' : 'sent';
   }
 
@@ -413,6 +411,73 @@ export class ChatAppMessagingMethods {
       return `<span class="message-status read" aria-label="Прочитано">${icon}${icon}</span>`;
     }
     return `<span class="message-status sent" aria-label="Надіслано">${icon}</span>`;
+  }
+
+  isSameMessageIdentity(first, second) {
+    if (!first || !second) return false;
+    const firstServerId = String(first.serverId || '').trim();
+    const secondServerId = String(second.serverId || '').trim();
+    if (firstServerId && secondServerId) {
+      return firstServerId === secondServerId;
+    }
+
+    const firstId = Number(first.id);
+    const secondId = Number(second.id);
+    if (Number.isFinite(firstId) && Number.isFinite(secondId)) {
+      return firstId === secondId;
+    }
+
+    return first === second;
+  }
+
+  shouldShowMessageTail(msg, { messages = null, index = -1, nextMessage = undefined } = {}) {
+    if (!msg || msg.from !== 'own') return false;
+    const source = Array.isArray(messages)
+      ? messages
+      : (Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : []);
+
+    let resolvedNext = nextMessage;
+    if (resolvedNext === undefined) {
+      let resolvedIndex = Number(index);
+      if (!Number.isInteger(resolvedIndex) || resolvedIndex < 0 || resolvedIndex >= source.length) {
+        resolvedIndex = source.findIndex((item) => this.isSameMessageIdentity(item, msg));
+      }
+      resolvedNext = resolvedIndex >= 0 ? (source[resolvedIndex + 1] || null) : null;
+    }
+
+    return !resolvedNext || resolvedNext.from !== 'own';
+  }
+
+  syncOwnMessageTailInDom(container, appendedMessage = null) {
+    if (!container) return;
+    const nodes = container.querySelectorAll('.message');
+    if (!nodes.length) return;
+
+    const lastNode = nodes[nodes.length - 1];
+    const prevNode = nodes.length > 1 ? nodes[nodes.length - 2] : null;
+    const appendedFrom = String(appendedMessage?.from || lastNode?.dataset?.from || '').trim();
+    const prevFrom = String(prevNode?.dataset?.from || '').trim();
+
+    const prevContent = prevNode?.querySelector('.message-content');
+    const lastContent = lastNode?.querySelector('.message-content');
+
+    if (prevContent && prevFrom === 'own' && appendedFrom === 'own') {
+      prevContent.classList.remove('with-tail');
+    } else if (prevContent && prevFrom === 'own' && appendedFrom !== 'own') {
+      prevContent.classList.add('with-tail');
+    }
+
+    if (lastContent && appendedFrom === 'own') {
+      const sourceMessages = Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : [];
+      const appendedIndex = sourceMessages.length > 0 ? sourceMessages.length - 1 : -1;
+      const showTail = this.shouldShowMessageTail(appendedMessage, {
+        messages: sourceMessages,
+        index: appendedIndex
+      });
+      lastContent.classList.toggle('with-tail', showTail);
+    } else if (lastContent) {
+      lastContent.classList.remove('with-tail');
+    }
   }
 
   getLatestLocalMessageMarker(messages = []) {
@@ -4096,7 +4161,9 @@ export class ChatAppMessagingMethods {
     const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
     const hasInlineMeta = this.shouldInlineMessageMeta(msg);
     const inlineMetaClass = hasInlineMeta ? ' inline-meta' : '';
-    const tailClass = hasInlineMeta ? ' with-tail' : '';
+    const sourceMessages = Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : [];
+    const messageIndex = sourceMessages.length > 0 ? sourceMessages.length - 1 : -1;
+    const tailClass = this.shouldShowMessageTail(msg, { messages: sourceMessages, index: messageIndex }) ? ' with-tail' : '';
     const replyHtml = msg.replyTo
       ? `<div class="message-reply">
           <div class="message-reply-name">${msg.replyTo.from === 'own' ? this.user.name : this.currentChat.name}</div>
@@ -4116,6 +4183,7 @@ export class ChatAppMessagingMethods {
       </div>
     `;
     messagesContainer.appendChild(messageEl);
+    this.syncOwnMessageTailInDom(messagesContainer, msg);
     this.initMessageImageTransitions(messageEl);
     this.initVoiceMessageElements(messageEl);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;

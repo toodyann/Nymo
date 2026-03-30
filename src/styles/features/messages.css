@@ -263,30 +263,23 @@ html.dark-theme .message.other .message-content {
   content: "";
   position: absolute;
   bottom: 0;
-  pointer-events: none;
-}
-
-.message.own .message-content.with-tail::before {
-  right: -8px;
-}
-
-.message.other .message-content.with-tail::before {
-  left: -8px;
-}
-
-.message-content.with-tail::before {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   background: var(--bubble-bg);
-  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .message.own .message-content.with-tail::before {
+  right: -4px;
   clip-path: polygon(0 0, 100% 100%, 0 100%);
+  transform: rotate(-8deg);
 }
 
 .message.other .message-content.with-tail::before {
+  left: -4px;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  transform: rotate(8deg);
 }
 
 .message-content.inline-meta .message-text {

@@ -87,7 +87,27 @@ export class ChatAppCoreMethods {
   }
 
   getWalletCurrencyCode() {
+    const dynamic = String(this.walletCurrencyCode || '').trim().toUpperCase();
+    if (dynamic) return dynamic;
     return 'COIN';
+  }
+
+  extractWalletCurrencyCode(payload) {
+    const root = payload && typeof payload === 'object' ? payload : {};
+    const candidates = [
+      root?.currency,
+      root?.wallet?.currency,
+      root?.data?.currency,
+      root?.data?.wallet?.currency,
+      root?.result?.currency,
+      root?.result?.wallet?.currency
+    ];
+    for (const candidate of candidates) {
+      const code = String(candidate || '').trim().toUpperCase();
+      if (!code) continue;
+      if (/^[A-Z0-9_-]{2,12}$/.test(code)) return code;
+    }
+    return '';
   }
 
   getWalletApiHeaders({ json = false } = {}) {
@@ -266,8 +286,13 @@ export class ChatAppCoreMethods {
       }
 
       const walletPayload = await walletResponse.json().catch(() => ({}));
+      const backendCurrency = this.extractWalletCurrencyCode(walletPayload);
+      if (backendCurrency) {
+        this.walletCurrencyCode = backendCurrency;
+      }
       const nextBalance = this.extractWalletBalanceMinorUnits(walletPayload);
       if (Number.isFinite(nextBalance)) {
+        this.coinLastSyncedBalanceCents = nextBalance;
         this.setTapBalanceCents(nextBalance, { syncBackend: false });
       }
 
@@ -301,22 +326,146 @@ export class ChatAppCoreMethods {
     if (!String(headers?.['X-User-Id'] || '').trim()) return false;
 
     const safeBalance = Number.isFinite(balanceCents) ? Math.max(0, Math.floor(balanceCents)) : 0;
-    try {
-      const response = await fetch(buildApiUrl('/wallet/me/set-balance'), {
+    const now = Date.now();
+    const retryAfter = Number(this.walletSetBalanceRetryAfterTs || 0);
+    const canTrySetBalance = retryAfter <= 0 || now >= retryAfter;
+    const knownSynced = Number(this.coinLastSyncedBalanceCents);
+    const hasKnownSynced = Number.isFinite(knownSynced);
+    const positiveDelta = hasKnownSynced ? Math.max(0, safeBalance - knownSynced) : 0;
+    const tryEarnFallbackFirst = !canTrySetBalance && positiveDelta > 0;
+
+    if (!this.walletSetBalancePayloadKey) {
+      try {
+        this.walletSetBalancePayloadKey = String(localStorage.getItem('orion_wallet_set_balance_payload_key') || '').trim();
+      } catch {
+        // Ignore storage read errors.
+      }
+    }
+    if (!this.walletSetBalanceCurrency) {
+      try {
+        this.walletSetBalanceCurrency = String(localStorage.getItem('orion_wallet_set_balance_currency') || '').trim().toUpperCase();
+      } catch {
+        // Ignore storage read errors.
+      }
+    }
+
+    const preferredCurrency = String(this.walletSetBalanceCurrency || '').trim().toUpperCase();
+    const currencyCandidates = [...new Set([
+      preferredCurrency,
+      this.getWalletCurrencyCode(),
+      'COIN'
+    ].map((item) => String(item || '').trim().toUpperCase()).filter(Boolean))];
+    const payloadFactoryByKey = {
+      balance: (currency) => ({ currency, balance: safeBalance }),
+      balanceAmount: (currency) => ({ currency, balanceAmount: safeBalance }),
+      newBalance: (currency) => ({ currency, newBalance: safeBalance }),
+      balanceString: (currency) => ({ currency, balance: String(safeBalance) })
+    };
+    const payloadKeyOrder = ['balanceString', 'balance', 'balanceAmount', 'newBalance'];
+    const preferredPayloadKey = String(this.walletSetBalancePayloadKey || '').trim();
+    const payloadKeys = payloadKeyOrder.includes(preferredPayloadKey)
+      ? [preferredPayloadKey, ...payloadKeyOrder.filter((key) => key !== preferredPayloadKey)]
+      : payloadKeyOrder;
+
+    const requestJsonSafe = async (endpoint, payload) => {
+      const response = await fetch(buildApiUrl(endpoint), {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          currency: this.getWalletCurrencyCode(),
-          balance: safeBalance
-        })
+        body: JSON.stringify(payload)
       });
-      if (!response.ok) {
-        if (!silent) {
-          console.warn(`[wallet] POST /wallet/me/set-balance failed with status ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    };
+
+    const tryEarnFallback = async () => {
+      if (!hasKnownSynced) return false;
+      const delta = Math.max(0, safeBalance - knownSynced);
+      if (!delta) return false;
+
+      for (const currency of currencyCandidates) {
+        const earnPayloads = [
+          { currency, amount: delta },
+          { currency, value: delta }
+        ];
+        for (const payload of earnPayloads) {
+          try {
+            const { response, data } = await requestJsonSafe('/wallet/me/earn', payload);
+            if (response.ok) {
+              const responseCurrency = this.extractWalletCurrencyCode(data);
+              if (responseCurrency) this.walletCurrencyCode = responseCurrency;
+              this.coinLastSyncedBalanceCents = safeBalance;
+              return true;
+            }
+            if (![400, 404, 405, 422].includes(response.status)) {
+              if (!silent) {
+                const details = data?.message || data?.error || '';
+                console.warn(`[wallet] POST /wallet/me/earn failed (${response.status})${details ? `: ${details}` : ''}`);
+              }
+              return false;
+            }
+          } catch (error) {
+            if (!silent) {
+              console.warn('[wallet] Failed to sync earn fallback to backend:', error);
+            }
+            return false;
+          }
         }
-        return false;
       }
-      return true;
+      return false;
+    };
+
+    if (tryEarnFallbackFirst) {
+      const earned = await tryEarnFallback();
+      if (earned) return true;
+    }
+
+    try {
+      let lastStatus = 0;
+      let lastDetails = '';
+      for (const currency of currencyCandidates) {
+        for (const payloadKey of payloadKeys) {
+          const payloadFactory = payloadFactoryByKey[payloadKey];
+          if (typeof payloadFactory !== 'function') continue;
+          const payload = payloadFactory(currency);
+          const { response, data } = await requestJsonSafe('/wallet/me/set-balance', payload);
+          if (response.ok) {
+            const responseCurrency = this.extractWalletCurrencyCode(data);
+            if (responseCurrency) this.walletCurrencyCode = responseCurrency;
+            this.walletSetBalanceCurrency = currency;
+            this.walletSetBalancePayloadKey = payloadKey;
+            try {
+              localStorage.setItem('orion_wallet_set_balance_currency', this.walletSetBalanceCurrency);
+              localStorage.setItem('orion_wallet_set_balance_payload_key', this.walletSetBalancePayloadKey);
+            } catch {
+              // Ignore storage write errors.
+            }
+            this.coinLastSyncedBalanceCents = safeBalance;
+            this.walletSetBalanceRetryAfterTs = 0;
+            return true;
+          }
+
+          lastStatus = response.status;
+          lastDetails = String(data?.message || data?.error || '').trim();
+          if (![400, 404, 405, 422].includes(response.status)) {
+            if (!silent) {
+              console.warn(`[wallet] POST /wallet/me/set-balance failed with status ${response.status}${lastDetails ? `: ${lastDetails}` : ''}`);
+            }
+            return false;
+          }
+        }
+      }
+
+      if ([400, 404, 405, 422].includes(lastStatus)) {
+        this.walletSetBalanceRetryAfterTs = Date.now() + 60_000;
+        const earned = await tryEarnFallback();
+        if (earned) return true;
+      }
+
+      if (!silent) {
+        const details = lastDetails ? `: ${lastDetails}` : '';
+        console.warn(`[wallet] POST /wallet/me/set-balance failed with status ${lastStatus || 400}${details}`);
+      }
+      return false;
     } catch (error) {
       if (!silent) {
         console.warn('[wallet] Failed to sync balance to backend:', error);

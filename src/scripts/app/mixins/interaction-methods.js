@@ -2600,7 +2600,7 @@ export class ChatAppInteractionMethods {
     messagesContainer.classList.add('has-content');
 
     let lastDate = null;
-    this.currentChat.messages.forEach(msg => {
+    this.currentChat.messages.forEach((msg, index) => {
       const msgDateKey = msg.date || new Date().toISOString().slice(0,10);
 
       if (msgDateKey !== lastDate) {
@@ -2658,7 +2658,12 @@ export class ChatAppInteractionMethods {
       const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
       const hasInlineMeta = this.shouldInlineMessageMeta(msg);
       const inlineMetaClass = hasInlineMeta ? ' inline-meta' : '';
-      const tailClass = hasInlineMeta ? ' with-tail' : '';
+      const tailClass = typeof this.shouldShowMessageTail === 'function' && this.shouldShowMessageTail(msg, {
+        messages: this.currentChat.messages,
+        index
+      })
+        ? ' with-tail'
+        : '';
       const replyHtml = msg.replyTo
         ? `<div class="message-reply">
             <div class="message-reply-name">${msg.replyTo.from === 'own' ? this.user.name : this.currentChat.name}</div>
