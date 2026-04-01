@@ -74,6 +74,66 @@ const ORION_DRIVE_SHOP_CARS = [
   }
 ];
 
+const ORION_DRIVE_CAR_PHYSICS_DEFAULT = {
+  maxForward: 700,
+  maxReverse: 260,
+  forwardAccel: 360,
+  reverseAccel: 360,
+  transitionBrake: 760,
+  shiftBrakeForce: 980
+};
+
+const ORION_DRIVE_CAR_PHYSICS = {
+  taxi: {
+    maxForward: 675,
+    maxReverse: 245,
+    forwardAccel: 338,
+    reverseAccel: 330,
+    transitionBrake: 750,
+    shiftBrakeForce: 940
+  },
+  'sedan-sports': {
+    maxForward: 735,
+    maxReverse: 270,
+    forwardAccel: 392,
+    reverseAccel: 370,
+    transitionBrake: 780,
+    shiftBrakeForce: 1010
+  },
+  'suv-luxury': {
+    maxForward: 655,
+    maxReverse: 235,
+    forwardAccel: 322,
+    reverseAccel: 315,
+    transitionBrake: 820,
+    shiftBrakeForce: 1060
+  },
+  police: {
+    maxForward: 770,
+    maxReverse: 280,
+    forwardAccel: 402,
+    reverseAccel: 384,
+    transitionBrake: 820,
+    shiftBrakeForce: 1080
+  },
+  'race-future': {
+    maxForward: 840,
+    maxReverse: 292,
+    forwardAccel: 438,
+    reverseAccel: 396,
+    transitionBrake: 860,
+    shiftBrakeForce: 1120
+  },
+  firetruck: {
+    maxForward: 595,
+    maxReverse: 215,
+    forwardAccel: 286,
+    reverseAccel: 274,
+    transitionBrake: 910,
+    shiftBrakeForce: 1220
+  }
+};
+
 const ORION_DRIVE_SMOKE_DEFAULT = {
   id: 'smoke_default',
   type: 'smoke',
@@ -174,6 +234,15 @@ export class ChatAppFeaturesMethods {
   getOrionDriveCarAssetSrc(effect = '') {
     const match = ORION_DRIVE_SHOP_CARS.find((item) => item.effect === effect);
     return match?.assetSrc || '';
+  }
+
+  getOrionDriveCarPhysics(effect = '') {
+    const safeEffect = String(effect || '').trim();
+    const match = ORION_DRIVE_CAR_PHYSICS[safeEffect];
+    return {
+      ...ORION_DRIVE_CAR_PHYSICS_DEFAULT,
+      ...(match || {})
+    };
   }
 
   initShop(settingsContainer) {
@@ -3099,6 +3168,7 @@ export class ChatAppFeaturesMethods {
       const steerInput = resolveDriftSteerInput();
       const throttleInput = resolveDriftThrottleInput();
       const handbrakeRequested = driftState.keyHandbrake;
+      const carPhysics = this.getOrionDriveCarPhysics(this.user?.equippedDriveCar || '');
       driftState.lastSteerInput = Math.max(-1, Math.min(1, steerInput));
       syncDriftControlButtons();
 
@@ -3110,7 +3180,7 @@ export class ChatAppFeaturesMethods {
         driftState.shiftTargetDirection = desiredDirection;
         if (!isNearlyStopped) {
           driftState.shiftDelayTimer = DRIFT_SHIFT_DELAY_SECONDS;
-          const shiftBrakeForce = 980;
+          const shiftBrakeForce = carPhysics.shiftBrakeForce;
           if (driftState.speed > 0) {
             driftState.speed = Math.max(0, driftState.speed - shiftBrakeForce * elapsedSeconds);
           } else {
@@ -3138,16 +3208,16 @@ export class ChatAppFeaturesMethods {
           driftState.speed *= Math.exp(-coastingDrag * elapsedSeconds);
           if (Math.abs(driftState.speed) < 0.35) driftState.speed = 0;
         } else if (desiredDirection > 0) {
-          if (driftState.speed < 0) driftState.speed += 760 * elapsedSeconds;
-          driftState.speed += handbrakeRequested ? 130 * elapsedSeconds : 360 * elapsedSeconds;
+          if (driftState.speed < 0) driftState.speed += carPhysics.transitionBrake * elapsedSeconds;
+          driftState.speed += handbrakeRequested ? 130 * elapsedSeconds : carPhysics.forwardAccel * elapsedSeconds;
         } else {
-          if (driftState.speed > 0) driftState.speed -= 760 * elapsedSeconds;
-          driftState.speed -= 360 * elapsedSeconds;
+          if (driftState.speed > 0) driftState.speed -= carPhysics.transitionBrake * elapsedSeconds;
+          driftState.speed -= carPhysics.reverseAccel * elapsedSeconds;
         }
       }
 
-      const maxForward = 700;
-      const maxReverse = 260;
+      const maxForward = carPhysics.maxForward;
+      const maxReverse = carPhysics.maxReverse;
       driftState.speed = Math.max(-maxReverse, Math.min(maxForward, driftState.speed));
 
       let speedAbs = Math.abs(driftState.speed);
@@ -3157,7 +3227,7 @@ export class ChatAppFeaturesMethods {
         driftState.speed *= Math.exp(-handbrakeDrag * elapsedSeconds);
         speedAbs = Math.abs(driftState.speed);
       }
-      const speedRatio = Math.max(0, Math.min(1, speedAbs / 620));
+      const speedRatio = Math.max(0, Math.min(1, speedAbs / Math.max(560, maxForward)));
       const throttleActive = Math.abs(throttleInput) > 0.08;
       const idleExhaust = !throttleActive && speedAbs < 5;
       const coastExhaust = !throttleActive && speedAbs >= 5;
@@ -3197,7 +3267,7 @@ export class ChatAppFeaturesMethods {
       const backgroundLerp = Math.min(1, elapsedSeconds * (throttleInput === 0 ? 2.4 : 4));
       driftState.backgroundFlowSpeed += (targetBackgroundSpeed - driftState.backgroundFlowSpeed) * backgroundLerp;
       driftState.backgroundScroll = (driftState.backgroundScroll + driftState.backgroundFlowSpeed * elapsedSeconds) % 20000;
-      const steerSpeedPenalty = Math.max(0, Math.min(1, speedAbs / 620));
+      const steerSpeedPenalty = Math.max(0, Math.min(1, speedAbs / Math.max(560, maxForward)));
       const maxSteerAngle = (36 - steerSpeedPenalty * 14) * (Math.PI / 180);
       const targetSteerAngle = steerInput * maxSteerAngle;
       const steerResponse = 10.2 - steerSpeedPenalty * 2.1;
