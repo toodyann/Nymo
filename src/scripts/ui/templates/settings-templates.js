@@ -101,7 +101,7 @@ export const settingsTemplates = {
         <button type="button" class="settings-menu-item" data-section="notifications">
           <span class="settings-menu-icon settings-icon-notifications">
             <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,0,0-160,0c0,35.35-8.25,62.4-13.8,71.95A16,16,0,0,0,48,200H96.1a32,32,0,0,0,63.8,0H208a16,16,0,0,0,13.8-24.06ZM128,216a16,16,0,0,1-15.16-10.67h30.32A16,16,0,0,1,128,216ZM48,184c7.9-13.65,16-43.94,16-80a64,64,0,0,1,128,0c0,36.05,8.1,66.35,16,80Z"></path>
+              <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
             </svg>
           </span>
           <span class="settings-menu-label">
@@ -156,7 +156,7 @@ export const settingsTemplates = {
         <button type="button" class="settings-menu-item" data-section="language">
           <span class="settings-menu-icon settings-icon-language">
             <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm79.21,96h-32.8a158.6,158.6,0,0,0-13.36-52.7A88.2,88.2,0,0,1,207.21,120ZM128,40c10.87,0,27.7,16.87,37.36,45.18A142.13,142.13,0,0,1,171.86,120H128Zm0,96h43.86a142.13,142.13,0,0,1-6.5,34.82C155.7,199.13,138.87,216,128,216Zm0-16V85.18C137.66,56.87,154.49,40,165.36,40ZM94.95,67.3A158.6,158.6,0,0,0,81.59,120H48.79A88.2,88.2,0,0,1,94.95,67.3ZM48.79,136h32.8a158.6,158.6,0,0,0,13.36,52.7A88.2,88.2,0,0,1,48.79,136ZM120,216c-10.87,0-27.7-16.87-37.36-45.18A142.13,142.13,0,0,1,76.14,136H120Zm0-96H76.14a142.13,142.13,0,0,1,6.5-34.82C92.3,56.87,109.13,40,120,40Zm41.05,68.7A158.6,158.6,0,0,0,174.41,136h32.8A88.2,88.2,0,0,1,161.05,188.7Z"></path>
+              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.62,87.62,0,0,1-6.4,32.94l-44.7-27.49a15.92,15.92,0,0,0-6.24-2.23l-22.82-3.08a16.11,16.11,0,0,0-16,7.86h-8.72l-3.8-7.86a15.91,15.91,0,0,0-11-8.67l-8-1.73L96.14,104h16.71a16.06,16.06,0,0,0,7.73-2l12.25-6.76a16.62,16.62,0,0,0,3-2.14l26.91-24.34A15.93,15.93,0,0,0,166,49.1l-.36-.65A88.11,88.11,0,0,1,216,128ZM143.31,41.34,152,56.9,125.09,81.24,112.85,88H96.14a16,16,0,0,0-13.88,8l-8.73,15.23L63.38,84.19,74.32,58.32a87.87,87.87,0,0,1,69-17ZM40,128a87.53,87.53,0,0,1,8.54-37.8l11.34,30.27a16,16,0,0,0,11.62,10l21.43,4.61L96.74,143a16.09,16.09,0,0,0,14.4,9h1.48l-7.23,16.23a16,16,0,0,0,2.86,17.37l.14.14L128,205.94l-1.94,10A88.11,88.11,0,0,1,40,128Zm102.58,86.78,1.13-5.81a16.09,16.09,0,0,0-4-13.9,1.85,1.85,0,0,1-.14-.14L120,174.74,133.7,144l22.82,3.08,45.72,28.12A88.18,88.18,0,0,1,142.58,214.78Z"></path>
             </svg>
           </span>
           <span class="settings-menu-label">
@@ -315,7 +315,7 @@ export const settingsTemplates = {
       <button type="button" class="settings-menu-item" data-section="notifications">
         <span class="settings-menu-icon settings-icon-notifications">
           <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,0,0-160,0c0,35.35-8.25,62.4-13.8,71.95A16,16,0,0,0,48,200H96.1a32,32,0,0,0,63.8,0H208a16,16,0,0,0,13.8-24.06ZM128,216a16,16,0,0,1-15.16-10.67h30.32A16,16,0,0,1,128,216ZM48,184c7.9-13.65,16-43.94,16-80a64,64,0,0,1,128,0c0,36.05,8.1,66.35,16,80Z"></path>
+            <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
           </svg>
         </span>
         <span class="settings-menu-label"><span>Сповіщення</span></span>
@@ -355,7 +355,7 @@ export const settingsTemplates = {
       <button type="button" class="settings-menu-item" data-section="language">
         <span class="settings-menu-icon settings-icon-language">
           <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm79.21,96h-32.8a158.6,158.6,0,0,0-13.36-52.7A88.2,88.2,0,0,1,207.21,120ZM128,40c10.87,0,27.7,16.87,37.36,45.18A142.13,142.13,0,0,1,171.86,120H128Zm0,96h43.86a142.13,142.13,0,0,1-6.5,34.82C155.7,199.13,138.87,216,128,216Zm0-16V85.18C137.66,56.87,154.49,40,165.36,40ZM94.95,67.3A158.6,158.6,0,0,0,81.59,120H48.79A88.2,88.2,0,0,1,94.95,67.3ZM48.79,136h32.8a158.6,158.6,0,0,0,13.36,52.7A88.2,88.2,0,0,1,48.79,136ZM120,216c-10.87,0-27.7-16.87-37.36-45.18A142.13,142.13,0,0,1,76.14,136H120Zm0-96H76.14a142.13,142.13,0,0,1,6.5-34.82C92.3,56.87,109.13,40,120,40Zm41.05,68.7A158.6,158.6,0,0,0,174.41,136h32.8A88.2,88.2,0,0,1,161.05,188.7Z"></path>
+            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.62,87.62,0,0,1-6.4,32.94l-44.7-27.49a15.92,15.92,0,0,0-6.24-2.23l-22.82-3.08a16.11,16.11,0,0,0-16,7.86h-8.72l-3.8-7.86a15.91,15.91,0,0,0-11-8.67l-8-1.73L96.14,104h16.71a16.06,16.06,0,0,0,7.73-2l12.25-6.76a16.62,16.62,0,0,0,3-2.14l26.91-24.34A15.93,15.93,0,0,0,166,49.1l-.36-.65A88.11,88.11,0,0,1,216,128ZM143.31,41.34,152,56.9,125.09,81.24,112.85,88H96.14a16,16,0,0,0-13.88,8l-8.73,15.23L63.38,84.19,74.32,58.32a87.87,87.87,0,0,1,69-17ZM40,128a87.53,87.53,0,0,1,8.54-37.8l11.34,30.27a16,16,0,0,0,11.62,10l21.43,4.61L96.74,143a16.09,16.09,0,0,0,14.4,9h1.48l-7.23,16.23a16,16,0,0,0,2.86,17.37l.14.14L128,205.94l-1.94,10A88.11,88.11,0,0,1,40,128Zm102.58,86.78,1.13-5.81a16.09,16.09,0,0,0-4-13.9,1.85,1.85,0,0,1-.14-.14L120,174.74,133.7,144l22.82,3.08,45.72,28.12A88.18,88.18,0,0,1,142.58,214.78Z"></path>
           </svg>
         </span>
         <span class="settings-menu-label"><span>Мова</span></span>
@@ -960,7 +960,7 @@ export const settingsTemplates = {
 
         <div class="mini-game-controls">
           <button class="btn btn-primary mini-game-btn" id="grid2048Restart" type="button">Нова гра</button>
-          <span class="mini-game-hint">Керування: ← ↑ → ↓ або свайпи по полю.</span>
+          <span class="mini-game-hint">Керування: стрілки або W/A/S/D.</span>
         </div>
       </div>
     </section>
@@ -972,10 +972,6 @@ export const settingsTemplates = {
       </div>
 
       <div class="mini-game-stage">
-        <div class="mini-game-score-current">
-          Очки: <strong id="flappyOrionScore">0</strong> · Монет: <strong id="flappyOrionCoins">0</strong> · Зароблено: <strong id="flappyOrionEarned">0,00</strong>
-        </div>
-
         <div class="mini-game-canvas flappy-orion-canvas-wrap" id="flappyOrionCanvasWrap" aria-live="polite">
           <canvas
             class="flappy-orion-canvas"
@@ -985,7 +981,6 @@ export const settingsTemplates = {
             width="960"
             height="540"
           ></canvas>
-          <p class="flappy-orion-status" id="flappyOrionStatus">Натисни «Старт», щоб полетіти. Клікай або тисни Space для стрибка.</p>
         </div>
 
         <div class="mini-game-controls">
@@ -1023,9 +1018,28 @@ export const settingsTemplates = {
             <span class="orion-drift-speedometer-unit">км/год</span>
           </div>
 
-          <p class="orion-drift-status" id="orionDriftStatus">Відкритий режим: катайся вільно. Керуй газом, гальмом і поворотом, Space — ручне гальмо.</p>
+          <p class="orion-drift-status" id="orionDriftStatus">Відкритий режим: катайся вільно. Керування: стрілки або W/A/S/D.</p>
 
           <button class="orion-drift-start-overlay" id="orionDriftStart" type="button">Старт</button>
+
+          <div class="orion-drift-controls" aria-label="Мобільне керування Orion Drive">
+            <div class="orion-drift-controls-group">
+              <button class="orion-drift-control-btn" id="orionDriftSteerLeft" type="button" aria-label="Поворот ліворуч">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+                  <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+                </svg>
+              </button>
+              <button class="orion-drift-control-btn" id="orionDriftSteerRight" type="button" aria-label="Поворот праворуч">
+                <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+                  <path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69l-58.35-58.34a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="orion-drift-controls-group">
+              <button class="orion-drift-control-btn orion-drift-control-btn--pedal" id="orionDriftGas" type="button" aria-label="Газ">Газ</button>
+              <button class="orion-drift-control-btn orion-drift-control-btn--pedal" id="orionDriftBrake" type="button" aria-label="Гальмо">Гальмо</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

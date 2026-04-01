@@ -296,190 +296,6 @@ export class ChatAppMessagingMethods {
     return NaN;
   }
 
-  normalizeMessageReadByUserIds(readBy) {
-    const source = Array.isArray(readBy)
-      ? readBy
-      : (readBy == null ? [] : [readBy]);
-    if (!source.length) return [];
-
-    const normalized = [];
-    source.forEach((entry) => {
-      if (entry == null) return;
-      if (typeof entry === 'string' || typeof entry === 'number') {
-        const id = String(entry).trim();
-        if (id) normalized.push(id);
-        return;
-      }
-      if (typeof entry !== 'object') return;
-
-      const nestedUser = entry.user && typeof entry.user === 'object'
-        ? entry.user
-        : null;
-      const id = String(
-        entry.userId
-          ?? entry.readerId
-          ?? entry.id
-          ?? entry.memberId
-          ?? entry.fromUserId
-          ?? nestedUser?.id
-          ?? nestedUser?.userId
-          ?? ''
-      ).trim();
-      if (id) normalized.push(id);
-    });
-
-    return [...new Set(normalized)];
-  }
-
-  mergeUniqueUserIds(...parts) {
-    const merged = [];
-    parts.forEach((part) => {
-      const ids = this.normalizeMessageReadByUserIds(part);
-      ids.forEach((id) => {
-        if (!merged.includes(id)) merged.push(id);
-      });
-    });
-    return merged;
-  }
-
-  extractMessageReadByUserIds(messagePayload) {
-    if (!messagePayload || typeof messagePayload !== 'object') return [];
-    const direct = [
-      messagePayload.readBy,
-      messagePayload.readers,
-      messagePayload.seenBy,
-      messagePayload.viewedBy
-    ];
-    for (const candidate of direct) {
-      const ids = this.normalizeMessageReadByUserIds(candidate);
-      if (ids.length) return ids;
-    }
-
-    const nestedReadBy = messagePayload.readBy && typeof messagePayload.readBy === 'object'
-      ? messagePayload.readBy
-      : null;
-    if (nestedReadBy) {
-      const ids = this.normalizeMessageReadByUserIds(
-        nestedReadBy.users
-          ?? nestedReadBy.members
-          ?? nestedReadBy.items
-          ?? nestedReadBy.data
-      );
-      if (ids.length) return ids;
-    }
-
-    const nestedData = messagePayload.data && typeof messagePayload.data === 'object'
-      ? messagePayload.data
-      : null;
-    if (nestedData) {
-      const ids = this.extractMessageReadByUserIds(nestedData);
-      if (ids.length) return ids;
-    }
-
-    return [];
-  }
-
-  getMessageReadStateSignature(message) {
-    const readBy = this.normalizeMessageReadByUserIds(message?.readBy);
-    if (!readBy.length) return '';
-    return [...readBy].sort().join(',');
-  }
-
-  isOwnMessageReadByOthers(message) {
-    if (!message || message.from !== 'own') return false;
-    const readBy = this.normalizeMessageReadByUserIds(message.readBy);
-    if (!readBy.length) return false;
-    const selfId = this.getAuthUserId();
-    if (!selfId) return readBy.length > 0;
-    return readBy.some((id) => id !== selfId);
-  }
-
-  getMessageDeliveryState(message) {
-    if (!message || message.from !== 'own') return '';
-    return this.isOwnMessageReadByOthers(message) ? 'read' : 'sent';
-  }
-
-  getMessageStatusCheckSvg() {
-    return '<svg class="message-status-check" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>';
-  }
-
-  getMessageDeliveryStatusHtml(message) {
-    const state = this.getMessageDeliveryState(message);
-    if (!state) return '';
-    const icon = this.getMessageStatusCheckSvg();
-    if (state === 'read') {
-      return `<span class="message-status read" aria-label="Прочитано">${icon}${icon}</span>`;
-    }
-    return `<span class="message-status sent" aria-label="Надіслано">${icon}</span>`;
-  }
-
-  isSameMessageIdentity(first, second) {
-    if (!first || !second) return false;
-    const firstServerId = String(first.serverId || '').trim();
-    const secondServerId = String(second.serverId || '').trim();
-    if (firstServerId && secondServerId) {
-      return firstServerId === secondServerId;
-    }
-
-    const firstId = Number(first.id);
-    const secondId = Number(second.id);
-    if (Number.isFinite(firstId) && Number.isFinite(secondId)) {
-      return firstId === secondId;
-    }
-
-    return first === second;
-  }
-
-  shouldShowMessageTail(msg, { messages = null, index = -1, nextMessage = undefined } = {}) {
-    if (!msg || msg.from !== 'own') return false;
-    const source = Array.isArray(messages)
-      ? messages
-      : (Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : []);
-
-    let resolvedNext = nextMessage;
-    if (resolvedNext === undefined) {
-      let resolvedIndex = Number(index);
-      if (!Number.isInteger(resolvedIndex) || resolvedIndex < 0 || resolvedIndex >= source.length) {
-        resolvedIndex = source.findIndex((item) => this.isSameMessageIdentity(item, msg));
-      }
-      resolvedNext = resolvedIndex >= 0 ? (source[resolvedIndex + 1] || null) : null;
-    }
-
-    return !resolvedNext || resolvedNext.from !== 'own';
-  }
-
-  syncOwnMessageTailInDom(container, appendedMessage = null) {
-    if (!container) return;
-    const nodes = container.querySelectorAll('.message');
-    if (!nodes.length) return;
-
-    const lastNode = nodes[nodes.length - 1];
-    const prevNode = nodes.length > 1 ? nodes[nodes.length - 2] : null;
-    const appendedFrom = String(appendedMessage?.from || lastNode?.dataset?.from || '').trim();
-    const prevFrom = String(prevNode?.dataset?.from || '').trim();
-
-    const prevContent = prevNode?.querySelector('.message-content');
-    const lastContent = lastNode?.querySelector('.message-content');
-
-    if (prevContent && prevFrom === 'own' && appendedFrom === 'own') {
-      prevContent.classList.remove('with-tail');
-    } else if (prevContent && prevFrom === 'own' && appendedFrom !== 'own') {
-      prevContent.classList.add('with-tail');
-    }
-
-    if (lastContent && appendedFrom === 'own') {
-      const sourceMessages = Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : [];
-      const appendedIndex = sourceMessages.length > 0 ? sourceMessages.length - 1 : -1;
-      const showTail = this.shouldShowMessageTail(appendedMessage, {
-        messages: sourceMessages,
-        index: appendedIndex
-      });
-      lastContent.classList.toggle('with-tail', showTail);
-    } else if (lastContent) {
-      lastContent.classList.remove('with-tail');
-    }
-  }
-
   getLatestLocalMessageMarker(messages = []) {
     const source = Array.isArray(messages) ? messages : [];
     if (!source.length) {
@@ -583,177 +399,10 @@ export class ChatAppMessagingMethods {
     if (!chat || typeof chat !== 'object') return false;
     const messages = Array.isArray(chat.messages) ? chat.messages : [];
     const changed = this.applyChatUnreadState(chat, messages, { markAsRead: true });
-    this.flushReadReceiptsForChat(chat, messages);
     if (changed && persist) {
       this.saveChats();
     }
     return changed;
-  }
-
-  isReadReceiptsEnabled() {
-    return this.settings?.readReceipts !== false;
-  }
-
-  getSentReadReceiptsSet(chatServerId) {
-    const safeChatId = String(chatServerId || '').trim();
-    if (!safeChatId) return new Set();
-    if (!(this.sentReadReceiptsByChatId instanceof Map)) {
-      this.sentReadReceiptsByChatId = new Map();
-    }
-    const existing = this.sentReadReceiptsByChatId.get(safeChatId);
-    if (existing instanceof Set) return existing;
-    const next = new Set();
-    this.sentReadReceiptsByChatId.set(safeChatId, next);
-    return next;
-  }
-
-  getPendingReadReceiptsSet(chatServerId) {
-    const safeChatId = String(chatServerId || '').trim();
-    if (!safeChatId) return new Set();
-    if (!(this.pendingReadReceiptsByChatId instanceof Map)) {
-      this.pendingReadReceiptsByChatId = new Map();
-    }
-    const existing = this.pendingReadReceiptsByChatId.get(safeChatId);
-    if (existing instanceof Set) return existing;
-    const next = new Set();
-    this.pendingReadReceiptsByChatId.set(safeChatId, next);
-    return next;
-  }
-
-  collectServerMessageIdsForReadReceipts(chat, messages = []) {
-    const chatServerId = this.resolveChatServerId(chat);
-    const selfId = this.getAuthUserId();
-    if (!chatServerId || !selfId) return [];
-
-    const source = Array.isArray(messages) ? messages : [];
-    if (!source.length) return [];
-
-    const sentSet = this.getSentReadReceiptsSet(chatServerId);
-    const pendingSet = this.getPendingReadReceiptsSet(chatServerId);
-    const result = [];
-
-    source.forEach((message) => {
-      if (!message || message.from !== 'other') return;
-      const serverId = String(message.serverId || '').trim();
-      if (!serverId) return;
-
-      const readBy = this.normalizeMessageReadByUserIds(message.readBy);
-      if (readBy.includes(selfId)) {
-        sentSet.add(serverId);
-        pendingSet.delete(serverId);
-        return;
-      }
-      if (sentSet.has(serverId) || pendingSet.has(serverId)) return;
-      result.push(serverId);
-    });
-
-    return [...new Set(result)];
-  }
-
-  markLocalMessagesReadByUser(chatServerId, messageIds = [], readerUserId = '') {
-    const safeChatId = String(chatServerId || '').trim();
-    const safeReaderId = String(readerUserId || '').trim();
-    const messageIdSet = new Set(
-      (Array.isArray(messageIds) ? messageIds : [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean)
-    );
-    if (!safeChatId || !safeReaderId || !messageIdSet.size) return false;
-
-    let changed = false;
-    const sourceChats = Array.isArray(this.chats) ? this.chats : [];
-    sourceChats.forEach((chat) => {
-      if (!chat) return;
-      if (this.resolveChatServerId(chat) !== safeChatId) return;
-      const messages = Array.isArray(chat.messages) ? chat.messages : [];
-      messages.forEach((message) => {
-        const serverId = String(message?.serverId || '').trim();
-        if (!serverId || !messageIdSet.has(serverId)) return;
-        const current = this.normalizeMessageReadByUserIds(message.readBy);
-        if (current.includes(safeReaderId)) return;
-        message.readBy = [...current, safeReaderId];
-        changed = true;
-      });
-    });
-
-    return changed;
-  }
-
-  async sendReadReceiptsToServer(chatServerId, messageIds = []) {
-    const safeChatId = String(chatServerId || '').trim();
-    const normalizedIds = [...new Set(
-      (Array.isArray(messageIds) ? messageIds : [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean)
-    )];
-    if (!safeChatId || !normalizedIds.length) return {};
-
-    const payload = { chatId: safeChatId, messageIds: normalizedIds };
-    const attempts = [
-      { endpoint: '/messages/read-receipts', method: 'POST', payload },
-      { endpoint: '/messages/read', method: 'POST', payload }
-    ];
-
-    let lastError = 'Не вдалося позначити повідомлення прочитаними.';
-    for (const attempt of attempts) {
-      const response = await fetch(buildApiUrl(attempt.endpoint), {
-        method: attempt.method,
-        headers: this.getApiHeaders({ json: true }),
-        body: JSON.stringify(attempt.payload)
-      });
-      const data = await this.readJsonSafe(response);
-      if (response.ok) return data || {};
-      lastError = `HTTP ${response.status}: ${this.getRequestErrorMessage(data, lastError)}`;
-      if (response.status === 404 || response.status === 405) continue;
-      throw new Error(lastError);
-    }
-
-    throw new Error(lastError);
-  }
-
-  flushReadReceiptsForChat(chat, messages = []) {
-    if (!this.isReadReceiptsEnabled()) return;
-    const chatServerId = this.resolveChatServerId(chat);
-    if (!chatServerId) return;
-
-    if (!(this.readReceiptsInFlightByChatId instanceof Set)) {
-      this.readReceiptsInFlightByChatId = new Set();
-    }
-    if (this.readReceiptsInFlightByChatId.has(chatServerId)) return;
-
-    const pendingIds = this.collectServerMessageIdsForReadReceipts(chat, messages);
-    if (!pendingIds.length) return;
-
-    const pendingSet = this.getPendingReadReceiptsSet(chatServerId);
-    pendingIds.forEach((id) => pendingSet.add(id));
-    this.readReceiptsInFlightByChatId.add(chatServerId);
-    let requestSucceeded = false;
-
-    this.sendReadReceiptsToServer(chatServerId, pendingIds)
-      .then(() => {
-        requestSucceeded = true;
-        const selfId = this.getAuthUserId();
-        if (selfId) {
-          this.markLocalMessagesReadByUser(chatServerId, pendingIds, selfId);
-        }
-        const sentSet = this.getSentReadReceiptsSet(chatServerId);
-        pendingIds.forEach((id) => sentSet.add(id));
-      })
-      .catch(() => {
-        // Ignore transient read-receipt failures.
-      })
-      .finally(() => {
-        const pendingAfter = this.getPendingReadReceiptsSet(chatServerId);
-        pendingIds.forEach((id) => pendingAfter.delete(id));
-        this.readReceiptsInFlightByChatId.delete(chatServerId);
-        if (!requestSucceeded) return;
-        const liveChat = this.findChatByServerId(chatServerId) || chat;
-        const liveMessages = Array.isArray(liveChat?.messages) ? liveChat.messages : messages;
-        const nextBatch = this.collectServerMessageIdsForReadReceipts(liveChat, liveMessages);
-        if (nextBatch.length) {
-          this.flushReadReceiptsForChat(liveChat, liveMessages);
-        }
-      });
   }
 
   async hasNewServerMessageAfterSelfDelete(chatServerId, marker = {}) {
@@ -1049,22 +698,6 @@ export class ChatAppMessagingMethods {
     return lower === 'новий чат' || lower === 'користувач';
   }
 
-  normalizeBooleanLike(value, fallback = false) {
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'number') {
-      if (value === 1) return true;
-      if (value === 0) return false;
-      return Boolean(value);
-    }
-    if (typeof value === 'string') {
-      const normalized = value.trim().toLowerCase();
-      if (!normalized) return fallback;
-      if (['true', '1', 'yes', 'y', 'on', 'group'].includes(normalized)) return true;
-      if (['false', '0', 'no', 'n', 'off', 'direct', 'private'].includes(normalized)) return false;
-    }
-    return fallback;
-  }
-
   extractMessageSenderName(message) {
     if (!message || typeof message !== 'object') return '';
     const senderCandidates = [
@@ -1223,22 +856,27 @@ export class ChatAppMessagingMethods {
 
   renderNewChatSearchState({
     loading = false,
+    message = '',
     users = [],
     selectedUserId = ''
   } = {}) {
+    const statusEl = document.getElementById('newChatUserSearchStatus');
     const listEl = document.getElementById('newChatUserSearchResults');
-    if (!listEl) return;
+    if (!statusEl || !listEl) return;
 
     if (loading) {
+      statusEl.textContent = 'Пошук користувачів...';
       listEl.innerHTML = '';
       return;
     }
 
     if (!users.length) {
+      statusEl.textContent = message || 'Користувачів не знайдено.';
       listEl.innerHTML = '';
       return;
     }
 
+    statusEl.textContent = '';
     listEl.innerHTML = users.map((user) => {
       const tagText = user.tag ? `@${user.tag}` : '';
       const secondary = [tagText, user.mobile || user.email || ''].filter(Boolean).join(' · ');
@@ -1369,263 +1007,6 @@ export class ChatAppMessagingMethods {
         });
       }
     }, 260);
-  }
-
-  getNewChatGroupSelectedIds() {
-    if (!(this.newChatGroupSelectedIds instanceof Set)) {
-      this.newChatGroupSelectedIds = new Set();
-    }
-    return this.newChatGroupSelectedIds;
-  }
-
-  collectRelatedUsersForGroupChat() {
-    const selfId = this.getAuthUserId();
-    const relatedById = new Map();
-
-    const mergeUser = (userId, meta = {}) => {
-      const safeId = String(userId || '').trim();
-      if (!safeId || (selfId && safeId === selfId)) return;
-
-      const prev = relatedById.get(safeId) || {
-        id: safeId,
-        name: '',
-        tag: '',
-        mobile: '',
-        email: '',
-        avatarImage: '',
-        avatarColor: '',
-        raw: null
-      };
-
-      const nextName = String(meta.name || '').trim();
-      const nextAvatarImage = this.getAvatarImage(meta.avatarImage);
-      const nextAvatarColor = String(meta.avatarColor || '').trim();
-      const nextTag = String(meta.tag || '').trim();
-      const nextMobile = String(meta.mobile || '').trim();
-      const nextEmail = String(meta.email || '').trim();
-
-      const next = {
-        ...prev,
-        name: prev.name || nextName || 'Користувач',
-        tag: prev.tag || nextTag,
-        mobile: prev.mobile || nextMobile,
-        email: prev.email || nextEmail,
-        avatarImage: prev.avatarImage || nextAvatarImage,
-        avatarColor: prev.avatarColor || nextAvatarColor
-      };
-      relatedById.set(safeId, next);
-    };
-
-    const chats = Array.isArray(this.chats) ? this.chats : [];
-    chats.forEach((chat) => {
-      if (!chat || typeof chat !== 'object') return;
-
-      const participantId = String(chat.participantId || '').trim();
-      if (participantId && !chat.isGroup) {
-        const cached = this.getCachedUserMeta(participantId);
-        const fallbackName = !this.isGenericOrInvalidChatName(chat.name, { isGroup: false })
-          ? String(chat.name || '').trim()
-          : '';
-        mergeUser(participantId, {
-          name: cached?.name || fallbackName,
-          avatarImage: this.getAvatarImage(chat.avatarImage || chat.avatarUrl || cached?.avatarImage),
-          avatarColor: String(chat.avatarColor || cached?.avatarColor || '').trim()
-        });
-      }
-
-      const messages = Array.isArray(chat.messages) ? chat.messages : [];
-      messages.forEach((msg) => {
-        const senderId = String(msg?.senderId || '').trim();
-        if (!senderId || (selfId && senderId === selfId)) return;
-        const cached = this.getCachedUserMeta(senderId);
-        mergeUser(senderId, {
-          name: String(msg?.senderName || '').trim() || cached?.name || '',
-          avatarImage: this.getAvatarImage(
-            msg?.senderAvatarImage
-              || msg?.senderAvatar
-              || msg?.avatarImage
-              || cached?.avatarImage
-          ),
-          avatarColor: String(msg?.senderAvatarColor || cached?.avatarColor || '').trim()
-        });
-      });
-    });
-
-    return Array.from(relatedById.values()).sort((a, b) =>
-      String(a.name || '').localeCompare(String(b.name || ''), 'uk', { sensitivity: 'base' })
-    );
-  }
-
-  syncNewChatGroupMembersInputFromSelection() {
-    const input = document.getElementById('groupMembersInput');
-    if (!input) return;
-    const selectedIds = this.getNewChatGroupSelectedIds();
-    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
-    const members = users
-      .filter((user) => selectedIds.has(user.id))
-      .map((user) => String(user.name || '').trim())
-      .filter(Boolean);
-    input.value = members.join(', ');
-  }
-
-  renderNewChatGroupSelectionSummary() {
-    const selectedWrap = document.getElementById('newChatGroupSelectedUsers');
-    const countEl = document.getElementById('newChatGroupCount');
-    if (!selectedWrap) return;
-
-    if (!this.newChatGroupMode) {
-      selectedWrap.innerHTML = '';
-      if (countEl) countEl.textContent = '0';
-      return;
-    }
-
-    const selectedIds = this.getNewChatGroupSelectedIds();
-    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
-    const selectedUsers = users.filter((user) => selectedIds.has(user.id));
-
-    if (countEl) {
-      countEl.textContent = String(selectedUsers.length);
-    }
-
-    if (!selectedUsers.length) {
-      selectedWrap.innerHTML = '<span class="new-chat-group-selected-empty">Ще нікого не обрано</span>';
-      return;
-    }
-
-    selectedWrap.innerHTML = selectedUsers.map((user) => {
-      const avatarHtml = this.getChatAvatarHtml(
-        {
-          name: user.name,
-          avatarImage: user.avatarImage,
-          avatarColor: user.avatarColor
-        },
-        'new-chat-group-chip-avatar'
-      );
-      return `
-        <button type="button" class="new-chat-group-chip" data-user-id="${this.escapeHtml(user.id)}" title="Прибрати ${this.escapeHtml(user.name)}">
-          ${avatarHtml}
-          <span class="new-chat-group-chip-name">${this.escapeHtml(user.name)}</span>
-          <span class="new-chat-group-chip-remove" aria-hidden="true">×</span>
-        </button>
-      `;
-    }).join('');
-
-    selectedWrap.querySelectorAll('.new-chat-group-chip').forEach((button) => {
-      button.addEventListener('click', () => {
-        const userId = String(button.getAttribute('data-user-id') || '').trim();
-        if (!userId) return;
-        const selected = this.getNewChatGroupSelectedIds();
-        selected.delete(userId);
-        this.syncNewChatGroupMembersInputFromSelection();
-        this.renderNewChatGroupUsersList();
-      });
-    });
-  }
-
-  renderNewChatGroupUsersList() {
-    const listEl = document.getElementById('newChatGroupUsersList');
-    if (!listEl) return;
-    const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
-    const selectedIds = this.getNewChatGroupSelectedIds();
-
-    if (!this.newChatGroupMode) {
-      listEl.innerHTML = '';
-      this.renderNewChatGroupSelectionSummary();
-      return;
-    }
-
-    this.renderNewChatGroupSelectionSummary();
-
-    if (!users.length) {
-      listEl.innerHTML = '<div class="new-chat-group-users-empty">Немає користувачів для групи. Спочатку створіть або відкрийте діалог.</div>';
-      return;
-    }
-
-    listEl.innerHTML = users.map((user) => {
-      const tagText = user.tag ? `@${user.tag}` : '';
-      const secondary = [tagText, user.mobile || user.email || ''].filter(Boolean).join(' · ');
-      const isSelected = selectedIds.has(user.id);
-      const activeClass = isSelected ? ' active' : '';
-      const avatarHtml = this.getChatAvatarHtml(
-        {
-          name: user.name,
-          avatarImage: user.avatarImage,
-          avatarColor: user.avatarColor
-        },
-        'new-chat-user-result-avatar'
-      );
-
-      return `
-        <button type="button" class="new-chat-user-result new-chat-group-user${activeClass}" data-user-id="${this.escapeHtml(user.id)}" aria-pressed="${isSelected ? 'true' : 'false'}">
-          ${avatarHtml}
-          <span class="new-chat-user-result-copy">
-            <span class="new-chat-user-result-main">${this.escapeHtml(user.name)}</span>
-            <span class="new-chat-user-result-secondary">${this.escapeHtml(secondary || 'Користувач зі списку контактів')}</span>
-          </span>
-          <span class="new-chat-group-user-indicator" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
-            </svg>
-          </span>
-        </button>
-      `;
-    }).join('');
-
-    listEl.querySelectorAll('.new-chat-group-user').forEach((button) => {
-      button.addEventListener('click', () => {
-        const userId = String(button.getAttribute('data-user-id') || '').trim();
-        if (!userId) return;
-        if (selectedIds.has(userId)) {
-          selectedIds.delete(userId);
-        } else {
-          selectedIds.add(userId);
-        }
-        this.syncNewChatGroupMembersInputFromSelection();
-        this.renderNewChatGroupUsersList();
-      });
-    });
-  }
-
-  setNewChatGroupMode(active) {
-    const next = Boolean(active);
-    this.newChatGroupMode = next;
-
-    const button = document.getElementById('newChatGroupModeBtn');
-    const groupFields = document.getElementById('groupFields');
-    const userSearchWrap = document.getElementById('newChatUserSearch');
-
-    if (button) {
-      button.classList.toggle('active', next);
-      button.setAttribute('aria-expanded', next ? 'true' : 'false');
-    }
-    if (groupFields) {
-      groupFields.classList.toggle('active', next);
-    }
-    if (userSearchWrap) {
-      userSearchWrap.classList.toggle('hidden', next);
-    }
-
-    if (next) {
-      this.newChatSelectedUser = null;
-      this.newChatGroupUsers = this.collectRelatedUsersForGroupChat();
-      this.renderNewChatSearchState({ users: [], selectedUserId: '' });
-      this.renderNewChatGroupUsersList();
-      this.syncNewChatGroupMembersInputFromSelection();
-      return;
-    }
-
-    const selectedIds = this.getNewChatGroupSelectedIds();
-    selectedIds.clear();
-    this.newChatGroupUsers = [];
-    this.syncNewChatGroupMembersInputFromSelection();
-    this.renderNewChatGroupSelectionSummary();
-    this.renderNewChatGroupUsersList();
-    const value = document.getElementById('newContactInput')?.value || '';
-    this.scheduleUserSearch(value);
-  }
-
-  toggleNewChatGroupMode() {
-    this.setNewChatGroupMode(!this.newChatGroupMode);
   }
 
   async updateCurrentUserProfileOnServer(payload = {}) {
@@ -1860,15 +1241,8 @@ export class ChatAppMessagingMethods {
       avatarColor,
       status: 'offline',
       messages: [],
-      isGroup: this.normalizeBooleanLike(
-        payload?.isGroup,
-        this.normalizeBooleanLike(fallback?.isGroup, false)
-      ),
-      members: Array.isArray(fallback?.members) ? fallback.members : [],
-      groupParticipants: this.mergeGroupParticipants(
-        Array.isArray(fallback?.groupParticipants) ? fallback.groupParticipants : [],
-        []
-      )
+      isGroup: Boolean(payload?.isGroup ?? fallback?.isGroup),
+      members: Array.isArray(fallback?.members) ? fallback.members : []
     };
   }
 
@@ -1888,22 +1262,14 @@ export class ChatAppMessagingMethods {
   extractRealtimeUserId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedUser = payload.user && typeof payload.user === 'object' ? payload.user : null;
-    const nestedData = payload.data && typeof payload.data === 'object' ? payload.data : null;
-    const nestedDataUser = nestedData?.user && typeof nestedData.user === 'object' ? nestedData.user : null;
     return String(
       payload.userId
         ?? payload.senderId
         ?? payload.fromUserId
         ?? payload.authorId
-        ?? nestedData?.userId
-        ?? nestedData?.senderId
-        ?? nestedData?.fromUserId
-        ?? nestedData?.authorId
         ?? payload.id
         ?? nestedUser?.id
         ?? nestedUser?.userId
-        ?? nestedDataUser?.id
-        ?? nestedDataUser?.userId
         ?? ''
     ).trim();
   }
@@ -1911,239 +1277,15 @@ export class ChatAppMessagingMethods {
   extractRealtimeChatId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedChat = payload.chat && typeof payload.chat === 'object' ? payload.chat : null;
-    const nestedData = payload.data && typeof payload.data === 'object' ? payload.data : null;
-    const nestedDataChat = nestedData?.chat && typeof nestedData.chat === 'object' ? nestedData.chat : null;
     return String(
       payload.chatId
         ?? payload.roomId
         ?? payload.conversationId
-        ?? nestedData?.chatId
-        ?? nestedData?.roomId
-        ?? nestedData?.conversationId
         ?? payload.id
         ?? nestedChat?.id
         ?? nestedChat?.chatId
-        ?? nestedDataChat?.id
-        ?? nestedDataChat?.chatId
         ?? ''
     ).trim();
-  }
-
-  extractChatIdFromMessagePayload(messagePayload) {
-    if (!messagePayload || typeof messagePayload !== 'object') return '';
-    const nestedChat = messagePayload.chat && typeof messagePayload.chat === 'object'
-      ? messagePayload.chat
-      : null;
-    return String(
-      messagePayload.chatId
-        ?? messagePayload.roomId
-        ?? messagePayload.conversationId
-        ?? messagePayload.threadId
-        ?? nestedChat?.id
-        ?? nestedChat?.chatId
-        ?? ''
-    ).trim();
-  }
-
-  isLikelyServerMessagePayload(item) {
-    if (!item || typeof item !== 'object') return false;
-    const directId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
-    if (directId) return true;
-    return Boolean(
-      item.content != null
-      || item.text != null
-      || item.message != null
-      || item.attachmentUrl != null
-      || item.imageUrl != null
-      || item.audioUrl != null
-      || item.createdAt != null
-      || item.timestamp != null
-      || item.date != null
-    );
-  }
-
-  shouldProcessRealtimeServerMessage(chatServerId, messagePayload) {
-    const safeChatId = String(chatServerId || '').trim();
-    if (!safeChatId || !messagePayload || typeof messagePayload !== 'object') return false;
-
-    const directId = String(
-      messagePayload.id
-      ?? messagePayload.messageId
-      ?? messagePayload._id
-      ?? ''
-    ).trim();
-    const senderId = String(
-      messagePayload.senderId
-      ?? messagePayload.fromUserId
-      ?? messagePayload.authorId
-      ?? messagePayload.userId
-      ?? messagePayload.user?.id
-      ?? ''
-    ).trim();
-    const type = String(messagePayload.type ?? '').trim() || 'text';
-    const content = String(messagePayload.content ?? messagePayload.text ?? messagePayload.message ?? '').trim();
-    const attachment = String(
-      messagePayload.attachmentUrl
-      ?? messagePayload.imageUrl
-      ?? messagePayload.audioUrl
-      ?? ''
-    ).trim();
-    const replyTo = String(
-      messagePayload.replyToId
-      ?? messagePayload.replyToMessageId
-      ?? messagePayload.replyTo?.id
-      ?? ''
-    ).trim();
-
-    const keys = [];
-    if (directId) {
-      keys.push(`${safeChatId}:id:${directId}`);
-    }
-    keys.push(`${safeChatId}:fp:${senderId}|${type}|${content}|${attachment}|${replyTo}`);
-
-    if (!(this.realtimeProcessedMessageKeys instanceof Map)) {
-      this.realtimeProcessedMessageKeys = new Map();
-    }
-
-    const now = Date.now();
-    const ttlMs = 2500;
-    for (const [existingKey, ts] of this.realtimeProcessedMessageKeys.entries()) {
-      if (!Number.isFinite(ts) || now - ts > ttlMs) {
-        this.realtimeProcessedMessageKeys.delete(existingKey);
-      }
-    }
-
-    for (const key of keys) {
-      const lastProcessedAt = Number(this.realtimeProcessedMessageKeys.get(key) || 0);
-      if (lastProcessedAt > 0 && now - lastProcessedAt < ttlMs) {
-        return false;
-      }
-    }
-
-    keys.forEach((key) => this.realtimeProcessedMessageKeys.set(key, now));
-    return true;
-  }
-
-  extractRealtimeCreatedMessages(payload) {
-    if (!payload || typeof payload !== 'object') return [];
-
-    const collectFromArray = (source) => {
-      if (!Array.isArray(source)) return [];
-      return source.filter((entry) => entry && typeof entry === 'object' && this.isLikelyServerMessagePayload(entry));
-    };
-
-    const arrayCandidates = this.dedupeServerMessages([
-      ...collectFromArray(payload.messages),
-      ...collectFromArray(payload.items),
-      ...collectFromArray(payload.results),
-      ...collectFromArray(payload.data?.messages),
-      ...collectFromArray(payload.data?.items),
-      ...collectFromArray(payload.data?.results)
-    ]);
-    if (arrayCandidates.length) return arrayCandidates;
-
-    const directMessageCandidates = this.dedupeServerMessages([
-      payload.message,
-      payload.data?.message
-    ].filter((entry) => entry && typeof entry === 'object' && this.isLikelyServerMessagePayload(entry)));
-    if (directMessageCandidates.length) return directMessageCandidates;
-
-    if (payload.data && typeof payload.data === 'object' && this.isLikelyServerMessagePayload(payload.data)) {
-      return [payload.data];
-    }
-    if (this.isLikelyServerMessagePayload(payload)) {
-      return [payload];
-    }
-
-    return [];
-  }
-
-  async sendTextMessageViaRealtime(chat, text, { replyToLocalId = null } = {}) {
-    const socket = this.realtimeSocket;
-    if (!socket || !this.realtimeSocketConnected) {
-      throw new Error('Realtime socket не підключений.');
-    }
-
-    const chatServerId = this.resolveChatServerId(chat);
-    if (!chatServerId) {
-      throw new Error('Не вдалося визначити чат для надсилання повідомлення.');
-    }
-
-    const payload = {
-      chatId: chatServerId,
-      content: text
-    };
-    const replyToServerId = this.getServerMessageIdByLocalId(chat, replyToLocalId);
-    if (replyToServerId) {
-      payload.replyToId = replyToServerId;
-    }
-
-    if (typeof window !== 'undefined') {
-      if (!window.__orionRealtimeEmitGuard || typeof window.__orionRealtimeEmitGuard !== 'object') {
-        window.__orionRealtimeEmitGuard = { key: '', at: 0 };
-      }
-      const emitKey = `${chatServerId}|${String(text || '').trim()}|${String(replyToServerId || '').trim()}`;
-      const nowTs = Date.now();
-      const lastKey = String(window.__orionRealtimeEmitGuard.key || '');
-      const lastTs = Number(window.__orionRealtimeEmitGuard.at || 0);
-      if (lastKey === emitKey && Number.isFinite(lastTs) && nowTs - lastTs < 1400) {
-        return { ...payload, skippedDuplicate: true };
-      }
-      window.__orionRealtimeEmitGuard.key = emitKey;
-      window.__orionRealtimeEmitGuard.at = nowTs;
-    }
-
-    try {
-      socket.emit('sendMessage', payload);
-      return { ...payload };
-    } catch (error) {
-      throw new Error(error?.message || 'Не вдалося надіслати повідомлення через WebSocket.');
-    }
-  }
-
-  scheduleRealtimePendingMessageSyncFallback({
-    chatServerId = '',
-    localMessageId = null,
-    text = ''
-  } = {}) {
-    const safeChatId = String(chatServerId || '').trim();
-    const safeLocalId = Number(localMessageId);
-    const safeText = String(text || '');
-    if (!safeChatId || !Number.isFinite(safeLocalId) || !safeText.trim()) return;
-
-    if (!(this.realtimePendingMessageSyncTimers instanceof Map)) {
-      this.realtimePendingMessageSyncTimers = new Map();
-    }
-    const existingTimer = this.realtimePendingMessageSyncTimers.get(safeLocalId);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    const timerId = window.setTimeout(async () => {
-      this.realtimePendingMessageSyncTimers.delete(safeLocalId);
-
-      const liveChat = this.findChatByServerId(safeChatId);
-      if (!liveChat) return;
-
-      const liveMessage = Array.isArray(liveChat.messages)
-        ? liveChat.messages.find((item) => Number(item?.id) === safeLocalId)
-        : null;
-      if (!liveMessage || !liveMessage.pending || String(liveMessage.serverId || '').trim()) return;
-
-      try {
-        if (this.currentChat && this.resolveChatServerId(this.currentChat) === safeChatId) {
-          await this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false });
-          return;
-        }
-
-        const serverMessages = await this.fetchChatMessagesFromServer(liveChat);
-        this.applyRealtimeIncomingMessagesToChat(liveChat, serverMessages, { forceScroll: false });
-      } catch {
-        // Keep optimistic message pending; next regular sync can reconcile later.
-      }
-    }, 4200);
-
-    this.realtimePendingMessageSyncTimers.set(safeLocalId, timerId);
   }
 
   findChatByServerId(chatServerId) {
@@ -2264,19 +1406,12 @@ export class ChatAppMessagingMethods {
     socket.on('connect', () => {
       this.realtimeSocketConnected = true;
       this.joinRealtimeChatRoom(this.currentChat);
-      if (this.serverChatSyncInitialized) {
-        this.runServerChatSync({ forceScroll: false }).catch(() => {});
-      }
     });
 
     socket.on('disconnect', () => {
       this.realtimeSocketConnected = false;
       this.realtimeJoinedChatId = '';
       this.stopRealtimeTyping({ emit: false });
-      this.serverChatLastRunAt = 0;
-      if (this.serverChatSyncInitialized) {
-        this.runServerChatSync({ forceScroll: false }).catch(() => {});
-      }
     });
 
     socket.on('userOnline', (payload) => this.handleRealtimePresenceEvent(payload, true));
@@ -2285,8 +1420,6 @@ export class ChatAppMessagingMethods {
     socket.on('userTyping', (payload) => this.handleRealtimeTypingEvent(payload));
     socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
     socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
-    socket.on('messagesRead', (payload) => this.handleRealtimeMessagesReadEvent(payload));
-    socket.on('messageCreated', (payload) => this.handleRealtimeMessageCreatedEvent(payload));
   }
 
   joinRealtimeChatRoom(chat) {
@@ -2302,6 +1435,7 @@ export class ChatAppMessagingMethods {
 
     try {
       this.realtimeSocket.emit('joinChat', { chatId: chatServerId });
+      this.realtimeSocket.emit('joinRoom', { chatId: chatServerId });
     } catch {
       // Ignore transient websocket errors.
     }
@@ -2316,6 +1450,7 @@ export class ChatAppMessagingMethods {
     }
     try {
       this.realtimeSocket.emit('leaveChat', { chatId: chatServerId });
+      this.realtimeSocket.emit('leaveRoom', { chatId: chatServerId });
     } catch {
       // Ignore transient websocket errors.
     }
@@ -2441,162 +1576,6 @@ export class ChatAppMessagingMethods {
     }
   }
 
-  extractRealtimeMessageIds(payload) {
-    if (!payload || typeof payload !== 'object') return [];
-    const directIds = [
-      payload.messageId,
-      payload.lastReadMessageId,
-      payload.untilMessageId,
-      payload.readToMessageId,
-      payload.data?.messageId,
-      payload.data?.lastReadMessageId
-    ];
-    const arrays = [
-      payload.messageIds,
-      payload.ids,
-      payload.messages,
-      payload.items,
-      payload.data?.messageIds,
-      payload.data?.ids,
-      payload.data?.messages
-    ];
-
-    const normalized = [];
-    directIds.forEach((id) => {
-      const safeId = String(id || '').trim();
-      if (safeId) normalized.push(safeId);
-    });
-
-    arrays.forEach((entry) => {
-      if (!Array.isArray(entry)) return;
-      entry.forEach((item) => {
-        if (item == null) return;
-        if (typeof item === 'string' || typeof item === 'number') {
-          const safeId = String(item).trim();
-          if (safeId) normalized.push(safeId);
-          return;
-        }
-        if (typeof item !== 'object') return;
-        const safeId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
-        if (safeId) normalized.push(safeId);
-      });
-    });
-
-    return [...new Set(normalized)];
-  }
-
-  handleRealtimeMessagesReadEvent(payload) {
-    const readerUserId = this.extractRealtimeUserId(payload);
-    if (!readerUserId) return;
-
-    let chatServerId = this.extractRealtimeChatId(payload);
-    if (!chatServerId && this.currentChat) {
-      chatServerId = this.resolveChatServerId(this.currentChat);
-    }
-    if (!chatServerId) return;
-
-    const messageIds = this.extractRealtimeMessageIds(payload);
-    if (!messageIds.length) return;
-
-    const changed = this.markLocalMessagesReadByUser(chatServerId, messageIds, readerUserId);
-    if (!changed) return;
-
-    const selfId = this.getAuthUserId();
-    if (selfId && readerUserId === selfId) {
-      const sentSet = this.getSentReadReceiptsSet(chatServerId);
-      messageIds.forEach((id) => sentSet.add(id));
-    }
-
-    this.saveChats();
-    this.renderChatsList();
-    if (this.currentChat && this.resolveChatServerId(this.currentChat) === chatServerId) {
-      this.renderChatAfterSync({ forceScroll: false });
-    }
-  }
-
-  applyRealtimeIncomingMessagesToChat(chat, serverMessages = [], { forceScroll = false } = {}) {
-    if (!chat || !Array.isArray(serverMessages) || !serverMessages.length) return false;
-
-    const prevMessages = Array.isArray(chat.messages) ? chat.messages : [];
-    let nextMessages = this.mapServerMessagesToLocal(chat, serverMessages);
-    nextMessages = this.mergeServerMessagesWithLocalHistory(nextMessages, prevMessages);
-
-    const previousSignature = prevMessages
-      .map((msg) => this.getMessageSyncSignature(msg))
-      .join('|');
-    const nextSignature = nextMessages
-      .map((msg) => this.getMessageSyncSignature(msg))
-      .join('|');
-    if (previousSignature === nextSignature) return false;
-
-    const previousKeys = new Set(
-      prevMessages
-        .map((msg) => String(msg?.serverId || `local:${msg?.id ?? ''}`))
-        .filter(Boolean)
-    );
-    let newestAppendedMessageId = null;
-    for (let i = nextMessages.length - 1; i >= 0; i -= 1) {
-      const item = nextMessages[i];
-      const key = String(item?.serverId || `local:${item?.id ?? ''}`);
-      if (!previousKeys.has(key)) {
-        if (item?.from === 'own') continue;
-        newestAppendedMessageId = item?.id ?? null;
-        break;
-      }
-    }
-
-    chat.messages = nextMessages;
-    const chatServerId = this.resolveChatServerId(chat);
-    const isActiveChat = Boolean(
-      this.currentChat
-      && chatServerId
-      && this.resolveChatServerId(this.currentChat) === chatServerId
-    );
-    this.applyChatUnreadState(chat, nextMessages, { markAsRead: isActiveChat });
-    if (isActiveChat) {
-      this.flushReadReceiptsForChat(chat, nextMessages);
-    }
-
-    this.saveChats();
-    this.renderChatsList();
-    this.updateChatHeader();
-
-    if (isActiveChat) {
-      this.renderChatAfterSync({ forceScroll, highlightId: newestAppendedMessageId });
-    }
-    return true;
-  }
-
-  handleRealtimeMessageCreatedEvent(payload) {
-    const realtimeMessages = this.extractRealtimeCreatedMessages(payload);
-    if (!realtimeMessages.length) return;
-
-    const chatIdFromPayload = this.extractRealtimeChatId(payload);
-    const chatIdFromMessage = this.extractChatIdFromMessagePayload(realtimeMessages[0]);
-    const chatServerId = String(chatIdFromPayload || chatIdFromMessage || '').trim();
-    if (!chatServerId) return;
-    const filteredMessages = realtimeMessages.filter((item) => {
-      const hasStableServerId = Boolean(this.extractServerMessageIdFromPayload(item));
-      if (!hasStableServerId) return false;
-      return this.shouldProcessRealtimeServerMessage(chatServerId, item);
-    });
-    if (!filteredMessages.length) return;
-
-    const targetChat = this.findChatByServerId(chatServerId);
-    if (targetChat) {
-      this.applyRealtimeIncomingMessagesToChat(targetChat, filteredMessages, { forceScroll: false });
-      return;
-    }
-
-    this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true })
-      .then(() => {
-        const liveChat = this.findChatByServerId(chatServerId);
-        if (!liveChat) return;
-        this.applyRealtimeIncomingMessagesToChat(liveChat, filteredMessages, { forceScroll: false });
-      })
-      .catch(() => {});
-  }
-
   emitRealtimeTypingState(isTyping) {
     if (!this.isOwnTypingVisibilityEnabled()) return;
     const socket = this.realtimeSocket;
@@ -2657,27 +1636,10 @@ export class ChatAppMessagingMethods {
     this.realtimeTypingActiveChatId = '';
   }
 
-  shouldThrottleServerChatPoll() {
-    const realtimeConnected = Boolean(this.realtimeSocketConnected && this.isOwnOnlineVisibilityEnabled());
-    if (!realtimeConnected) return false;
-
-    const fallbackIntervalMs = Number(this.serverChatSyncFallbackIntervalMs || 15000);
-    const safeIntervalMs = Number.isFinite(fallbackIntervalMs) && fallbackIntervalMs > 0
-      ? fallbackIntervalMs
-      : 15000;
-    const lastRunAt = Number(this.serverChatLastRunAt || 0);
-    if (!Number.isFinite(lastRunAt) || lastRunAt <= 0) return false;
-
-    return (Date.now() - lastRunAt) < safeIntervalMs;
-  }
-
   initializeServerChatSync() {
     if (this.serverChatSyncInitialized) return;
     this.serverChatSyncInitialized = true;
     this.serverChatSyncInFlight = false;
-    this.serverChatLastRunAt = 0;
-    this.serverChatSyncTickIntervalMs = 2500;
-    this.serverChatSyncFallbackIntervalMs = 15000;
     this.initializeRealtimeSocket();
 
     this.runServerChatSync({ forceScroll: false });
@@ -2686,12 +1648,8 @@ export class ChatAppMessagingMethods {
       window.clearInterval(this.serverChatSyncTimer);
     }
     this.serverChatSyncTimer = window.setInterval(() => {
-      this.runServerChatSync({
-        forceScroll: false,
-        skipWhenHidden: true,
-        allowThrottle: true
-      });
-    }, this.serverChatSyncTickIntervalMs);
+      this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
+    }, 2500);
 
     if (this.serverChatVisibilityHandler) {
       document.removeEventListener('visibilitychange', this.serverChatVisibilityHandler);
@@ -2704,12 +1662,10 @@ export class ChatAppMessagingMethods {
     document.addEventListener('visibilitychange', this.serverChatVisibilityHandler);
   }
 
-  async runServerChatSync({ forceScroll = false, skipWhenHidden = false, allowThrottle = false } = {}) {
+  async runServerChatSync({ forceScroll = false, skipWhenHidden = false } = {}) {
     if (skipWhenHidden && document.visibilityState === 'hidden') return;
-    if (allowThrottle && this.shouldThrottleServerChatPoll()) return;
     if (this.serverChatSyncInFlight) return;
     this.serverChatSyncInFlight = true;
-    this.serverChatLastRunAt = Date.now();
     try {
       await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
       await this.syncCurrentChatMessagesFromServer({ forceScroll, highlightOwn: false });
@@ -2798,13 +1754,7 @@ export class ChatAppMessagingMethods {
           avatarColor: participantAvatarColor,
           status: participantStatus
         });
-        const isGroup = this.normalizeBooleanLike(
-          item.isGroup,
-          this.normalizeBooleanLike(
-            item.group,
-            String(item.type || '').trim().toLowerCase() === 'group'
-          )
-        );
+        const isGroup = Boolean(item.isGroup ?? item.group ?? item.type === 'group');
         const fallbackName = String(item.name ?? item.title ?? '').trim();
         const cachedParticipant = this.getCachedUserMeta(participantId);
         const cachedParticipantName = String(cachedParticipant?.name || '').trim();
@@ -2830,18 +1780,6 @@ export class ChatAppMessagingMethods {
           || item.online
         );
         const activityAt = this.getChatActivityTimestampValue(item);
-        const groupParticipants = isGroup
-          ? this.mergeGroupParticipants(
-            normalizedParticipants.map((member) => ({
-              id: String(member.id || '').trim() || null,
-              name: String(member.name || '').trim() || 'Користувач',
-              avatarImage: this.getAvatarImage(member.avatarImage || member.avatarUrl),
-              avatarColor: String(member.avatarColor || '').trim(),
-              status: this.normalizePresenceStatus(member.status)
-            })),
-            []
-          )
-          : [];
 
         return {
           serverId,
@@ -2853,7 +1791,6 @@ export class ChatAppMessagingMethods {
           avatarUrl: avatarImage,
           avatarColor,
           status,
-          groupParticipants,
           activityAt
         };
       })
@@ -2865,61 +1802,6 @@ export class ChatAppMessagingMethods {
     const source = candidates.find(Array.isArray);
     if (!source) return [];
     return source.filter((item) => item && typeof item === 'object');
-  }
-
-  getServerMessageUniqueKey(item) {
-    if (!item || typeof item !== 'object') return '';
-    const directId = String(item.id ?? item.messageId ?? item._id ?? '').trim();
-    if (directId) return `id:${directId}`;
-    const createdAt = String(item.createdAt ?? item.timestamp ?? item.date ?? '').trim();
-    const senderId = String(
-      item.senderId
-      ?? item.fromUserId
-      ?? item.authorId
-      ?? item.userId
-      ?? item.user?.id
-      ?? ''
-    ).trim();
-    const type = String(item.type ?? '').trim();
-    const content = String(item.content ?? item.text ?? item.message ?? '').trim();
-    const attachment = String(item.attachmentUrl ?? item.imageUrl ?? item.audioUrl ?? '').trim();
-    return `fp:${createdAt}|${senderId}|${type}|${content}|${attachment}`;
-  }
-
-  dedupeServerMessages(messages = []) {
-    const source = Array.isArray(messages) ? messages : [];
-    if (source.length <= 1) return source;
-    const seen = new Set();
-    const deduped = [];
-    source.forEach((item) => {
-      const key = this.getServerMessageUniqueKey(item);
-      if (!key || seen.has(key)) return;
-      seen.add(key);
-      deduped.push(item);
-    });
-    return deduped;
-  }
-
-  async fetchServerMessagesBatch(chatServerId, query = {}) {
-    const params = new URLSearchParams({ chatId: String(chatServerId) });
-    Object.entries(query || {}).forEach(([key, value]) => {
-      if (value == null) return;
-      const safeValue = String(value).trim();
-      if (!safeValue) return;
-      params.set(key, safeValue);
-    });
-
-    const response = await fetch(buildApiUrl(`/messages?${params.toString()}`), {
-      headers: this.getApiHeaders()
-    });
-    const data = await this.readJsonSafe(response);
-    if (!response.ok) {
-      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося завантажити повідомлення.'));
-    }
-    return {
-      data,
-      messages: this.normalizeServerMessagesPayload(data)
-    };
   }
 
   getChatActivityTimestampValue(chat) {
@@ -2981,10 +1863,6 @@ export class ChatAppMessagingMethods {
     const mergedStatus = this.normalizePresenceStatus(primary?.status)
       || this.normalizePresenceStatus(secondary?.status)
       || '';
-    const mergedGroupParticipants = this.mergeGroupParticipants(
-      primary?.groupParticipants,
-      secondary?.groupParticipants
-    );
 
     return {
       ...secondary,
@@ -2999,41 +1877,11 @@ export class ChatAppMessagingMethods {
       avatarUrl: primaryAvatar || secondaryAvatar,
       avatarColor: String(primary?.avatarColor || secondary?.avatarColor || '').trim(),
       status: mergedStatus,
-      groupParticipants: mergedGroupParticipants,
       activityAt: Math.max(
         this.getChatActivityTimestampValue(primary),
         this.getChatActivityTimestampValue(secondary)
       )
     };
-  }
-
-  mergeGroupParticipants(primaryList = [], secondaryList = []) {
-    const map = new Map();
-    const append = (candidate) => {
-      if (!candidate || typeof candidate !== 'object') return;
-      const id = String(candidate.id || candidate.userId || '').trim();
-      const name = String(candidate.name || '').trim();
-      const key = id || (name ? `name:${name.toLowerCase()}` : '');
-      if (!key) return;
-
-      const previous = map.get(key) || {};
-      const avatarImage = this.getAvatarImage(candidate.avatarImage || candidate.avatarUrl || previous.avatarImage || previous.avatarUrl);
-      const avatarColor = String(candidate.avatarColor || previous.avatarColor || '').trim();
-      const status = this.normalizePresenceStatus(candidate.status || previous.status);
-
-      map.set(key, {
-        id: id || String(previous.id || '').trim() || null,
-        name: name || String(previous.name || '').trim() || 'Користувач',
-        avatarImage,
-        avatarUrl: avatarImage,
-        avatarColor,
-        status
-      });
-    };
-
-    (Array.isArray(secondaryList) ? secondaryList : []).forEach(append);
-    (Array.isArray(primaryList) ? primaryList : []).forEach(append);
-    return Array.from(map.values());
   }
 
   pickPreferredNormalizedServerChat(a, b) {
@@ -3098,9 +1946,7 @@ export class ChatAppMessagingMethods {
   getComparableMessageKey(message) {
     if (!message || typeof message !== 'object') return '';
     const type = String(message.type || 'text');
-    const text = String(message.text || '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const text = String(message.text || '').trim();
     const imageUrl = String(message.imageUrl || '').trim();
     const audioUrl = String(message.audioUrl || '').trim();
     return [type, text, imageUrl, audioUrl].join('|');
@@ -3119,8 +1965,6 @@ export class ChatAppMessagingMethods {
           includeTime ? String(msg?.time || '') : '',
           includeTime ? String(msg?.date || '') : '',
           msg?.edited ? '1' : '0',
-          this.getMessageDeliveryState(msg),
-          this.getMessageReadStateSignature(msg),
           String(msg?.imageUrl || ''),
           String(msg?.audioUrl || ''),
           String(msg?.replyTo?.from || ''),
@@ -3128,99 +1972,6 @@ export class ChatAppMessagingMethods {
         ].join(':');
       })
       .join('|');
-  }
-
-  getMessageSyncSignature(message) {
-    if (!message || typeof message !== 'object') return '';
-    return [
-      String(message.serverId || message.id || ''),
-      String(message.text || ''),
-      String(message.time || ''),
-      String(message.date || ''),
-      message.edited ? '1' : '0',
-      message.pending ? '1' : '0',
-      this.getMessageReadStateSignature(message)
-    ].join(':');
-  }
-
-  getMessageMergeKey(message) {
-    if (!message || typeof message !== 'object') return '';
-    const localId = Number(message.id);
-    if (Number.isFinite(localId) && localId > 0) return `local:${localId}`;
-
-    const serverId = String(message.serverId || '').trim();
-    if (serverId) return `server:${serverId}`;
-
-    const from = String(message.from || '').trim();
-    const type = String(message.type || 'text').trim();
-    const text = String(message.text || '').trim();
-    const createdAt = String(message.createdAt || message.timestamp || '').trim();
-    const date = String(message.date || '').trim();
-    const time = String(message.time || '').trim();
-    const imageUrl = String(message.imageUrl || '').trim();
-    const audioUrl = String(message.audioUrl || '').trim();
-    return `fp:${from}|${type}|${text}|${createdAt}|${date}|${time}|${imageUrl}|${audioUrl}`;
-  }
-
-  mergeServerMessagesWithLocalHistory(serverMessages = [], localMessages = []) {
-    const incoming = Array.isArray(serverMessages) ? serverMessages : [];
-    const existing = Array.isArray(localMessages) ? localMessages : [];
-    if (!existing.length) return incoming;
-    if (!incoming.length) return existing;
-
-    const map = new Map();
-    const order = [];
-
-    const pushBase = (message, index) => {
-      const key = this.getMessageMergeKey(message);
-      if (!key) return;
-      if (!map.has(key)) order.push(key);
-      map.set(key, { ...message, _mergeOrder: index });
-    };
-
-    existing.forEach((message, index) => pushBase(message, index));
-
-    incoming.forEach((message, index) => {
-      const key = this.getMessageMergeKey(message);
-      if (!key) return;
-      const prev = map.get(key);
-      if (!prev) {
-        order.push(key);
-        map.set(key, { ...message, _mergeOrder: existing.length + index });
-        return;
-      }
-
-      map.set(key, {
-        ...prev,
-        ...message,
-        // Preserve local echo marker while we are within reconciliation window.
-        clientEcho: Boolean(prev.clientEcho || message.clientEcho),
-        pending: Boolean(message.pending)
-      });
-    });
-
-    return order
-      .map((key, index) => {
-        const item = map.get(key);
-        return {
-          item,
-          index,
-          ts: this.getMessageTimestampValue(item),
-          mergeOrder: Number(item?._mergeOrder)
-        };
-      })
-      .sort((a, b) => {
-        const aTs = Number.isFinite(a.ts) ? a.ts : Number.NaN;
-        const bTs = Number.isFinite(b.ts) ? b.ts : Number.NaN;
-        if (Number.isFinite(aTs) && Number.isFinite(bTs) && aTs !== bTs) return aTs - bTs;
-        const aOrder = Number.isFinite(a.mergeOrder) ? a.mergeOrder : a.index;
-        const bOrder = Number.isFinite(b.mergeOrder) ? b.mergeOrder : b.index;
-        return aOrder - bOrder;
-      })
-      .map(({ item }) => {
-        const { _mergeOrder, ...clean } = item || {};
-        return clean;
-      });
   }
 
   mergeRecentPendingOwnMessages(baseMessages = [], liveMessages = [], { ttlMs = 45000 } = {}) {
@@ -3252,17 +2003,13 @@ export class ChatAppMessagingMethods {
     let nextLocalId = Math.max(0, ...Array.from(usedLocalIds)) + 1;
 
     safeLive.forEach((liveMessage) => {
-      if (!liveMessage || liveMessage.from !== 'own') return;
+      if (!liveMessage || liveMessage.from !== 'own' || liveMessage.pending !== true) return;
 
       const liveServerId = String(liveMessage.serverId || '').trim();
-      const liveTs = this.getMessageTimestampValue(liveMessage);
-      const withinTtl = Number.isFinite(liveTs) && (nowTs - liveTs <= safeTtl);
-      const keepAsEcho = liveMessage.pending === true || (liveMessage.clientEcho === true && withinTtl);
-      if (!keepAsEcho) return;
-
       if (liveServerId && usedServerIds.has(liveServerId)) return;
 
       const key = this.getComparableMessageKey(liveMessage);
+      const liveTs = this.getMessageTimestampValue(liveMessage);
       let matchedServerIndex = -1;
       let bestDelta = Number.POSITIVE_INFINITY;
 
@@ -3285,7 +2032,7 @@ export class ChatAppMessagingMethods {
         return;
       }
 
-      if (!withinTtl) return;
+      if (!Number.isFinite(liveTs) || nowTs - liveTs > safeTtl) return;
 
       let localId = Number(liveMessage.id);
       if (Number.isFinite(localId) && localId > 0 && usedLocalIds.has(localId)) {
@@ -3303,7 +2050,7 @@ export class ChatAppMessagingMethods {
       merged.push({
         ...liveMessage,
         id: localId,
-        pending: liveMessage.pending === true
+        pending: true
       });
     });
 
@@ -3430,9 +2177,6 @@ export class ChatAppMessagingMethods {
         const explicitEditedFlag = item.edited ?? item.isEdited ?? item.wasEdited;
         const serverEdited = explicitEditedFlag === true || explicitEditedFlag === 1 || explicitEditedFlag === 'true';
         const localEdited = Boolean(existingLocalMessage?.edited);
-        const serverReadByIds = this.extractMessageReadByUserIds(item);
-        const localReadByIds = this.normalizeMessageReadByUserIds(existingLocalMessage?.readBy);
-        const mergedReadByIds = this.mergeUniqueUserIds(serverReadByIds, localReadByIds);
         if (!type) {
           if (audioUrl || attachmentMime.startsWith('audio/')) {
             type = 'voice';
@@ -3443,15 +2187,7 @@ export class ChatAppMessagingMethods {
           }
         }
 
-        const canAttemptPendingOwnReconcile = Boolean(
-          !existingLocalMessage
-          && (
-            from === 'own'
-            || !senderId
-            || !selfId
-          )
-        );
-        if (canAttemptPendingOwnReconcile) {
+        if (!existingLocalMessage && from === 'own' && serverId) {
           const comparableKey = this.getComparableMessageKey({
             type,
             text,
@@ -3519,10 +2255,8 @@ export class ChatAppMessagingMethods {
           audioUrl: type === 'voice' ? audioUrl : '',
           audioDuration: Number(item.audioDuration ?? item.duration ?? 0) || 0,
           edited: serverEdited || localEdited,
-          readBy: mergedReadByIds,
           replyTo: preservedReplyTo,
           pending: false,
-          clientEcho: Boolean(matchedLocalMessage?.clientEcho),
           _sortValue: sortValue,
           _stableOrder: hasStableOrder ? stableOrder : null,
           _sourceIndex: index
@@ -3587,16 +2321,6 @@ export class ChatAppMessagingMethods {
     const deduplicatedVisibleChats = this.deduplicateNormalizedServerChats(visibleChats);
 
     const previousChats = Array.isArray(this.chats) ? this.chats : [];
-    previousChats.forEach((chat) => {
-      if (!chat || typeof chat !== 'object') return;
-      const participantId = String(chat.participantId || '').trim();
-      const groupParticipants = Array.isArray(chat.groupParticipants) ? chat.groupParticipants : [];
-      const members = Array.isArray(chat.members) ? chat.members : [];
-      chat.isGroup = this.normalizeBooleanLike(chat.isGroup, false);
-      if (chat.isGroup && participantId && groupParticipants.length <= 1 && members.length <= 1) {
-        chat.isGroup = false;
-      }
-    });
     const previousCurrentServerId = this.resolveChatServerId(this.currentChat);
     const previousCurrentLocalId = this.currentChat?.id;
     const byServerId = new Map();
@@ -3612,8 +2336,6 @@ export class ChatAppMessagingMethods {
     const activeServerId = this.resolveChatServerId(this.currentChat);
     const activeLocalId = this.currentChat?.id;
     const bootstrapReadMarkerByServerId = new Map();
-    let activeChatVisualChanged = false;
-    let activeChatNewestAppendedMessageId = null;
     let nextLocalId = Math.max(0, ...previousChats.map((chat) => Number(chat?.id) || 0)) + 1;
     let changed = false;
     const nextChats = deduplicatedVisibleChats.map((serverChat) => {
@@ -3649,44 +2371,19 @@ export class ChatAppMessagingMethods {
       const existingName = String(existing?.name || '').trim();
       const hasValidServerName = !this.isGenericOrInvalidChatName(serverName, { isGroup: serverChat.isGroup });
       const hasValidExistingName = !this.isGenericOrInvalidChatName(existingName, { isGroup: serverChat.isGroup });
-      const localGroupAppearanceUpdatedAt = Number(existing?.localGroupAppearanceUpdatedAt || 0);
-      const shouldPreferLocalGroupAppearance = Boolean(
-        serverChat.isGroup
-        && localGroupAppearanceUpdatedAt > 0
-      );
       const mergedName = serverChat.isGroup
-        ? (
-          shouldPreferLocalGroupAppearance
-            ? (existingName || serverName || 'Новий чат')
-            : (serverName || existingName || 'Новий чат')
-        )
+        ? (serverName || existingName || 'Новий чат')
         : (cachedParticipantName || (hasValidServerName ? serverName : '') || (hasValidExistingName ? existingName : '') || 'Новий чат');
       const incomingAvatarImage = this.getAvatarImage(serverChat.avatarImage || serverChat.avatarUrl);
       const existingAvatarImage = this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl);
-      const mergedAvatarImage = this.getAvatarImage(
-        serverChat.isGroup
-          ? (
-            shouldPreferLocalGroupAppearance
-              ? (existingAvatarImage || incomingAvatarImage)
-              : (incomingAvatarImage || existingAvatarImage)
-          )
-          : (cachedParticipantAvatar || incomingAvatarImage || existingAvatarImage)
-      );
+      const mergedAvatarImage = this.getAvatarImage(cachedParticipantAvatar || incomingAvatarImage || existingAvatarImage);
       const incomingAvatarColor = String(serverChat.avatarColor || '').trim();
       const existingAvatarColor = String(existing?.avatarColor || '').trim();
       const mergedAvatarColor = String(
-        serverChat.isGroup
-          ? (
-            shouldPreferLocalGroupAppearance
-              ? (existingAvatarColor || incomingAvatarColor || '')
-              : (incomingAvatarColor || existingAvatarColor || '')
-          )
-          : (
-            incomingAvatarColor
-            || cachedParticipantMeta?.avatarColor
-            || existingAvatarColor
-            || ''
-          )
+        incomingAvatarColor
+        || cachedParticipantMeta?.avatarColor
+        || existingAvatarColor
+        || ''
       ).trim();
       const mergedStatus = serverChat.isGroup
         ? ''
@@ -3714,13 +2411,6 @@ export class ChatAppMessagingMethods {
         avatarColor: mergedAvatarColor,
         status: mergedStatus,
         isGroup: serverChat.isGroup,
-        groupParticipants: this.mergeGroupParticipants(
-          serverChat.groupParticipants,
-          existing?.groupParticipants
-        ),
-        localGroupAppearanceUpdatedAt: shouldPreferLocalGroupAppearance
-          ? localGroupAppearanceUpdatedAt
-          : Number(existing?.localGroupAppearanceUpdatedAt || 0),
         messages
       };
 
@@ -3733,7 +2423,6 @@ export class ChatAppMessagingMethods {
         || this.getAvatarImage(existing?.avatarImage || existing?.avatarUrl) !== updatedChat.avatarImage
         || String(existing?.avatarColor || '') !== String(updatedChat.avatarColor || '')
         || String(existing?.status || '') !== String(updatedChat.status || '')
-        || JSON.stringify(Array.isArray(existing?.groupParticipants) ? existing.groupParticipants : []) !== JSON.stringify(Array.isArray(updatedChat.groupParticipants) ? updatedChat.groupParticipants : [])
       ) {
         changed = true;
       }
@@ -3775,22 +2464,18 @@ export class ChatAppMessagingMethods {
     previousChats.forEach((prevChat) => {
       if (!prevChat) return;
       const prevServerId = this.resolveChatServerId(prevChat);
-      if (!prevServerId) {
-        // Keep local-only chats (without server id) to prevent accidental disappearance
-        // when backend payload is partial or delayed.
-        const localKey = `local:${String(prevChat.id ?? '').trim()}`;
-        if (!presentServerIds.has(localKey)) {
-          nextChats.push({
-            ...prevChat,
-            messages: Array.isArray(prevChat.messages) ? [...prevChat.messages] : []
-          });
-          presentServerIds.add(localKey);
-        }
-        return;
-      }
-      if (presentServerIds.has(prevServerId)) return;
+      if (!prevServerId || presentServerIds.has(prevServerId)) return;
 
-      missingCyclesById.set(prevServerId, Number(missingCyclesById.get(prevServerId) || 0) + 1);
+      const nextMissingCycles = Number(missingCyclesById.get(prevServerId) || 0) + 1;
+      missingCyclesById.set(prevServerId, nextMissingCycles);
+
+      const isPreviouslyActive = Boolean(
+        (previousCurrentServerId && prevServerId === previousCurrentServerId)
+        || (previousCurrentLocalId != null && prevChat.id === previousCurrentLocalId)
+      );
+      const hasLocalMessages = Array.isArray(prevChat.messages) && prevChat.messages.length > 0;
+      const hasPendingLocalMessages = hasLocalMessages
+        && prevChat.messages.some((item) => item?.from === 'own' && item?.pending === true);
 
       const directParticipantId = String(prevChat.participantId || '').trim();
       const wouldDuplicateDirectByParticipant = Boolean(
@@ -3799,12 +2484,11 @@ export class ChatAppMessagingMethods {
         && presentDirectParticipantIds.has(directParticipantId)
       );
 
-      // Never auto-remove missing chats during sync.
-      // We keep them locally unless there is a known duplicate direct chat
-      // for the same participant.
-      const shouldKeepLocally = !wouldDuplicateDirectByParticipant;
+      const shouldKeepTransiently = nextMissingCycles <= 3
+        && !wouldDuplicateDirectByParticipant
+        && (isPreviouslyActive || hasLocalMessages || hasPendingLocalMessages);
 
-      if (!shouldKeepLocally) {
+      if (!shouldKeepTransiently) {
         return;
       }
 
@@ -3847,7 +2531,6 @@ export class ChatAppMessagingMethods {
         try {
           const serverMessages = await this.fetchChatMessagesFromServer(chat);
           let nextMessages = this.mapServerMessagesToLocal(chat, serverMessages);
-          nextMessages = this.mergeServerMessagesWithLocalHistory(nextMessages, chat.messages);
           const liveChat = this.findChatByServerId(chat.serverId);
           if (liveChat && liveChat !== chat) {
             nextMessages = this.mergeRecentPendingOwnMessages(nextMessages, liveChat.messages, {
@@ -3855,42 +2538,21 @@ export class ChatAppMessagingMethods {
             });
           }
           const prevMessageSignature = Array.isArray(chat.messages)
-            ? chat.messages.map((msg) => this.getMessageSyncSignature(msg)).join('|')
+            ? chat.messages.map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`).join('|')
             : '';
           const nextMessageSignature = nextMessages
-            .map((msg) => this.getMessageSyncSignature(msg))
+            .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
             .join('|');
           const isActiveChat = Boolean(
             (activeServerId && chat.serverId === activeServerId)
             || chat.id === activeLocalId
           );
-          if (isActiveChat) {
-            const prevVisualSignature = this.getMessagesVisualSignature(chat.messages);
-            const nextVisualSignature = this.getMessagesVisualSignature(nextMessages);
-            if (prevVisualSignature !== nextVisualSignature) {
-              activeChatVisualChanged = true;
-              const previousKeys = new Set(
-                (Array.isArray(chat.messages) ? chat.messages : [])
-                  .map((msg) => String(msg?.serverId || `local:${msg?.id ?? ''}`))
-                  .filter(Boolean)
-              );
-              for (let i = nextMessages.length - 1; i >= 0; i -= 1) {
-                const item = nextMessages[i];
-                const key = String(item?.serverId || `local:${item?.id ?? ''}`);
-                if (!previousKeys.has(key)) {
-                  activeChatNewestAppendedMessageId = item?.id ?? null;
-                  break;
-                }
-              }
-            }
-          }
           if (prevMessageSignature !== nextMessageSignature) {
             changed = true;
           }
-          // Keep message state for every chat entry in the next snapshot.
-          // For active chat this prevents a transient "empty/stale messages"
-          // replacement right before syncCurrentChatMessagesFromServer runs.
-          chat.messages = nextMessages;
+          if (!isActiveChat) {
+            chat.messages = nextMessages;
+          }
 
           let hasReadState = Boolean(
             chat.readTrackingInitialized
@@ -3912,9 +2574,6 @@ export class ChatAppMessagingMethods {
 
           if (this.applyChatUnreadState(chat, nextMessages, { markAsRead: isActiveChat })) {
             changed = true;
-          }
-          if (isActiveChat) {
-            this.flushReadReceiptsForChat(chat, nextMessages);
           }
         } catch {
           // Keep chat list resilient if single chat messages endpoint fails.
@@ -3967,12 +2626,6 @@ export class ChatAppMessagingMethods {
     if (renderIfChanged && changed) {
       this.renderChatsList();
       this.updateChatHeader();
-      if (activeChatVisualChanged && this.currentChat) {
-        this.renderChatAfterSync({
-          forceScroll: false,
-          highlightId: activeChatNewestAppendedMessageId
-        });
-      }
     }
 
     return changed;
@@ -3981,81 +2634,14 @@ export class ChatAppMessagingMethods {
   async fetchChatMessagesFromServer(chat) {
     const chatServerId = this.resolveChatServerId(chat);
     if (!chatServerId) return [];
-    const pageSize = 100;
-    const maxPages = 30;
-
-    // 1) Base fetch (and try to raise limit if backend supports it).
-    const first = await this.fetchServerMessagesBatch(chatServerId, { limit: pageSize });
-    let allMessages = this.dedupeServerMessages(first.messages);
-    if (!allMessages.length) {
-      return [];
+    const response = await fetch(buildApiUrl(`/messages?chatId=${encodeURIComponent(chatServerId)}`), {
+      headers: this.getApiHeaders()
+    });
+    const data = await this.readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(this.getRequestErrorMessage(data, 'Не вдалося завантажити повідомлення.'));
     }
-
-    const appendUnique = (batch = []) => {
-      const combined = this.dedupeServerMessages([...allMessages, ...(Array.isArray(batch) ? batch : [])]);
-      const grew = combined.length > allMessages.length;
-      allMessages = combined;
-      return grew;
-    };
-
-    // 2) Offset pagination: /messages?chatId=...&limit=...&offset=...
-    try {
-      for (let i = 1; i < maxPages; i += 1) {
-        const batch = await this.fetchServerMessagesBatch(chatServerId, {
-          limit: pageSize,
-          offset: i * pageSize
-        });
-        const items = this.dedupeServerMessages(batch.messages);
-        if (!items.length) break;
-        const grew = appendUnique(items);
-        if (!grew || items.length < pageSize) break;
-      }
-    } catch {
-      // Backend may not support offset pagination.
-    }
-
-    // 3) Page pagination: /messages?chatId=...&limit=...&page=...
-    try {
-      for (let page = 2; page <= maxPages; page += 1) {
-        const batch = await this.fetchServerMessagesBatch(chatServerId, {
-          limit: pageSize,
-          page
-        });
-        const items = this.dedupeServerMessages(batch.messages);
-        if (!items.length) break;
-        const grew = appendUnique(items);
-        if (!grew || items.length < pageSize) break;
-      }
-    } catch {
-      // Backend may not support page pagination.
-    }
-
-    // 4) Cursor-like by oldest message id: /messages?chatId=...&beforeId=...
-    try {
-      for (let i = 0; i < maxPages; i += 1) {
-        const oldest = allMessages.reduce((acc, item) => {
-          const ts = this.getMessageTimestampValue(item);
-          if (!acc) return { item, ts };
-          if (!Number.isFinite(ts)) return acc;
-          if (!Number.isFinite(acc.ts) || ts < acc.ts) return { item, ts };
-          return acc;
-        }, null)?.item || null;
-        const oldestId = String(oldest?.id ?? oldest?.messageId ?? oldest?._id ?? '').trim();
-        if (!oldestId) break;
-        const batch = await this.fetchServerMessagesBatch(chatServerId, {
-          limit: pageSize,
-          beforeId: oldestId
-        });
-        const items = this.dedupeServerMessages(batch.messages);
-        if (!items.length) break;
-        const grew = appendUnique(items);
-        if (!grew || items.length < pageSize) break;
-      }
-    } catch {
-      // Backend may not support beforeId cursor.
-    }
-
-    return this.dedupeServerMessages(allMessages);
+    return this.normalizeServerMessagesPayload(data);
   }
 
   renderChatAfterSync({ forceScroll = false, highlightId = null } = {}) {
@@ -4120,15 +2706,14 @@ export class ChatAppMessagingMethods {
     if (!this.currentChat) return false;
     const targetChat = this.currentChat;
     const serverMessages = await this.fetchChatMessagesFromServer(targetChat);
+    const nextMessages = this.mapServerMessagesToLocal(targetChat, serverMessages);
     const prevMessages = Array.isArray(targetChat.messages) ? targetChat.messages : [];
-    let nextMessages = this.mapServerMessagesToLocal(targetChat, serverMessages);
-    nextMessages = this.mergeServerMessagesWithLocalHistory(nextMessages, prevMessages);
 
     const previousSignature = prevMessages
-      .map((msg) => this.getMessageSyncSignature(msg))
+      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
       .join('|');
     const nextSignature = nextMessages
-      .map((msg) => this.getMessageSyncSignature(msg))
+      .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
       .join('|');
     const previousVisualSignature = this.getMessagesVisualSignature(prevMessages);
     const nextVisualSignature = this.getMessagesVisualSignature(nextMessages);
@@ -4153,7 +2738,6 @@ export class ChatAppMessagingMethods {
 
     targetChat.messages = nextMessages;
     this.applyChatUnreadState(targetChat, nextMessages, { markAsRead: true });
-    this.flushReadReceiptsForChat(targetChat, nextMessages);
     let chatMetaChanged = false;
     if (!targetChat.isGroup) {
       const otherMessages = nextMessages.filter((msg) => msg.from === 'other');
@@ -4259,10 +2843,59 @@ export class ChatAppMessagingMethods {
   }
 
   async sendTextMessageToServer(chat, text, { replyToLocalId = null } = {}) {
-    void chat;
-    void text;
-    void replyToLocalId;
-    throw new Error('HTTP-відправка повідомлень вимкнена. Використовується тільки WebSocket.');
+    const userId = this.getAuthUserId();
+    if (!userId) {
+      throw new Error('Не знайдено X-User-Id у сесії. Увійдіть у акаунт ще раз.');
+    }
+
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) {
+      throw new Error('Не вдалося визначити чат для надсилання повідомлення.');
+    }
+
+    const basePayload = { chatId: chatServerId };
+    const replyToServerId = this.getServerMessageIdByLocalId(chat, replyToLocalId);
+    if (replyToServerId) {
+      basePayload.replyToId = replyToServerId;
+    }
+
+    const attempts = [
+      { endpoint: '/messages', payload: { ...basePayload, content: text } },
+      { endpoint: '/messages', payload: { ...basePayload, text } },
+      { endpoint: '/messages', payload: { ...basePayload, message: text } }
+    ];
+
+    let lastError = 'Не вдалося надіслати повідомлення.';
+    let bestError = '';
+
+    for (const attempt of attempts) {
+      const response = await fetch(buildApiUrl(attempt.endpoint), {
+        method: 'POST',
+        headers: this.getApiHeaders({ json: true }),
+        body: JSON.stringify(attempt.payload)
+      });
+      const data = await this.readJsonSafe(response);
+
+      if (response.ok) {
+        return data || {};
+      }
+
+      const message = this.getRequestErrorMessage(data, lastError);
+      lastError = `HTTP ${response.status}: ${message}`;
+      if (!bestError || (response.status !== 404 && response.status !== 405)) {
+        bestError = lastError;
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(bestError || lastError);
+      }
+
+      if (response.status === 404 || response.status === 405) {
+        continue;
+      }
+    }
+
+    throw new Error(bestError || lastError);
   }
 
   async updateMessageOnServer(chat, message, text) {
@@ -4460,15 +3093,12 @@ export class ChatAppMessagingMethods {
     }
     
     const editedLabel = msg.edited ? '<span class="message-edited">редаговано</span>' : '';
-    const deliveryStatus = this.getMessageDeliveryStatusHtml(msg);
     const editedClass = msg.edited ? ' edited' : '';
     const imageClass = msg.type === 'image' && msg.imageUrl ? ' has-image' : '';
     const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
     const hasInlineMeta = this.shouldInlineMessageMeta(msg);
     const inlineMetaClass = hasInlineMeta ? ' inline-meta' : '';
-    const sourceMessages = Array.isArray(this.currentChat?.messages) ? this.currentChat.messages : [];
-    const messageIndex = sourceMessages.length > 0 ? sourceMessages.length - 1 : -1;
-    const tailClass = this.shouldShowMessageTail(msg, { messages: sourceMessages, index: messageIndex }) ? ' with-tail' : '';
+    const tailClass = hasInlineMeta ? ' with-tail' : '';
     const replyHtml = msg.replyTo
       ? `<div class="message-reply">
           <div class="message-reply-name">${msg.replyTo.from === 'own' ? this.user.name : this.currentChat.name}</div>
@@ -4483,12 +3113,11 @@ export class ChatAppMessagingMethods {
         <div class="message-content${editedClass}${imageClass}${voiceClass}${inlineMetaClass}${tailClass}">
           ${replyHtml}
           ${this.buildMessageBodyHtml(msg)}
-          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}${deliveryStatus}</span>
+          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}</span>
         </div>
       </div>
     `;
     messagesContainer.appendChild(messageEl);
-    this.syncOwnMessageTailInDom(messagesContainer, msg);
     this.initMessageImageTransitions(messageEl);
     this.initVoiceMessageElements(messageEl);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -4758,6 +3387,9 @@ export class ChatAppMessagingMethods {
     const message = input?.value.trim() || '';
 
     if (!message || !this.currentChat) return;
+    const nowTs = Date.now();
+    if (nowTs - Number(this.lastSendDispatchAt || 0) < 180) return;
+    this.lastSendDispatchAt = nowTs;
     this.stopRealtimeTyping({ emit: true });
 
     if (this.editingMessageId) {
@@ -4795,27 +3427,6 @@ export class ChatAppMessagingMethods {
       return;
     }
 
-    const dedupeChatId = this.resolveChatServerId(this.currentChat) || String(this.currentChat?.id || '').trim();
-    const dedupeKey = `${dedupeChatId}|${message}`;
-    const nowTs = Date.now();
-    if (typeof window !== 'undefined') {
-      if (!window.__orionOutgoingMessageGuard || typeof window.__orionOutgoingMessageGuard !== 'object') {
-        window.__orionOutgoingMessageGuard = { key: '', at: 0 };
-      }
-      const globalKey = String(window.__orionOutgoingMessageGuard.key || '');
-      const globalTs = Number(window.__orionOutgoingMessageGuard.at || 0);
-      if (globalKey === dedupeKey && Number.isFinite(globalTs) && nowTs - globalTs < 1200) return;
-      window.__orionOutgoingMessageGuard.key = dedupeKey;
-      window.__orionOutgoingMessageGuard.at = nowTs;
-    }
-    const lastKey = String(this.lastOutgoingMessageDedupeKey || '');
-    const lastTs = Number(this.lastOutgoingMessageDedupeAt || 0);
-    if (this.outgoingMessageDispatchLock) return;
-    if (lastKey === dedupeKey && Number.isFinite(lastTs) && nowTs - lastTs < 1200) return;
-    this.outgoingMessageDispatchLock = true;
-    this.lastOutgoingMessageDedupeKey = dedupeKey;
-    this.lastOutgoingMessageDedupeAt = nowTs;
-
     const now = new Date();
     const optimisticMessage = {
       id: this.getNextMessageId(this.currentChat),
@@ -4828,7 +3439,6 @@ export class ChatAppMessagingMethods {
       createdAt: now.toISOString(),
       edited: false,
       pending: true,
-      clientEcho: true,
       replyTo: this.replyTarget
         ? { id: this.replyTarget.id, text: this.replyTarget.text, from: this.replyTarget.from }
         : null
@@ -4858,26 +3468,9 @@ export class ChatAppMessagingMethods {
       if (this.currentChat && !this.currentChat.isGroup && this.currentChat.participantId) {
         await this.ensurePrivateChatParticipantJoined(this.currentChat);
       }
-      if (!this.realtimeSocketConnected || !this.realtimeSocket) {
-        throw new Error('Немає зʼєднання з WebSocket. Перевір підключення.');
-      }
-      const sendResponse = await this.sendTextMessageViaRealtime(this.currentChat, message, {
+      const sendResponse = await this.sendTextMessageToServer(this.currentChat, message, {
         replyToLocalId: restoreReplyTarget?.id ?? null
       });
-
-      if (sendResponse?.skippedDuplicate) {
-        const duplicateOptimisticIndex = this.currentChat.messages.findIndex((item) => {
-          return Number(item?.id) === Number(optimisticMessage.id) && !String(item?.serverId || '').trim();
-        });
-        if (duplicateOptimisticIndex !== -1) {
-          this.currentChat.messages.splice(duplicateOptimisticIndex, 1);
-          this.saveChats();
-          this.renderChat();
-          this.renderChatsList();
-        }
-        return;
-      }
-
       sentToServer = true;
 
       const optimisticCurrent = this.currentChat.messages.find((item) => {
@@ -4888,11 +3481,20 @@ export class ChatAppMessagingMethods {
         if (serverMessageId) {
           optimisticCurrent.serverId = serverMessageId;
         }
-        // Keep optimistic state until realtime event confirms delivery.
+        // Keep optimistic message visible until server list confirms it.
+        // This prevents a brief "disappear -> reappear" flicker on eventual-consistent backends.
         optimisticCurrent.pending = true;
       }
       this.saveChats();
       this.renderChatsList();
+
+      const activeChatServerId = this.resolveChatServerId(this.currentChat);
+      window.setTimeout(() => {
+        if (!this.currentChat) return;
+        const currentServerId = this.resolveChatServerId(this.currentChat);
+        if (activeChatServerId && currentServerId !== activeChatServerId) return;
+        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
+      }, 900);
     } catch (error) {
       if (!sentToServer) {
         const rollbackIndex = this.currentChat.messages.findIndex((item) => {
@@ -4917,8 +3519,6 @@ export class ChatAppMessagingMethods {
         }
         await this.showAlert(error?.message || 'Не вдалося надіслати повідомлення.');
       }
-    } finally {
-      this.outgoingMessageDispatchLock = false;
     }
   }
 
@@ -5251,7 +3851,6 @@ export class ChatAppMessagingMethods {
     this.newChatUserResults = [];
     this.newChatSelectedUser = null;
     this.newChatUserSearchRequestId = 0;
-    this.setNewChatGroupMode(false);
     this.renderNewChatSearchState({
       message: "Почніть вводити тег користувача (або ім'я/номер)."
     });
@@ -5262,8 +3861,14 @@ export class ChatAppMessagingMethods {
     document.getElementById('newChatModal').classList.remove('active');
     document.getElementById('modalOverlay').classList.remove('active');
     document.getElementById('newContactInput').value = '';
+    const isGroupToggle = document.getElementById('isGroupToggle');
     const groupMembersInput = document.getElementById('groupMembersInput');
+    const groupFields = document.getElementById('groupFields');
+    const userSearchWrap = document.getElementById('newChatUserSearch');
+    if (isGroupToggle) isGroupToggle.checked = false;
     if (groupMembersInput) groupMembersInput.value = '';
+    if (groupFields) groupFields.classList.remove('active');
+    if (userSearchWrap) userSearchWrap.classList.remove('hidden');
     if (this.newChatUserSearchTimer) {
       clearTimeout(this.newChatUserSearchTimer);
       this.newChatUserSearchTimer = null;
@@ -5271,7 +3876,6 @@ export class ChatAppMessagingMethods {
     this.newChatUserResults = [];
     this.newChatSelectedUser = null;
     this.newChatUserSearchRequestId = 0;
-    this.setNewChatGroupMode(false);
     this.renderNewChatSearchState({
       message: "Почніть вводити тег користувача (або ім'я/номер)."
     });
@@ -5279,38 +3883,26 @@ export class ChatAppMessagingMethods {
 
   async createNewChat() {
     const input = document.getElementById('newContactInput');
+    const isGroupToggle = document.getElementById('isGroupToggle');
     const groupMembersInput = document.getElementById('groupMembersInput');
     const raw = input.value || '';
     const name = raw.trim();
-    const isGroup = Boolean(this.newChatGroupMode);
 
-    if (!isGroup && !name) {
+    if (!name) {
       await this.showAlert('Будь ласка, введіть ім\'я контакту');
       return;
     }
 
+    const isGroup = !!isGroupToggle?.checked;
     let members = [];
-    const groupMemberIds = [];
     if (isGroup) {
-      const selectedIds = this.getNewChatGroupSelectedIds();
-      const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
-      const selectedUsers = users.filter((user) => selectedIds.has(user.id));
-      members = selectedUsers
-        .map((user) => String(user.name || '').trim())
-        .filter(Boolean);
-      groupMemberIds.push(...selectedUsers.map((user) => user.id).filter(Boolean));
-      if (groupMembersInput) {
-        groupMembersInput.value = members.join(', ');
-      }
       const rawMembers = groupMembersInput?.value || '';
-      if (!members.length && rawMembers) {
-        members = rawMembers
-          .split(',')
-          .map((member) => member.trim())
-          .filter(Boolean);
-      }
-      if (!members.length) {
-        await this.showAlert('Оберіть хоча б одного користувача для групи.');
+      members = rawMembers
+        .split(',')
+        .map(m => m.trim())
+        .filter(Boolean);
+      if (members.length === 0) {
+        await this.showAlert('Додайте хоча б одного учасника групи');
         return;
       }
     }
@@ -5344,15 +3936,9 @@ export class ChatAppMessagingMethods {
 
     let newChat;
     let selectedUserForDirectChat = null;
-    let selectedGroupUsers = [];
     try {
       const selected = this.newChatSelectedUser;
       selectedUserForDirectChat = !isGroup ? selected : null;
-      if (isGroup) {
-        const selectedIds = this.getNewChatGroupSelectedIds();
-        const users = Array.isArray(this.newChatGroupUsers) ? this.newChatGroupUsers : [];
-        selectedGroupUsers = users.filter((user) => selectedIds.has(user.id));
-      }
       if (!isGroup && selected?.id) {
         this.cacheKnownUserMeta(selected.id, {
           name: selected.name || '',
@@ -5361,20 +3947,11 @@ export class ChatAppMessagingMethods {
         });
       }
       const payload = {
-        name: isGroup ? (name || 'Нова група') : (selected?.name || name),
+        name: isGroup ? name : (selected?.name || name),
         isPrivate: !isGroup,
         isGroup
       };
       const serverChat = await this.createChatOnServer(payload);
-
-      if (isGroup && groupMemberIds.length) {
-        const createdChatId = this.extractServerChatId(serverChat);
-        if (createdChatId) {
-          await Promise.allSettled(
-            groupMemberIds.map((userId) => this.joinChatOnServerAsUser(createdChatId, userId))
-          );
-        }
-      }
 
       if (!isGroup && selected?.id) {
         const createdChatId = this.extractServerChatId(serverChat);
@@ -5394,15 +3971,6 @@ export class ChatAppMessagingMethods {
         name: payload.name,
         isGroup,
         members,
-        groupParticipants: isGroup
-          ? selectedGroupUsers.map((user) => ({
-            id: String(user.id || '').trim() || null,
-            name: String(user.name || '').trim() || 'Користувач',
-            avatarImage: this.getAvatarImage(user.avatarImage),
-            avatarColor: String(user.avatarColor || '').trim(),
-            status: ''
-          }))
-          : [],
         participantId: selected?.id || null,
         avatarImage: selected?.avatarImage || this.getCachedUserAvatar(selected?.id),
         avatarColor: selected?.avatarColor || this.getCachedUserMeta(selected?.id)?.avatarColor

@@ -10,9 +10,155 @@ import {
 
 const PHONE_UA_RE = /^\+380\d{9}$/;
 const SIGNUP_NICKNAME_CACHE_PREFIX = 'orion_signup_nickname:';
+const OFFLINE_AUTH_USERS_KEY = 'orion_offline_auth_users_v1';
+const DEFAULT_OFFLINE_USER = {
+  id: 'offline-demo-user',
+  phone: '+380000000000',
+  password: 'orion123',
+  nickname: 'Demo Orion',
+  name: 'Demo Orion',
+  avatarColor: '#4f6b8a'
+};
 
 function safeTrim(value) {
   return String(value || '').trim();
+}
+
+function normalizeOfflineUser(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const id = safeTrim(raw.id);
+  const phone = normalizePhone(raw.phone || raw.mobile || '');
+  const password = safeTrim(raw.password);
+  const nickname = safeTrim(raw.nickname || raw.name || 'Користувач Orion');
+  const name = safeTrim(raw.name || raw.nickname || nickname || 'Користувач Orion');
+  if (!id || !PHONE_UA_RE.test(phone) || !password) return null;
+  return {
+    id,
+    phone,
+    password,
+    nickname: nickname || 'Користувач Orion',
+    name: name || nickname || 'Користувач Orion',
+    avatarColor: safeTrim(raw.avatarColor || '')
+  };
+}
+
+function readOfflineUsers() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(OFFLINE_AUTH_USERS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => normalizeOfflineUser(item))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function writeOfflineUsers(users = []) {
+  if (typeof window === 'undefined') return;
+  const safeUsers = Array.isArray(users)
+    ? users.map((item) => normalizeOfflineUser(item)).filter(Boolean)
+    : [];
+  try {
+    window.localStorage.setItem(OFFLINE_AUTH_USERS_KEY, JSON.stringify(safeUsers));
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
+function ensureDefaultOfflineUserSeeded() {
+  const users = readOfflineUsers();
+  const hasDefault = users.some((item) => item.id === DEFAULT_OFFLINE_USER.id);
+  if (hasDefault) return users;
+  const nextUsers = [normalizeOfflineUser(DEFAULT_OFFLINE_USER), ...users].filter(Boolean);
+  writeOfflineUsers(nextUsers);
+  return nextUsers;
+}
+
+function buildOfflineAuthPayload(user) {
+  const safeUser = normalizeOfflineUser(user);
+  if (!safeUser) return null;
+  return {
+    token: `offline-token:${safeUser.id}`,
+    user: {
+      id: safeUser.id,
+      name: safeUser.name,
+      nickname: safeUser.nickname,
+      phone: safeUser.phone,
+      mobile: safeUser.phone,
+      status: 'online',
+      avatarColor: safeUser.avatarColor,
+      offlineMode: true
+    }
+  };
+}
+
+function isBackendUnavailableError(error) {
+  const status = Number(error?.status || 0);
+  if (Number.isFinite(status) && status >= 500) return true;
+  const message = safeTrim(error?.message).toLowerCase();
+  if (!message) return false;
+  return (
+    message.includes('failed to fetch') ||
+    message.includes('networkerror') ||
+    message.includes('load failed') ||
+    message.includes('network request failed') ||
+    message.includes('fetch') ||
+    message.includes('сервер недоступний')
+  );
+}
+
+function tryOfflineLogin(phone, password) {
+  const normalizedPhone = normalizePhone(phone);
+  const safePassword = safeTrim(password);
+  if (!PHONE_UA_RE.test(normalizedPhone) || !safePassword) return null;
+  const users = ensureDefaultOfflineUserSeeded();
+  const matchedUser = users.find((item) => item.phone === normalizedPhone && item.password === safePassword);
+  if (!matchedUser) return null;
+  return buildOfflineAuthPayload(matchedUser);
+}
+
+function createOfflineUser({ phone, password, nickname }) {
+  const normalizedPhone = normalizePhone(phone);
+  const safePassword = safeTrim(password);
+  const safeNickname = safeTrim(nickname);
+  if (!PHONE_UA_RE.test(normalizedPhone)) {
+    throw new Error('Введіть номер у форматі +380XXXXXXXXX.');
+  }
+  if (safePassword.length < 6) {
+    throw new Error('Пароль має містити щонайменше 6 символів.');
+  }
+  if (safeNickname.length < 2) {
+    throw new Error('Введіть нікнейм (щонайменше 2 символи).');
+  }
+
+  const users = ensureDefaultOfflineUserSeeded();
+  const existing = users.find((item) => item.phone === normalizedPhone);
+  if (existing) {
+    if (existing.password !== safePassword) {
+      throw new Error('Користувач із цим номером уже існує локально.');
+    }
+    return buildOfflineAuthPayload(existing);
+  }
+
+  const generatedId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `offline-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+  const nextUser = normalizeOfflineUser({
+    id: generatedId,
+    phone: normalizedPhone,
+    password: safePassword,
+    nickname: safeNickname,
+    name: safeNickname
+  });
+  if (!nextUser) {
+    throw new Error('Не вдалося створити локальний акаунт.');
+  }
+  writeOfflineUsers([nextUser, ...users]);
+  return buildOfflineAuthPayload(nextUser);
 }
 
 function decodeJwtPayload(token) {
@@ -120,11 +266,19 @@ async function readJsonSafe(response) {
 }
 
 async function requestAuth(endpoint, payload) {
-  const response = await fetch(buildApiUrl(endpoint), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  let response;
+  try {
+    response = await fetch(buildApiUrl(endpoint), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (networkError) {
+    const error = new Error('Сервер недоступний.');
+    error.status = 0;
+    error.cause = networkError;
+    throw error;
+  }
 
   const data = await readJsonSafe(response);
   if (!response.ok) {
@@ -132,7 +286,10 @@ async function requestAuth(endpoint, payload) {
     const message = Array.isArray(rawMessage)
       ? rawMessage.filter(Boolean).join(' ')
       : rawMessage || 'Помилка запиту до сервера.';
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = Number(response.status || 0);
+    error.data = data || null;
+    throw error;
   }
 
   return data || {};
@@ -204,6 +361,7 @@ function extractAuthPayload(data, fallbackUser = {}) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  ensureDefaultOfflineUserSeeded();
   const existing = getAuthSession();
   if (isAuthSessionValid(existing)) {
     redirectToAppHome();
@@ -417,6 +575,17 @@ document.addEventListener('DOMContentLoaded', () => {
       clearCachedSignupNickname(phone);
       window.location.assign(getAppHomeHref());
     } catch (error) {
+      if (isBackendUnavailableError(error)) {
+        const offlineAuth = tryOfflineLogin(phone, password);
+        if (offlineAuth) {
+          setAuthSession(offlineAuth);
+          syncLegacyUserProfile(offlineAuth.user);
+          clearCachedSignupNickname(phone);
+          setFeedback('Бекенд недоступний. Виконано локальний вхід.', 'success');
+          window.location.assign(getAppHomeHref());
+          return;
+        }
+      }
       setFeedback(error?.message || 'Не вдалося виконати вхід.');
     } finally {
       setPending(false);
@@ -511,6 +680,20 @@ document.addEventListener('DOMContentLoaded', () => {
       setMode('login');
       setFeedback('Реєстрацію завершено. Увійдіть у свій акаунт.', 'success');
     } catch (error) {
+      if (isBackendUnavailableError(error)) {
+        try {
+          const offlineAuthPayload = createOfflineUser({ phone, password, nickname });
+          setAuthSession(offlineAuthPayload);
+          syncLegacyUserProfile(offlineAuthPayload.user);
+          clearCachedSignupNickname(phone);
+          setFeedback('Бекенд недоступний. Акаунт створено локально.', 'success');
+          window.location.assign(getAppHomeHref());
+          return;
+        } catch (offlineError) {
+          setFeedback(offlineError?.message || 'Не вдалося створити локальний акаунт.');
+          return;
+        }
+      }
       setFeedback(error?.message || 'Не вдалося завершити реєстрацію.');
     } finally {
       setPending(false);

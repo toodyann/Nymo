@@ -9,6 +9,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const flappyCoinSoundUrl = new URL('../../../Sounds/coin-sound.mp3', import.meta.url).href;
+const flappyWingSoundUrl = new URL('../../../Sounds/sfx-wing.mp3', import.meta.url).href;
+const flappyDieSoundUrl = new URL('../../../Sounds/sfx-die.mp3', import.meta.url).href;
 const ORION_DRIVE_SHOP_CARS = [
   {
     id: 'car_taxi',
@@ -795,13 +797,10 @@ export class ChatAppFeaturesMethods {
     const gridBestEl = settingsContainer.querySelector('#grid2048Best');
     const gridEarnedEl = settingsContainer.querySelector('#grid2048Earned');
     const gridRestartBtn = settingsContainer.querySelector('#grid2048Restart');
+    const gridHintEl = gridPanelEl?.querySelector('.mini-game-hint');
     const flappyPanelEl = settingsContainer.querySelector('[data-mini-game-panel="flappy"]');
     const flappyCanvasWrapEl = settingsContainer.querySelector('#flappyOrionCanvasWrap');
     const flappyCanvasEl = settingsContainer.querySelector('#flappyOrionCanvas');
-    const flappyStatusEl = settingsContainer.querySelector('#flappyOrionStatus');
-    const flappyScoreEl = settingsContainer.querySelector('#flappyOrionScore');
-    const flappyCoinsEl = settingsContainer.querySelector('#flappyOrionCoins');
-    const flappyEarnedEl = settingsContainer.querySelector('#flappyOrionEarned');
     const flappyBestEl = settingsContainer.querySelector('#flappyOrionBest');
     const flappyStartBtn = settingsContainer.querySelector('#flappyOrionStart');
     const driftPanelEl = settingsContainer.querySelector('[data-mini-game-panel="drift"]');
@@ -849,6 +848,65 @@ export class ChatAppFeaturesMethods {
     const FLAPPY_MAX_DT = 1 / 30;
     const DRIFT_SPEED_FACTOR = 0.32;
     const DRIFT_SHIFT_DELAY_SECONDS = 0.5;
+    const isMobileMiniGameViewport = () => window.matchMedia('(max-width: 768px)').matches;
+    const getGridControlHintText = () => (
+      isMobileMiniGameViewport()
+        ? 'Керування: свайпи по полю.'
+        : 'Керування: стрілки або W/A/S/D.'
+    );
+    const getDriftIdleStatusText = () => (
+      isMobileMiniGameViewport()
+        ? 'Натисни «Старт». Керування: кнопки ← →, Газ, Гальмо.'
+        : 'Натисни «Старт». Керування: стрілки або W/A/S/D.'
+    );
+    const getDriftRunningStatusText = () => (
+      isMobileMiniGameViewport()
+        ? 'Відкритий режим: катайся вільно. Керування: кнопки ← →, Газ, Гальмо.'
+        : 'Відкритий режим: катайся вільно. Керування: стрілки або W/A/S/D.'
+    );
+    const applyMiniGameContainerBackground = (view = currentMiniGameView) => {
+      if (!settingsContainer) return;
+      const isMobileViewport = isMobileMiniGameViewport();
+      if (isMobileViewport) {
+        settingsContainer.style.setProperty('background', 'transparent', 'important');
+        settingsContainer.style.setProperty('background-color', 'transparent', 'important');
+        return;
+      }
+
+      if (view === 'grid2048') {
+        settingsContainer.style.setProperty(
+          'background',
+          'radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.7), transparent 40%), radial-gradient(circle at 88% 94%, rgba(233, 221, 201, 0.52), transparent 42%), linear-gradient(180deg, #faf8ef 0%, #f3efe6 100%)',
+          'important'
+        );
+        settingsContainer.style.setProperty('background-color', '#f3efe6', 'important');
+        return;
+      }
+
+      settingsContainer.style.setProperty('background', 'var(--bg-color)', 'important');
+      settingsContainer.style.setProperty('background-color', 'var(--bg-color)', 'important');
+    };
+    const lockLandscapeForDrift = () => {
+      if (!isMobileMiniGameViewport()) return;
+      const orientationApi = window.screen?.orientation;
+      if (!orientationApi || typeof orientationApi.lock !== 'function') return;
+      orientationApi.lock('landscape').catch(() => {});
+    };
+    const lockPortraitForApp = () => {
+      if (!isMobileMiniGameViewport()) return;
+      const orientationApi = window.screen?.orientation;
+      if (!orientationApi || typeof orientationApi.lock !== 'function') return;
+      orientationApi.lock('portrait').catch(() => {});
+    };
+    const unlockOrientationIfAvailable = () => {
+      const orientationApi = window.screen?.orientation;
+      if (!orientationApi || typeof orientationApi.unlock !== 'function') return;
+      try {
+        orientationApi.unlock();
+      } catch {
+        // Ignore unsupported unlock errors.
+      }
+    };
     const grid2048State = {
       board: new Array(GRID_2048_SIZE * GRID_2048_SIZE).fill(0),
       score: 0,
@@ -859,6 +917,7 @@ export class ChatAppFeaturesMethods {
     };
     const flappyState = {
       isRunning: false,
+      isDeathFalling: false,
       score: 0,
       coins: 0,
       best: 0,
@@ -1171,15 +1230,25 @@ export class ChatAppFeaturesMethods {
     };
 
     const updateFlappyHud = () => {
-      if (flappyScoreEl) flappyScoreEl.textContent = String(flappyState.score);
-      if (flappyCoinsEl) flappyCoinsEl.textContent = String(flappyState.coins);
       if (flappyBestEl) flappyBestEl.textContent = String(flappyState.best);
-      if (flappyEarnedEl) flappyEarnedEl.textContent = this.formatCoinBalance(flappyState.earnedCents);
     };
 
-    const setFlappyStatus = (message) => {
-      if (!flappyStatusEl) return;
-      flappyStatusEl.textContent = message;
+    const drawFlappyHudText = (ctx, text, x, y, options = {}) => {
+      if (!ctx || !text) return;
+      const fontSize = Number.isFinite(options.fontSize) ? options.fontSize : 26;
+      ctx.save();
+      ctx.textAlign = options.align || 'left';
+      ctx.textBaseline = options.baseline || 'top';
+      ctx.font = `400 ${fontSize}px "Press Start 2P", "Pixelify Sans", monospace`;
+      ctx.fillStyle = options.stroke || 'rgba(7, 10, 16, 0.92)';
+      const shadowStep = Math.max(1, Math.round(fontSize * 0.06));
+      ctx.fillText(text, x - shadowStep, y);
+      ctx.fillText(text, x + shadowStep, y);
+      ctx.fillText(text, x, y - shadowStep);
+      ctx.fillText(text, x, y + shadowStep);
+      ctx.fillStyle = options.fill || '#f5f8ff';
+      ctx.fillText(text, x, y);
+      ctx.restore();
     };
 
     const resolveFlappyWorldSize = () => {
@@ -1224,6 +1293,46 @@ export class ChatAppFeaturesMethods {
         coinAudio.currentTime = 0;
         coinAudio.volume = this.flappyCoinAudio.volume;
         const playResult = coinAudio.play();
+        if (playResult && typeof playResult.catch === 'function') {
+          playResult.catch(() => {});
+        }
+      } catch {
+        // Ignore audio playback issues.
+      }
+    };
+
+    const playFlappyWingSound = () => {
+      if (this.settings?.soundNotifications === false) return;
+      try {
+        if (!this.flappyWingAudio) {
+          this.flappyWingAudio = new Audio(flappyWingSoundUrl);
+          this.flappyWingAudio.preload = 'auto';
+          this.flappyWingAudio.volume = 0.38;
+        }
+        const wingAudio = this.flappyWingAudio.cloneNode(true);
+        wingAudio.currentTime = 0;
+        wingAudio.volume = this.flappyWingAudio.volume;
+        const playResult = wingAudio.play();
+        if (playResult && typeof playResult.catch === 'function') {
+          playResult.catch(() => {});
+        }
+      } catch {
+        // Ignore audio playback issues.
+      }
+    };
+
+    const playFlappyDieSound = () => {
+      if (this.settings?.soundNotifications === false) return;
+      try {
+        if (!this.flappyDieAudio) {
+          this.flappyDieAudio = new Audio(flappyDieSoundUrl);
+          this.flappyDieAudio.preload = 'auto';
+          this.flappyDieAudio.volume = 0.42;
+        }
+        const dieAudio = this.flappyDieAudio.cloneNode(true);
+        dieAudio.currentTime = 0;
+        dieAudio.volume = this.flappyDieAudio.volume;
+        const playResult = dieAudio.play();
         if (playResult && typeof playResult.catch === 'function') {
           playResult.catch(() => {});
         }
@@ -1309,27 +1418,6 @@ export class ChatAppFeaturesMethods {
         }
       }
 
-      const groundPart = hasSprite
-        ? { ...spriteMap.ground, x: spriteMap.ground.x + 2, w: Math.min(64, spriteMap.ground.w - 4) }
-        : spriteMap.ground;
-      const groundTileWidth = Math.max(1, Math.round(groundPart.w));
-      const groundY = Math.round(worldHeight - groundHeight);
-      const groundShift = ((Math.floor(flappyState.groundOffset) % groundTileWidth) + groundTileWidth) % groundTileWidth;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, groundY, worldWidth, groundHeight);
-      ctx.clip();
-      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
-        const drawX = Math.round(x - groundShift);
-        if (!drawSprite(groundPart, drawX, groundY, groundTileWidth, groundHeight)) {
-          ctx.fillStyle = '#5d3f27';
-          ctx.fillRect(drawX, groundY, groundTileWidth, groundHeight);
-          ctx.fillStyle = '#6ea848';
-          ctx.fillRect(drawX, groundY, groundTileWidth, 14);
-        }
-      }
-      ctx.restore();
-
       flappyState.pipes.forEach((pipe) => {
         const gapHeight = pipe.gapHeight || getFlappyPipeGap();
         const topEnd = Math.round(pipe.gapCenter - gapHeight / 2);
@@ -1399,6 +1487,62 @@ export class ChatAppFeaturesMethods {
         ctx.fill();
       }
       ctx.restore();
+
+      const groundPart = hasSprite
+        ? { ...spriteMap.ground, x: spriteMap.ground.x + 2, w: Math.min(64, spriteMap.ground.w - 4) }
+        : spriteMap.ground;
+      const groundTileWidth = Math.max(1, Math.round(groundPart.w));
+      const groundY = Math.round(worldHeight - groundHeight);
+      const groundShift = ((Math.floor(flappyState.groundOffset) % groundTileWidth) + groundTileWidth) % groundTileWidth;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, groundY, worldWidth, groundHeight);
+      ctx.clip();
+      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
+        const drawX = Math.round(x - groundShift);
+        if (!drawSprite(groundPart, drawX, groundY, groundTileWidth, groundHeight)) {
+          ctx.fillStyle = '#5d3f27';
+          ctx.fillRect(drawX, groundY, groundTileWidth, groundHeight);
+          ctx.fillStyle = '#6ea848';
+          ctx.fillRect(drawX, groundY, groundTileWidth, 14);
+        }
+      }
+      ctx.restore();
+
+      const hudPaddingX = Math.max(12, Math.round(worldWidth * 0.03));
+      const hudPaddingY = Math.max(10, Math.round(worldHeight * 0.024));
+      const hudFontSize = Math.max(13, Math.round(worldHeight * 0.038));
+      const gameOverTitleSize = Math.max(28, Math.round(worldHeight * 0.1));
+      const gameOverStatSize = Math.max(14, Math.round(worldHeight * 0.04));
+
+      if (flappyState.isRunning) {
+        drawFlappyHudText(ctx, `SCORE ${flappyState.score}`, hudPaddingX, hudPaddingY, {
+          fontSize: hudFontSize,
+          align: 'left'
+        });
+        drawFlappyHudText(ctx, `COINS ${flappyState.coins}`, worldWidth - hudPaddingX, hudPaddingY, {
+          fontSize: hudFontSize,
+          align: 'right'
+        });
+      }
+
+      if (flappyState.gameOver) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(4, 6, 10, 0.42)';
+        ctx.fillRect(0, 0, worldWidth, worldHeight);
+        ctx.restore();
+
+        const centerX = worldWidth * 0.5;
+        const centerY = worldHeight * 0.5;
+        drawFlappyHudText(ctx, 'GAME OVER', centerX, centerY - gameOverTitleSize * 0.66, {
+          fontSize: gameOverTitleSize,
+          align: 'center'
+        });
+        drawFlappyHudText(ctx, `${flappyState.score} : ${flappyState.coins}`, centerX, centerY + gameOverTitleSize * 0.18, {
+          fontSize: gameOverStatSize,
+          align: 'center'
+        });
+      }
     };
 
     const ensureFlappyAssets = () => {
@@ -1527,6 +1671,7 @@ export class ChatAppFeaturesMethods {
       flappyState.earnedCents = 0;
       flappyState.rewardLogged = false;
       flappyState.gameOver = false;
+      flappyState.isDeathFalling = false;
       flappyState.birdY = Math.round((flappyState.worldHeight - groundHeight) * 0.42);
       flappyState.birdVelocity = 0;
       flappyState.birdRotation = 0;
@@ -1549,10 +1694,14 @@ export class ChatAppFeaturesMethods {
 
     const stopFlappyOrion = (reason = 'finished') => {
       const hasProgress = flappyState.score > 0 || flappyState.coins > 0 || flappyState.earnedCents > 0;
-      const shouldHandle = flappyState.isRunning || ((reason === 'switch' || reason === 'restart') && hasProgress);
+      const shouldHandle =
+        flappyState.isRunning ||
+        flappyState.isDeathFalling ||
+        ((reason === 'switch' || reason === 'restart') && hasProgress);
       if (!shouldHandle) return;
 
       flappyState.isRunning = false;
+      flappyState.isDeathFalling = false;
       if (flappyState.rafId) {
         window.cancelAnimationFrame(flappyState.rafId);
         flappyState.rafId = null;
@@ -1568,6 +1717,10 @@ export class ChatAppFeaturesMethods {
         saveFlappyBest();
       }
 
+      if (reason === 'collision') {
+        playFlappyDieSound();
+      }
+
       if (reason !== 'restart') {
         flappyState.gameOver = reason !== 'switch';
       }
@@ -1579,14 +1732,66 @@ export class ChatAppFeaturesMethods {
         flappyStartBtn.textContent = 'Старт';
       }
 
-      if (reason === 'switch') {
-        setFlappyStatus('Гру призупинено. Повернись у Flappy Orion та натисни «Старт».');
-      } else if (reason !== 'restart') {
-        setFlappyStatus(`Гру завершено. Очки: ${flappyState.score}. Монет: ${flappyState.coins}. Зароблено: ${this.formatCoinBalance(flappyState.earnedCents)}.`);
-      }
-
       updateFlappyHud();
       renderFlappyFrame();
+    };
+
+    const stepFlappyDeathFall = (timestamp) => {
+      if (!flappyState.isDeathFalling) return;
+      if (!miniGamesSection.isConnected || !miniGamesSection.classList.contains('active') || currentMiniGameView !== 'flappy') {
+        stopFlappyOrion('switch');
+        return;
+      }
+
+      const elapsedSeconds = Math.min(FLAPPY_MAX_DT, Math.max(0, (timestamp - flappyState.lastTimestamp) / 1000));
+      flappyState.lastTimestamp = timestamp;
+      flappyState.groundOffset += FLAPPY_PIPE_SPEED * elapsedSeconds * 0.28;
+      flappyState.cloudOffset += FLAPPY_PIPE_SPEED * elapsedSeconds * 0.08;
+      flappyState.flapFrameIndex += elapsedSeconds * 4;
+      flappyState.birdVelocity += FLAPPY_GRAVITY * elapsedSeconds * 1.12;
+      flappyState.birdY += flappyState.birdVelocity * elapsedSeconds;
+      flappyState.birdRotation = Math.min(1.45, flappyState.birdRotation + elapsedSeconds * 3.2);
+
+      const birdRadius = getFlappyBirdRadius();
+      const buryY = flappyState.worldHeight + birdRadius * 1.8;
+      if (flappyState.birdY >= buryY) {
+        flappyState.birdY = buryY;
+        flappyState.birdVelocity = 0;
+        stopFlappyOrion('finished');
+        return;
+      }
+
+      renderFlappyFrame();
+      flappyState.rafId = window.requestAnimationFrame(stepFlappyDeathFall);
+      this.flappyOrionAnimationFrame = flappyState.rafId;
+    };
+
+    const beginFlappyCollisionFall = () => {
+      if (flappyState.isDeathFalling || flappyState.gameOver) return;
+
+      if (flappyState.score > flappyState.best) {
+        flappyState.best = flappyState.score;
+        saveFlappyBest();
+      }
+      commitFlappyReward();
+      playFlappyDieSound();
+
+      flappyState.isRunning = false;
+      flappyState.isDeathFalling = true;
+      flappyState.gameOver = false;
+      flappyState.birdVelocity = Math.max(flappyState.birdVelocity, 150);
+      flappyState.birdRotation = Math.max(flappyState.birdRotation, 0.25);
+      flappyState.lastTimestamp = performance.now();
+
+      if (flappyState.rafId) {
+        window.cancelAnimationFrame(flappyState.rafId);
+      }
+      if (this.flappyOrionAnimationFrame) {
+        window.cancelAnimationFrame(this.flappyOrionAnimationFrame);
+      }
+
+      flappyState.rafId = window.requestAnimationFrame(stepFlappyDeathFall);
+      this.flappyOrionAnimationFrame = flappyState.rafId;
     };
 
     const stepFlappyOrion = (timestamp) => {
@@ -1618,13 +1823,16 @@ export class ChatAppFeaturesMethods {
       const topLimit = birdRadius * 0.86;
       const bottomLimit = flappyState.worldHeight - groundHeight - birdRadius * 0.82;
       if (flappyState.birdY < topLimit || flappyState.birdY > bottomLimit) {
-        stopFlappyOrion('collision');
+        flappyState.birdY = Math.min(bottomLimit, Math.max(topLimit, flappyState.birdY));
+        beginFlappyCollisionFall();
         return;
       }
 
       const passReward = Math.max(1, Math.floor(this.getTapLevelStats().rewardPerTapCents / 2));
       const coinReward = Math.max(4, this.getTapLevelStats().rewardPerTapCents * 2);
+      let hasPipeCollision = false;
       flappyState.pipes.forEach((pipe) => {
+        if (hasPipeCollision) return;
         pipe.x -= FLAPPY_PIPE_SPEED * elapsedSeconds;
         if (pipe.coin) {
           pipe.coin.x = pipe.x + pipe.width * 0.5;
@@ -1652,7 +1860,7 @@ export class ChatAppFeaturesMethods {
           flappyState.worldHeight - groundHeight - bottomStart
         );
         if (topCollision || bottomCollision) {
-          stopFlappyOrion('collision');
+          hasPipeCollision = true;
           return;
         }
 
@@ -1675,6 +1883,11 @@ export class ChatAppFeaturesMethods {
           }
         }
       });
+
+      if (hasPipeCollision) {
+        beginFlappyCollisionFall();
+        return;
+      }
 
       if (!flappyState.isRunning) return;
 
@@ -1699,7 +1912,6 @@ export class ChatAppFeaturesMethods {
       if (flappyStartBtn) {
         flappyStartBtn.textContent = 'Перезапуск';
       }
-      setFlappyStatus('Лети вперед: клікай, торкайся або натискай Space для стрибка.');
       flappyState.pipes = [];
       flappyState.pipeSpawnTimer = 0.95;
       flappyState.rafId = window.requestAnimationFrame(stepFlappyOrion);
@@ -1708,13 +1920,15 @@ export class ChatAppFeaturesMethods {
 
     const flappyJump = () => {
       if (!flappyCanvasEl) return;
+      if (flappyState.isDeathFalling) return;
       if (!flappyState.isRunning) {
         startFlappyOrion();
-        return;
+        if (!flappyState.isRunning) return;
       }
       flappyState.birdVelocity = FLAPPY_FLAP_VELOCITY;
       flappyState.birdRotation = -0.52;
       flappyState.flapFrameIndex += 2;
+      playFlappyWingSound();
     };
 
     const saveDriftBest = () => {
@@ -1757,6 +1971,15 @@ export class ChatAppFeaturesMethods {
     const setDriftStatus = (message) => {
       if (!driftStatusEl) return;
       driftStatusEl.textContent = message;
+    };
+
+    const syncMiniGameControlHints = () => {
+      if (gridHintEl) {
+        gridHintEl.textContent = getGridControlHintText();
+      }
+      if (!driftState.isRunning) {
+        setDriftStatus(getDriftIdleStatusText());
+      }
     };
 
     const resolveDriftSteerInput = () => {
@@ -3336,7 +3559,7 @@ export class ChatAppFeaturesMethods {
       driftState.lastTimestamp = performance.now();
       if (driftPanelEl) driftPanelEl.classList.add('is-running');
       if (driftStartBtn) driftStartBtn.textContent = 'Рестарт';
-      setDriftStatus('Відкритий режим: катайся вільно. W/S або ↑/↓ для газу й гальма, A/D або ←/→ для повороту, Space — ручне гальмо.');
+      setDriftStatus(getDriftRunningStatusText());
       driftState.rafId = window.requestAnimationFrame(stepOrionDrift);
       this.orionDriftAnimationFrame = driftState.rafId;
     };
@@ -3590,6 +3813,16 @@ export class ChatAppFeaturesMethods {
             appEl.classList.remove('mobile-game-fullscreen');
           }
         }
+        if (isMobileViewport && safeView === 'drift') {
+          lockLandscapeForDrift();
+        } else {
+          if (isMobileViewport) {
+            lockPortraitForApp();
+          } else {
+            unlockOrientationIfAvailable();
+          }
+        }
+        applyMiniGameContainerBackground(safeView);
       }
 
       gameSelectButtons.forEach((buttonEl) => {
@@ -3717,6 +3950,7 @@ export class ChatAppFeaturesMethods {
     if (driftStartBtn && driftStartBtn.dataset.bound !== 'true') {
       driftStartBtn.dataset.bound = 'true';
       driftStartBtn.addEventListener('click', () => {
+        lockLandscapeForDrift();
         setMiniGameView('drift');
         startOrionDrift();
       });
@@ -3744,6 +3978,13 @@ export class ChatAppFeaturesMethods {
       buttonEl.addEventListener('pointerup', onRelease);
       buttonEl.addEventListener('pointercancel', onRelease);
       buttonEl.addEventListener('pointerleave', onRelease);
+      buttonEl.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        setMiniGameView('drift');
+        onPress();
+      }, { passive: false });
+      buttonEl.addEventListener('touchend', onRelease, { passive: true });
+      buttonEl.addEventListener('touchcancel', onRelease, { passive: true });
     };
 
     bindDriftControlButton(driftSteerLeftBtn, () => setDriftSteerDirection(-1), () => setDriftSteerDirection(0));
@@ -3755,15 +3996,26 @@ export class ChatAppFeaturesMethods {
       driftCanvasWrapEl.dataset.bound = 'true';
 
       driftCanvasWrapEl.addEventListener('touchstart', (event) => {
+        if (event.target instanceof Element && event.target.closest('.orion-drift-controls, .orion-drift-start-overlay')) return;
+        if (event.touches && event.touches.length > 1) {
+          event.preventDefault();
+          return;
+        }
+        event.preventDefault();
         const point = event.changedTouches?.[0];
         if (!point) return;
         driftState.swipeStartX = point.clientX;
         driftState.swipeStartY = point.clientY;
         driftState.touchSteerDirection = 0;
         syncDriftControlButtons();
-      }, { passive: true });
+      }, { passive: false });
 
       driftCanvasWrapEl.addEventListener('touchmove', (event) => {
+        if (event.target instanceof Element && event.target.closest('.orion-drift-controls, .orion-drift-start-overlay')) return;
+        if (event.touches && event.touches.length > 1) {
+          event.preventDefault();
+          return;
+        }
         const point = event.changedTouches?.[0];
         if (!point) return;
         const dx = point.clientX - driftState.swipeStartX;
@@ -3785,6 +4037,10 @@ export class ChatAppFeaturesMethods {
 
       driftCanvasWrapEl.addEventListener('touchend', finishSwipe, { passive: true });
       driftCanvasWrapEl.addEventListener('touchcancel', finishSwipe, { passive: true });
+      const preventDriftGestureZoom = (event) => event.preventDefault();
+      driftCanvasWrapEl.addEventListener('gesturestart', preventDriftGestureZoom);
+      driftCanvasWrapEl.addEventListener('gesturechange', preventDriftGestureZoom);
+      driftCanvasWrapEl.addEventListener('gestureend', preventDriftGestureZoom);
     }
 
     if (this.grid2048KeyHandler) {
@@ -3909,12 +4165,12 @@ export class ChatAppFeaturesMethods {
     updateSignalHud();
     resolveFlappyWorldSize();
     ensureFlappyAssets();
-    setFlappyStatus('Натисни «Старт», щоб полетіти. Клікай або тисни Space для стрибка.');
     updateFlappyHud();
     renderFlappyFrame();
     resolveDriftWorldSize();
     ensureDriftAssets();
-    setDriftStatus('Натисни «Старт». Відкритий режим: W/S або ↑/↓ для газу й гальма, A/D або ←/→ для повороту, Space — ручне гальмо.');
+    setDriftStatus(getDriftIdleStatusText());
+    syncMiniGameControlHints();
     updateDriftHud();
     renderOrionDriftFrame();
     startGrid2048();
@@ -3929,6 +4185,8 @@ export class ChatAppFeaturesMethods {
       renderFlappyFrame();
       resolveDriftWorldSize();
       renderOrionDriftFrame();
+      syncMiniGameControlHints();
+      applyMiniGameContainerBackground(currentMiniGameView);
     };
     window.addEventListener('resize', this.flappyOrionResizeHandler, { passive: true });
 
