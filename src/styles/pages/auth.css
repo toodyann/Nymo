@@ -16,7 +16,7 @@ body {
 }
 
 .auth-page {
-  --auth-orion-tone: color-mix(in srgb, var(--primary-color) 70%, #7c8ea2);
+  --auth-orion-tone: #111111;
   position: relative;
   min-height: 100dvh;
   display: flex;
@@ -31,7 +31,7 @@ body {
 }
 
 html.dark-theme .auth-page {
-  --auth-orion-tone: color-mix(in srgb, var(--primary-color) 78%, #aebfd6);
+  --auth-orion-tone: #ffffff;
 }
 
 .auth-page::before {
@@ -55,9 +55,8 @@ html.dark-theme .auth-page {
 
 html.dark-theme .auth-page::before {
   color: var(--auth-orion-tone);
-  opacity: 0.46;
-  text-shadow: 0 0 22px
-    color-mix(in srgb, var(--auth-orion-tone) 42%, transparent);
+  opacity: 0.9;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.34);
 }
 
 .auth-background-glow {
@@ -86,6 +85,12 @@ html.dark-theme .auth-page::before {
 
 .auth-shell {
   width: min(520px, 100%);
+  transform: translateY(0);
+  transition: transform 240ms cubic-bezier(0.22, 0.78, 0.2, 1);
+}
+
+.auth-page[data-auth-mode="register"] .auth-shell {
+  transform: translateY(56px);
 }
 
 .auth-panel {
@@ -156,23 +161,26 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   display: grid;
   gap: 10px;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateX(22px) scale(0.985);
   visibility: hidden;
   pointer-events: none;
+  filter: blur(1px);
   will-change: opacity, transform;
   transition:
-    opacity 0.18s ease,
-    transform 0.18s ease,
-    visibility 0s linear 0.18s;
+    opacity 0.22s cubic-bezier(0.22, 0.78, 0.2, 1),
+    transform 0.22s cubic-bezier(0.22, 0.78, 0.2, 1),
+    filter 0.22s cubic-bezier(0.22, 0.78, 0.2, 1),
+    visibility 0s linear 0.22s;
 }
 
 .auth-form.is-active {
   position: relative;
   inset: auto;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0) scale(1);
   visibility: visible;
   pointer-events: auto;
+  filter: blur(0);
   transition-delay: 0s, 0s, 0s;
 }
 
@@ -180,29 +188,31 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transform: translateY(-2px);
+  transform: translateX(-22px) scale(0.985);
   visibility: visible;
   pointer-events: none;
+  filter: blur(1px);
   transition-delay: 0s, 0s, 0s;
 }
 
 .auth-forms[data-transition="forward"] .auth-form.is-active {
-  transform: translateY(0);
+  transform: translateX(0) scale(1);
 }
 
 .auth-forms[data-transition="forward"] .auth-form.is-leaving {
-  transform: translateY(-2px);
+  transform: translateX(-22px) scale(0.985);
 }
 
 .auth-forms[data-transition="backward"] .auth-form.is-active {
-  transform: translateY(0);
+  transform: translateX(0) scale(1);
 }
 
 .auth-forms[data-transition="backward"] .auth-form.is-leaving {
-  transform: translateY(-2px);
+  transform: translateX(22px) scale(0.985);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .auth-shell,
   .auth-form {
     transition: none;
   }
@@ -336,6 +346,10 @@ html:not(.dark-theme) .auth-theme-icon--sun {
     filter 0.16s ease;
 }
 
+html.dark-theme .auth-submit {
+  color: #0b1220;
+}
+
 .auth-submit:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
@@ -387,6 +401,11 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   animation: authSpinner 0.72s linear infinite;
 }
 
+html.dark-theme .auth-submit.is-loading::after {
+  border-color: rgba(11, 18, 32, 0.3);
+  border-top-color: #0b1220;
+}
+
 @keyframes authSpinner {
   to {
     transform: rotate(360deg);
@@ -422,6 +441,7 @@ html:not(.dark-theme) .auth-theme-icon--sun {
 
   .auth-shell {
     width: min(420px, 100%);
+    transform: translateY(0) !important;
   }
 
   .auth-panel {

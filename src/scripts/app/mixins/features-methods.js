@@ -782,6 +782,7 @@ export class ChatAppFeaturesMethods {
     }
     this.pendingMiniGameView = null;
 
+    const signalPanelEl = settingsContainer.querySelector('[data-mini-game-panel="signal"]');
     const signalCanvasEl = settingsContainer.querySelector('#signalHuntCanvas');
     const signalTargetEl = settingsContainer.querySelector('#signalHuntTarget');
     const signalStatusEl = settingsContainer.querySelector('#signalHuntStatus');
@@ -870,16 +871,6 @@ export class ChatAppFeaturesMethods {
       if (isMobileViewport) {
         settingsContainer.style.setProperty('background', 'transparent', 'important');
         settingsContainer.style.setProperty('background-color', 'transparent', 'important');
-        return;
-      }
-
-      if (view === 'grid2048') {
-        settingsContainer.style.setProperty(
-          'background',
-          'radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.7), transparent 40%), radial-gradient(circle at 88% 94%, rgba(233, 221, 201, 0.52), transparent 42%), linear-gradient(180deg, #faf8ef 0%, #f3efe6 100%)',
-          'important'
-        );
-        settingsContainer.style.setProperty('background-color', '#f3efe6', 'important');
         return;
       }
 
@@ -1418,6 +1409,27 @@ export class ChatAppFeaturesMethods {
         }
       }
 
+      const groundPart = hasSprite
+        ? { ...spriteMap.ground, x: spriteMap.ground.x + 2, w: Math.min(64, spriteMap.ground.w - 4) }
+        : spriteMap.ground;
+      const groundTileWidth = Math.max(1, Math.round(groundPart.w));
+      const groundY = Math.round(worldHeight - groundHeight);
+      const groundShift = ((Math.floor(flappyState.groundOffset) % groundTileWidth) + groundTileWidth) % groundTileWidth;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, groundY, worldWidth, groundHeight);
+      ctx.clip();
+      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
+        const drawX = Math.round(x - groundShift);
+        if (!drawSprite(groundPart, drawX, groundY, groundTileWidth, groundHeight)) {
+          ctx.fillStyle = '#5d3f27';
+          ctx.fillRect(drawX, groundY, groundTileWidth, groundHeight);
+          ctx.fillStyle = '#6ea848';
+          ctx.fillRect(drawX, groundY, groundTileWidth, 14);
+        }
+      }
+      ctx.restore();
+
       flappyState.pipes.forEach((pipe) => {
         const gapHeight = pipe.gapHeight || getFlappyPipeGap();
         const topEnd = Math.round(pipe.gapCenter - gapHeight / 2);
@@ -1488,41 +1500,22 @@ export class ChatAppFeaturesMethods {
       }
       ctx.restore();
 
-      const groundPart = hasSprite
-        ? { ...spriteMap.ground, x: spriteMap.ground.x + 2, w: Math.min(64, spriteMap.ground.w - 4) }
-        : spriteMap.ground;
-      const groundTileWidth = Math.max(1, Math.round(groundPart.w));
-      const groundY = Math.round(worldHeight - groundHeight);
-      const groundShift = ((Math.floor(flappyState.groundOffset) % groundTileWidth) + groundTileWidth) % groundTileWidth;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, groundY, worldWidth, groundHeight);
-      ctx.clip();
-      for (let x = -groundTileWidth; x < worldWidth + groundTileWidth; x += groundTileWidth) {
-        const drawX = Math.round(x - groundShift);
-        if (!drawSprite(groundPart, drawX, groundY, groundTileWidth, groundHeight)) {
-          ctx.fillStyle = '#5d3f27';
-          ctx.fillRect(drawX, groundY, groundTileWidth, groundHeight);
-          ctx.fillStyle = '#6ea848';
-          ctx.fillRect(drawX, groundY, groundTileWidth, 14);
-        }
-      }
-      ctx.restore();
-
-      const hudPaddingX = Math.max(12, Math.round(worldWidth * 0.03));
-      const hudPaddingY = Math.max(10, Math.round(worldHeight * 0.024));
-      const hudFontSize = Math.max(13, Math.round(worldHeight * 0.038));
+      const hudPaddingX = Math.max(16, Math.round(worldWidth * 0.035));
+      const hudPaddingY = Math.max(18, Math.round(worldHeight * 0.045));
+      const hudFontSize = Math.max(9, Math.round(worldHeight * 0.022));
       const gameOverTitleSize = Math.max(28, Math.round(worldHeight * 0.1));
-      const gameOverStatSize = Math.max(14, Math.round(worldHeight * 0.04));
+      const gameOverStatSize = Math.max(10, Math.round(worldHeight * 0.026));
 
       if (flappyState.isRunning) {
         drawFlappyHudText(ctx, `SCORE ${flappyState.score}`, hudPaddingX, hudPaddingY, {
           fontSize: hudFontSize,
-          align: 'left'
+          align: 'left',
+          baseline: 'middle'
         });
         drawFlappyHudText(ctx, `COINS ${flappyState.coins}`, worldWidth - hudPaddingX, hudPaddingY, {
           fontSize: hudFontSize,
-          align: 'right'
+          align: 'right',
+          baseline: 'middle'
         });
       }
 
@@ -1538,7 +1531,11 @@ export class ChatAppFeaturesMethods {
           fontSize: gameOverTitleSize,
           align: 'center'
         });
-        drawFlappyHudText(ctx, `${flappyState.score} : ${flappyState.coins}`, centerX, centerY + gameOverTitleSize * 0.18, {
+        drawFlappyHudText(ctx, `SCORE ${flappyState.score}`, centerX, centerY + gameOverTitleSize * 0.08, {
+          fontSize: gameOverStatSize,
+          align: 'center'
+        });
+        drawFlappyHudText(ctx, `COINS ${flappyState.coins}`, centerX, centerY + gameOverTitleSize * 0.44, {
           fontSize: gameOverStatSize,
           align: 'center'
         });
@@ -1680,6 +1677,9 @@ export class ChatAppFeaturesMethods {
       flappyState.lastTimestamp = performance.now();
       flappyState.flapFrame = 0;
       flappyState.flapFrameIndex = 0;
+      if (flappyPanelEl) {
+        flappyPanelEl.classList.remove('flappy-game-over');
+      }
       updateFlappyHud();
       renderFlappyFrame();
     };
@@ -1727,6 +1727,7 @@ export class ChatAppFeaturesMethods {
 
       if (flappyPanelEl) {
         flappyPanelEl.classList.remove('is-running');
+        flappyPanelEl.classList.toggle('flappy-game-over', flappyState.gameOver);
       }
       if (flappyStartBtn) {
         flappyStartBtn.textContent = 'Старт';
@@ -1752,10 +1753,11 @@ export class ChatAppFeaturesMethods {
       flappyState.birdY += flappyState.birdVelocity * elapsedSeconds;
       flappyState.birdRotation = Math.min(1.45, flappyState.birdRotation + elapsedSeconds * 3.2);
 
+      const groundHeight = getFlappyGroundHeight();
       const birdRadius = getFlappyBirdRadius();
-      const buryY = flappyState.worldHeight + birdRadius * 1.8;
-      if (flappyState.birdY >= buryY) {
-        flappyState.birdY = buryY;
+      const landingY = flappyState.worldHeight - groundHeight - birdRadius * 0.82;
+      if (flappyState.birdY >= landingY) {
+        flappyState.birdY = landingY;
         flappyState.birdVelocity = 0;
         stopFlappyOrion('finished');
         return;
@@ -1782,6 +1784,9 @@ export class ChatAppFeaturesMethods {
       flappyState.birdVelocity = Math.max(flappyState.birdVelocity, 150);
       flappyState.birdRotation = Math.max(flappyState.birdRotation, 0.25);
       flappyState.lastTimestamp = performance.now();
+      if (flappyPanelEl) {
+        flappyPanelEl.classList.remove('flappy-game-over');
+      }
 
       if (flappyState.rafId) {
         window.cancelAnimationFrame(flappyState.rafId);
@@ -1907,6 +1912,7 @@ export class ChatAppFeaturesMethods {
       flappyState.isRunning = true;
       flappyState.lastTimestamp = performance.now();
       if (flappyPanelEl) {
+        flappyPanelEl.classList.remove('flappy-game-over');
         flappyPanelEl.classList.add('is-running');
       }
       if (flappyStartBtn) {
@@ -3567,6 +3573,7 @@ export class ChatAppFeaturesMethods {
     const stopSignalHunt = (reason = 'finished') => {
       if (!signalState.isRunning && reason !== 'switch') return;
       signalState.isRunning = false;
+      if (signalPanelEl) signalPanelEl.classList.remove('is-running');
       clearSignalHuntTimers();
       if (signalTargetEl) signalTargetEl.classList.remove('active');
       commitSignalReward();
@@ -3599,6 +3606,7 @@ export class ChatAppFeaturesMethods {
       signalState.timeLeft = SIGNAL_HUNT_DURATION;
       signalState.earnedCents = 0;
       signalState.rewardLogged = false;
+      if (signalPanelEl) signalPanelEl.classList.add('is-running');
       if (signalStartBtn) signalStartBtn.textContent = 'Перезапуск';
       if (signalStatusEl) signalStatusEl.textContent = 'Лови сигнали, вони зʼявляються у випадкових точках!';
       signalTargetEl.classList.add('active');
@@ -3720,7 +3728,7 @@ export class ChatAppFeaturesMethods {
       if (gridBestEl) gridBestEl.textContent = String(grid2048State.best);
       if (gridEarnedEl) gridEarnedEl.textContent = this.formatCoinBalance(grid2048State.earnedCents);
       const endMessage = grid2048State.isGameOver
-        ? `Гру завершено\nЗароблено: ${this.formatCoinBalance(grid2048State.earnedCents)}\nНатисни «Нова гра»`
+        ? `Гру завершено\nЗароблено: ${this.formatCoinBalance(grid2048State.earnedCents)}`
         : '';
       if (gridPanelEl) {
         gridPanelEl.classList.toggle('game-over', grid2048State.isGameOver);

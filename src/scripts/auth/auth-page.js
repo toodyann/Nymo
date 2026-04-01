@@ -373,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const panelTitle = document.getElementById('authPanelTitle');
   const themeToggle = document.getElementById('authThemeToggle');
   const authFormsRoot = document.querySelector('.auth-forms');
+  const authPageRoot = document.querySelector('.auth-page');
   const switchToRegisterBtn = document.getElementById('switchToRegister');
   const switchToLoginBtn = document.getElementById('switchToLogin');
   const passwordToggles = document.querySelectorAll('[data-toggle-password]');
@@ -472,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     activeForm = nextForm;
     authFormsRoot.dataset.mode = state.mode;
+    if (authPageRoot) authPageRoot.dataset.authMode = state.mode;
     setFormLoadingState(loginForm, false);
     setFormLoadingState(registerForm, false);
 

@@ -1797,6 +1797,10 @@
   #settingsContainerMobile
     #mini-games[data-mobile-mini-game-fullscreen="true"][data-active-mini-game="flappy"]
     .mini-game-panel[data-mini-game-panel="flappy"].is-running
+    #flappyOrionStart,
+  #settingsContainerMobile
+    #mini-games[data-mobile-mini-game-fullscreen="true"][data-active-mini-game="flappy"]
+    .mini-game-panel[data-mini-game-panel="flappy"].flappy-game-over
     #flappyOrionStart {
     opacity: 0 !important;
     visibility: hidden !important;

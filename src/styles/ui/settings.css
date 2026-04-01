@@ -3207,7 +3207,11 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   border-radius: var(--radius-inner);
   border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.1), transparent 60%),
+    radial-gradient(
+      circle at 50% 12%,
+      rgba(255, 255, 255, 0.1),
+      transparent 60%
+    ),
     color-mix(in srgb, var(--surface-soft) 90%, transparent);
   display: flex;
   align-items: center;
@@ -3257,7 +3261,11 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
       color-mix(in srgb, var(--shop-smoke-accent, #ffffff) 16%, transparent) 0%,
       transparent 42%
     ),
-    radial-gradient(circle at 78% 10%, rgba(255, 255, 255, 0.12), transparent 34%),
+    radial-gradient(
+      circle at 78% 10%,
+      rgba(255, 255, 255, 0.12),
+      transparent 34%
+    ),
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--surface-soft) 96%, transparent) 0%,
@@ -3273,12 +3281,11 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   inset: auto -18px -18px -18px;
   height: 62px;
   border-radius: 999px;
-  background:
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 46%, transparent) 0%,
-      transparent 72%
-    );
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 46%, transparent) 0%,
+    transparent 72%
+  );
   filter: blur(10px);
   opacity: 0.62;
 }
@@ -3322,12 +3329,17 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   display: block;
   z-index: 2;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 36% 34%,
-      color-mix(in srgb, var(--shop-smoke-accent, #ffffff) 72%, var(--shop-smoke-color, #aeb7c4) 28%) 0%,
-      color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 74%, transparent) 56%,
-      transparent 100%
-    );
+  background: radial-gradient(
+    circle at 36% 34%,
+    color-mix(
+        in srgb,
+        var(--shop-smoke-accent, #ffffff) 72%,
+        var(--shop-smoke-color, #aeb7c4) 28%
+      )
+      0%,
+    color-mix(in srgb, var(--shop-smoke-color, #aeb7c4) 74%, transparent) 56%,
+    transparent 100%
+  );
   filter: blur(0.8px);
   mix-blend-mode: screen;
   transform-origin: 50% 100%;
@@ -4442,7 +4454,8 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   overflow: hidden;
 }
 
-#mini-games[data-active-mini-game="flappy"] .mini-game-panel[data-mini-game-panel="flappy"] {
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"] {
   width: 100%;
   max-width: none;
   padding: 14px;
@@ -4454,7 +4467,8 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   min-height: 0;
 }
 
-#mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] {
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"] {
   width: 100%;
   max-width: none;
   padding: 14px;
@@ -4466,26 +4480,35 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   min-height: 0;
 }
 
-#mini-games[data-active-mini-game="flappy"] .mini-game-panel[data-mini-game-panel="flappy"] .mini-game-stage {
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"]
+  .mini-game-stage {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
-#mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-stage {
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"]
+  .mini-game-stage {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-#mini-games[data-active-mini-game="flappy"] .mini-game-panel[data-mini-game-panel="flappy"] .flappy-orion-canvas-wrap {
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"]
+  .flappy-orion-canvas-wrap {
   height: 100%;
   min-height: 0;
 }
 
-#mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] #grid2048Canvas {
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"]
+  #grid2048Canvas {
+  position: relative;
   height: 100%;
   min-height: 0;
   max-height: none;
@@ -4498,53 +4521,61 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   padding: 0;
 }
 
+.mini-game-play-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  min-width: 72px;
+  height: 72px;
+  min-height: 72px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  line-height: 0;
+  color: #111111;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 88%, #000000 12%);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(255, 255, 255, 0.26) inset;
+  z-index: 9;
+}
+
+.mini-game-play-overlay::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.4 114.49 88.32 26.35a16 16 0 0 0-16.2-.3A15.86 15.86 0 0 0 64 39.87V216.13A15.94 15.94 0 0 0 80 232a16.07 16.07 0 0 0 8.36-2.35L232.4 141.51a15.81 15.81 0 0 0 0-27ZM80 215.94V40l143.83 88Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.4 114.49 88.32 26.35a16 16 0 0 0-16.2-.3A15.86 15.86 0 0 0 64 39.87V216.13A15.94 15.94 0 0 0 80 232a16.07 16.07 0 0 0 8.36-2.35L232.4 141.51a15.81 15.81 0 0 0 0-27ZM80 215.94V40l143.83 88Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.mini-game-panel[data-mini-game-panel="signal"].is-running #signalHuntStart,
+.mini-game-panel[data-mini-game-panel="flappy"].is-running #flappyOrionStart,
+.mini-game-panel[data-mini-game-panel="flappy"].flappy-game-over #flappyOrionStart,
+.mini-game-panel[data-mini-game-panel="drift"].is-running #orionDriftStart {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @media (min-width: 769px) {
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] {
-    background:
-      radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.7), transparent 40%),
-      radial-gradient(circle at 88% 94%, rgba(233, 221, 201, 0.52), transparent 42%),
-      linear-gradient(180deg, #faf8ef 0%, #f3efe6 100%);
+  #mini-games[data-active-mini-game="grid2048"]
+    .mini-game-panel[data-mini-game-panel="grid2048"] {
+    background: var(--bg-color);
   }
 
-  #mini-games[data-active-mini-game="grid2048"] {
-    background:
-      radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.7), transparent 40%),
-      radial-gradient(circle at 88% 94%, rgba(233, 221, 201, 0.52), transparent 42%),
-      linear-gradient(180deg, #faf8ef 0%, #f3efe6 100%);
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-view-header {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-view-title {
-    color: #776e65;
-    text-shadow: none;
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-view-score {
-    color: #f9f6f2;
-    background: #bbada0;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-view-score strong {
-    color: #ffffff;
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-score-current {
-    color: #f9f6f2;
-    background: #8f7a66;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] .mini-game-hint {
-    color: #776e65;
-  }
-
-  #mini-games[data-active-mini-game="grid2048"] .mini-game-panel[data-mini-game-panel="grid2048"] #grid2048Board.grid-2048 {
+  #mini-games[data-active-mini-game="grid2048"]
+    .mini-game-panel[data-mini-game-panel="grid2048"]
+    #grid2048Board.grid-2048 {
     width: min(100%, clamp(500px, 72vh, 860px));
     height: min(100%, clamp(500px, 72vh, 860px));
     max-width: calc(100% - 8px);
@@ -4554,7 +4585,8 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   }
 }
 
-#mini-games[data-active-mini-game="drift"] .mini-game-panel[data-mini-game-panel="drift"] {
+#mini-games[data-active-mini-game="drift"]
+  .mini-game-panel[data-mini-game-panel="drift"] {
   width: 100%;
   max-width: none;
   padding: 0;
@@ -4646,8 +4678,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   align-items: center;
   align-self: flex-start;
   padding: 8px 12px;
-  border-radius: var(--radius-pill);
-  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
   background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
 }
 
@@ -4787,15 +4817,31 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   box-shadow: none;
   height: 100%;
   background:
-    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.08), transparent 44%),
-    radial-gradient(circle at 50% 86%, rgba(255, 255, 255, 0.05), transparent 46%),
+    radial-gradient(
+      circle at 50% 10%,
+      rgba(255, 255, 255, 0.08),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 50% 86%,
+      rgba(255, 255, 255, 0.05),
+      transparent 46%
+    ),
     #111318;
 }
 
 html:not(.dark-theme) .orion-drift-canvas-wrap {
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 242, 214, 0.62), transparent 44%),
-    radial-gradient(circle at 50% 88%, rgba(214, 183, 132, 0.2), transparent 48%),
+    radial-gradient(
+      circle at 50% 12%,
+      rgba(255, 242, 214, 0.62),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 50% 88%,
+      rgba(214, 183, 132, 0.2),
+      transparent 48%
+    ),
     #f0e4d2;
 }
 
@@ -4936,7 +4982,8 @@ html:not(.dark-theme) .orion-drift-canvas-wrap {
   letter-spacing: 0.03em;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--primary-color) 36%, transparent);
+  text-shadow: 0 0 14px
+    color-mix(in srgb, var(--primary-color) 36%, transparent);
 }
 
 .orion-drift-speedometer-unit {
@@ -4955,53 +5002,24 @@ html:not(.dark-theme) .orion-drift-canvas-wrap {
 }
 
 .orion-drift-start-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 160px;
-  height: 48px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-color) 8%);
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
   z-index: 6;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition:
-    transform 0.14s ease,
-    opacity 0.14s ease,
-    border-color 0.14s ease,
-    background-color 0.14s ease;
 }
 
 .orion-drift-start-overlay:hover {
   transform: translate(-50%, -50%);
-  border-color: color-mix(in srgb, var(--primary-color) 62%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 18%, var(--surface-soft) 82%);
-  box-shadow:
-    var(--shadow),
-    0 0 0 1px color-mix(in srgb, var(--primary-color) 20%, transparent) inset;
 }
 
-.mini-game-panel[data-mini-game-panel="drift"].is-running .orion-drift-start-overlay:hover {
-  transform: none;
+.mini-game-panel[data-mini-game-panel="drift"].is-running
+  .orion-drift-start-overlay:hover {
+  transform: translate(-50%, -50%);
 }
 
-.mini-game-panel[data-mini-game-panel="drift"].is-running .orion-drift-start-overlay {
-  top: auto;
-  left: 12px;
-  bottom: 12px;
-  transform: none;
-  min-width: 118px;
-  height: 40px;
-  font-size: 13px;
-  opacity: 0.94;
-  pointer-events: auto;
-  z-index: 7;
+.mini-game-panel[data-mini-game-panel="drift"].is-running
+  .orion-drift-start-overlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 6;
 }
 
 .orion-drift-controls {
@@ -5053,8 +5071,16 @@ html:not(.dark-theme) .orion-drift-canvas-wrap {
 }
 
 .orion-drift-control-btn.active {
-  border-color: color-mix(in srgb, var(--primary-color) 62%, var(--border-color));
-  background: color-mix(in srgb, var(--primary-color) 22%, var(--surface-soft) 78%);
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 62%,
+    var(--border-color)
+  );
+  background: color-mix(
+    in srgb,
+    var(--primary-color) 22%,
+    var(--surface-soft) 78%
+  );
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 22%, transparent),
     0 8px 18px color-mix(in srgb, #000000 24%, transparent);
@@ -5323,19 +5349,6 @@ html:not(.dark-theme) .mini-game-canvas {
     height: 100%;
   }
 
-  .orion-drift-start-overlay {
-    min-width: 142px;
-    height: 44px;
-    font-size: 14px;
-  }
-
-  .mini-game-panel[data-mini-game-panel="drift"].is-running .orion-drift-start-overlay {
-    left: 10px;
-    bottom: 10px;
-    min-width: 110px;
-    height: 38px;
-    font-size: 12px;
-  }
 }
 
 /* Profile settings minimalist */
