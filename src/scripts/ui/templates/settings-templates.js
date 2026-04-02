@@ -485,6 +485,72 @@ export const settingsTemplates = {
 </div>
   `.trim(),
 
+  'orion-drive-garage': `
+<div class="settings-section settings-subsection" id="orion-drive-garage">
+  <div class="settings-header settings-subsection-header">
+    <button type="button" class="btn-back-subsection settings-subsection-back" aria-label="Назад">
+      <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+      </svg>
+    </button>
+    <h2 class="settings-subsection-title">
+      <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M176,112H152a8,8,0,0,1,0-16h24a8,8,0,0,1,0,16ZM104,96H96V88a8,8,0,0,0-16,0v8H72a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0v-8h8a8,8,0,0,0,0-16ZM241.48,200.65a36,36,0,0,1-54.94,4.81c-.12-.12-.24-.24-.35-.37L146.48,160h-37L69.81,205.09l-.35.37A36.08,36.08,0,0,1,44,216,36,36,0,0,1,8.56,173.75a.68.68,0,0,1,0-.14L24.93,89.52A59.88,59.88,0,0,1,83.89,40H172a60.08,60.08,0,0,1,59,49.25c0,.06,0,.12,0,.18l16.37,84.17a.68.68,0,0,1,0,.14A35.74,35.74,0,0,1,241.48,200.65ZM172,144a44,44,0,0,0,0-88H83.89A43.9,43.9,0,0,0,40.68,92.37l0,.13L24.3,176.59A20,20,0,0,0,58,194.3l41.92-47.59a8,8,0,0,1,6-2.71Zm59.7,32.59-8.74-45A60,60,0,0,1,172,160h-4.2L198,194.31a20.09,20.09,0,0,0,17.46,5.39,20,20,0,0,0,16.23-23.11Z"></path>
+      </svg>
+      <span>Гараж Orion Drive</span>
+    </h2>
+  </div>
+
+  <div class="settings-content orion-drive-garage-content">
+    <section class="orion-drive-garage-viewer-card">
+      <div class="orion-drive-garage-stage" id="shopGarageStage">
+        <canvas id="shopGarageCanvas" class="orion-drive-garage-canvas" aria-label="3D модель авто"></canvas>
+        <img id="shopGarageFallback" class="orion-drive-garage-fallback" alt="Превʼю авто" loading="lazy" />
+        <span class="orion-drive-garage-state" id="shopGarageOwnershipTag">Огляд</span>
+        <button type="button" class="orion-drive-garage-rotate-btn rotate-left" data-shop-garage-rotate="-1" aria-label="Попереднє авто">
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+            <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+          </svg>
+        </button>
+        <button type="button" class="orion-drive-garage-rotate-btn rotate-right" data-shop-garage-rotate="1" aria-label="Наступне авто">
+          <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+            <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+          </svg>
+        </button>
+        <p class="orion-drive-garage-hint">Стрілки перемикають авто. Поточну модель можна крутити свайпом.</p>
+      </div>
+    </section>
+
+    <section class="orion-drive-garage-info-card">
+      <span class="shop-kicker">ORION DRIVE</span>
+      <h3 id="shopGarageTitle">Авто</h3>
+      <p id="shopGarageDescription">Опис авто.</p>
+      <div class="orion-drive-garage-meta">
+        <div class="orion-drive-garage-meta-item">
+          <span>Клас</span>
+          <strong id="shopGarageClass">-</strong>
+        </div>
+        <div class="orion-drive-garage-meta-item">
+          <span>Ціна</span>
+          <strong id="shopGaragePrice" class="currency-value-inline">0,00</strong>
+        </div>
+        <div class="orion-drive-garage-meta-item">
+          <span>Баланс</span>
+          <strong id="shopGarageBalance" class="currency-value-inline">0,00</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="orion-drive-garage-specs-card">
+      <h4>Характеристики</h4>
+      <div class="orion-drive-garage-specs" id="shopGarageSpecs"></div>
+    </section>
+
+    <button type="button" class="shop-item-action orion-drive-garage-action" id="shopGarageActionBtn">Купити</button>
+  </div>
+</div>
+  `.trim(),
+
   'notifications-settings': `
 <div class="settings-section settings-subsection" id="notifications-settings">
   <div class="settings-header settings-subsection-header">

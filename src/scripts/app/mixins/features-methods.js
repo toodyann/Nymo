@@ -245,6 +245,491 @@ export class ChatAppFeaturesMethods {
     };
   }
 
+  disposeThreeObjectResources(object3d) {
+    if (!object3d) return;
+    object3d.traverse((node) => {
+      if (!node.isMesh) return;
+      node.geometry?.dispose?.();
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      materials.forEach((material) => {
+        if (!material) return;
+        Object.values(material).forEach((value) => {
+          if (value && value.isTexture) value.dispose?.();
+        });
+        material.dispose?.();
+      });
+    });
+  }
+
+  disposeShopGarageViewer() {
+    const context = this.shopGarageViewerContext;
+    if (!context) return;
+
+    if (context.rafId) {
+      window.cancelAnimationFrame(context.rafId);
+    }
+
+    if (context.resizeObserver) {
+      context.resizeObserver.disconnect();
+    } else if (context.onWindowResize) {
+      window.removeEventListener('resize', context.onWindowResize);
+    }
+
+    if (context.stageEl && context.pointerHandlers) {
+      context.stageEl.removeEventListener('pointerdown', context.pointerHandlers.down);
+      context.stageEl.removeEventListener('pointermove', context.pointerHandlers.move);
+      context.stageEl.removeEventListener('pointerup', context.pointerHandlers.up);
+      context.stageEl.removeEventListener('pointercancel', context.pointerHandlers.up);
+      context.stageEl.removeEventListener('pointerleave', context.pointerHandlers.up);
+    }
+
+    if (Array.isArray(context.rotateHandlers)) {
+      context.rotateHandlers.forEach((entry) => {
+        if (typeof entry?.cleanup === 'function') {
+          entry.cleanup();
+          return;
+        }
+        const button = entry?.button;
+        const handler = entry?.handler;
+        button?.removeEventListener('click', handler);
+      });
+    }
+
+    this.disposeThreeObjectResources(context.model);
+    context.renderer?.dispose?.();
+    context.renderer?.forceContextLoss?.();
+    this.shopGarageViewerContext = null;
+  }
+
+  initOrionDriveGarage(settingsContainer) {
+    const sectionEl = settingsContainer.querySelector('#orion-drive-garage');
+    const stageEl = settingsContainer.querySelector('#shopGarageStage');
+    const canvasEl = settingsContainer.querySelector('#shopGarageCanvas');
+    const fallbackEl = settingsContainer.querySelector('#shopGarageFallback');
+    const ownershipTagEl = settingsContainer.querySelector('#shopGarageOwnershipTag');
+    const titleEl = settingsContainer.querySelector('#shopGarageTitle');
+    const descriptionEl = settingsContainer.querySelector('#shopGarageDescription');
+    const classEl = settingsContainer.querySelector('#shopGarageClass');
+    const priceEl = settingsContainer.querySelector('#shopGaragePrice');
+    const balanceEl = settingsContainer.querySelector('#shopGarageBalance');
+    const specsEl = settingsContainer.querySelector('#shopGarageSpecs');
+    const actionBtn = settingsContainer.querySelector('#shopGarageActionBtn');
+    if (!sectionEl || !stageEl || !canvasEl || !specsEl || !actionBtn) return;
+
+    const cars = this.getOrionDriveCarCatalog();
+    if (!cars.length) return;
+
+    const carsById = new Map(cars.map((item) => [item.id, item]));
+    const queuedCarId = String(this.pendingShopGarageCarId || '').trim();
+    this.pendingShopGarageCarId = '';
+
+    const equippedCar = cars.find((item) => item.effect === this.user?.equippedDriveCar);
+    const initialCar = carsById.get(queuedCarId) || equippedCar || cars[0];
+    let currentCarIndex = Math.max(0, cars.findIndex((item) => item.id === initialCar?.id));
+    let currentCar = cars[currentCarIndex] || cars[0];
+
+    const inventory = new Set(this.loadShopInventory());
+    const carClassByEffect = {
+      taxi: 'Міський клас',
+      'sedan-sports': 'Спорт-седан',
+      'suv-luxury': 'Преміум SUV',
+      police: 'Перехоплювач',
+      'race-future': 'Футуристичний',
+      firetruck: 'Важкий клас'
+    };
+    const allPhysics = cars.map((car) => this.getOrionDriveCarPhysics(car.effect));
+
+    const physicsRange = (key) => {
+      const values = allPhysics.map((row) => Number(row[key]) || 0);
+      return {
+        min: Math.min(...values),
+        max: Math.max(...values)
+      };
+    };
+
+    const ranges = {
+      maxForward: physicsRange('maxForward'),
+      forwardAccel: physicsRange('forwardAccel'),
+      transitionBrake: physicsRange('transitionBrake'),
+      shiftBrakeForce: physicsRange('shiftBrakeForce')
+    };
+
+    const normalizeToPercent = (value, range) => {
+      const safeValue = Number(value) || 0;
+      const min = Number(range?.min) || 0;
+      const max = Number(range?.max) || 0;
+      if (max <= min) return 50;
+      return Math.round(((safeValue - min) / (max - min)) * 100);
+    };
+
+    const getSelectedState = () => {
+      const owned = inventory.has(currentCar.id);
+      const equipped = this.user?.equippedDriveCar === currentCar.effect;
+      const balance = this.getTapBalanceCents();
+      const canBuy = balance >= currentCar.price;
+      return { owned, equipped, balance, canBuy };
+    };
+
+    const renderSpecs = () => {
+      const selectedPhysics = this.getOrionDriveCarPhysics(currentCar.effect);
+      const topSpeed = Math.round((selectedPhysics.maxForward / 10) * 1.25);
+      const accelRate = Math.round(selectedPhysics.forwardAccel / 8);
+      const brakingRate = Math.round((selectedPhysics.transitionBrake + selectedPhysics.shiftBrakeForce) / 20);
+      const controlRate = Math.round(((selectedPhysics.forwardAccel * 0.5) + (selectedPhysics.transitionBrake * 0.5)) / 12);
+
+      const specs = [
+        {
+          label: 'Макс. швидкість',
+          value: `${topSpeed} км/год`,
+          percent: normalizeToPercent(selectedPhysics.maxForward, ranges.maxForward)
+        },
+        {
+          label: 'Розгін',
+          value: `${accelRate}/100`,
+          percent: normalizeToPercent(selectedPhysics.forwardAccel, ranges.forwardAccel)
+        },
+        {
+          label: 'Гальмування',
+          value: `${brakingRate}/100`,
+          percent: Math.round(
+            (
+              normalizeToPercent(selectedPhysics.transitionBrake, ranges.transitionBrake) * 0.55
+              + normalizeToPercent(selectedPhysics.shiftBrakeForce, ranges.shiftBrakeForce) * 0.45
+            )
+          )
+        },
+        {
+          label: 'Керованість',
+          value: `${controlRate}/100`,
+          percent: Math.round(
+            (
+              normalizeToPercent(selectedPhysics.forwardAccel, ranges.forwardAccel) * 0.4
+              + normalizeToPercent(selectedPhysics.transitionBrake, ranges.transitionBrake) * 0.6
+            )
+          )
+        }
+      ];
+
+      specsEl.innerHTML = specs.map((spec) => `
+        <div class="orion-drive-garage-spec">
+          <div class="orion-drive-garage-spec-row">
+            <span>${spec.label}</span>
+            <strong>${spec.value}</strong>
+          </div>
+          <div class="orion-drive-garage-spec-meter">
+            <span style="width: ${Math.max(6, Math.min(100, spec.percent))}%;"></span>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    const renderCarInfo = () => {
+      if (titleEl) titleEl.textContent = currentCar.title;
+      if (descriptionEl) descriptionEl.textContent = currentCar.description;
+      if (classEl) classEl.textContent = carClassByEffect[currentCar.effect] || 'Універсальний';
+      if (priceEl) priceEl.textContent = this.formatCoinBalance(currentCar.price, 1);
+      if (balanceEl) balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents(), 1);
+      renderSpecs();
+    };
+
+    const renderActionState = () => {
+      const { owned, equipped, canBuy } = getSelectedState();
+      if (ownershipTagEl) {
+        ownershipTagEl.textContent = owned
+          ? (equipped ? 'Встановлено' : 'Куплено')
+          : 'Не куплено';
+      }
+
+      actionBtn.className = 'shop-item-action orion-drive-garage-action';
+      if (owned) {
+        actionBtn.classList.add(equipped ? 'is-equipped' : 'is-owned');
+        actionBtn.innerHTML = equipped ? 'Встановлено' : 'Встановити';
+        actionBtn.disabled = false;
+        return;
+      }
+
+      actionBtn.classList.add(canBuy ? 'can-buy' : 'is-locked');
+      actionBtn.innerHTML = `Купити за <span class="currency-value-inline">${this.formatCoinBalance(currentCar.price, 1)}</span>`;
+      actionBtn.disabled = !canBuy;
+    };
+
+    const applyAction = () => {
+      const { owned, balance } = getSelectedState();
+      if (!owned) {
+        if (balance < currentCar.price) return;
+        const spent = this.applyCoinTransaction(
+          -currentCar.price,
+          `Купівля: ${currentCar.title}`,
+          { category: 'shop' }
+        );
+        if (!spent) return;
+        inventory.add(currentCar.id);
+        this.saveShopInventory([...inventory]);
+      }
+
+      this.user.equippedDriveCar = this.user.equippedDriveCar === currentCar.effect
+        ? ''
+        : currentCar.effect;
+
+      this.saveUserProfile({
+        ...this.user,
+        equippedAvatarFrame: this.user.equippedAvatarFrame || '',
+        equippedProfileAura: this.user.equippedProfileAura || '',
+        equippedProfileMotion: this.user.equippedProfileMotion || '',
+        equippedProfileBadge: this.user.equippedProfileBadge || '',
+        equippedDriveCar: this.user.equippedDriveCar || '',
+        equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
+      });
+      this.syncProfileCosmetics();
+      renderCarInfo();
+      renderActionState();
+    };
+
+    actionBtn.addEventListener('click', applyAction);
+    renderCarInfo();
+    renderActionState();
+
+    this.disposeShopGarageViewer();
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
+    camera.position.set(3.2, 1.9, 4.4);
+    camera.lookAt(0, 0.72, 0);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasEl,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0x000000, 0);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.72);
+    const hemisphere = new THREE.HemisphereLight(0xbfd7ff, 0x161c28, 0.7);
+    const keyLight = new THREE.DirectionalLight(0xfff4db, 1.24);
+    keyLight.position.set(4.6, 5.4, 2.2);
+    const rimLight = new THREE.DirectionalLight(0x8ec3ff, 0.66);
+    rimLight.position.set(-3.8, 3.8, -4.2);
+    scene.add(ambient, hemisphere, keyLight, rimLight);
+
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.8, 2.0, 0.09, 56),
+      new THREE.MeshStandardMaterial({
+        color: 0x2f3542,
+        metalness: 0.25,
+        roughness: 0.66
+      })
+    );
+    base.position.set(0, -0.04, 0);
+    scene.add(base);
+
+    const shadowDisc = new THREE.Mesh(
+      new THREE.CircleGeometry(1.54, 42),
+      new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.28
+      })
+    );
+    shadowDisc.rotation.x = -Math.PI / 2;
+    shadowDisc.position.y = 0.001;
+    scene.add(shadowDisc);
+
+    let model = null;
+    let dragging = false;
+    let lastPointerX = 0;
+    let rotationVelocity = 0;
+    let loadRequestId = 0;
+
+    const resize = () => {
+      const rect = stageEl.getBoundingClientRect();
+      const width = Math.max(1, Math.round(rect.width));
+      const height = Math.max(1, Math.round(rect.height));
+      renderer.setPixelRatio(Math.min(2, Math.max(1, window.devicePixelRatio || 1)));
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+
+    const animate = () => {
+      const context = this.shopGarageViewerContext;
+      if (!context) return;
+      if (!sectionEl.isConnected || !sectionEl.classList.contains('active')) {
+        this.disposeShopGarageViewer();
+        return;
+      }
+      if (model) {
+        if (!dragging) {
+          model.rotation.y += 0.0022 + rotationVelocity;
+          rotationVelocity *= 0.92;
+          if (Math.abs(rotationVelocity) < 0.0002) rotationVelocity = 0;
+        }
+        model.rotation.z = THREE.MathUtils.lerp(model.rotation.z, 0, 0.12);
+      }
+      renderer.render(scene, camera);
+      context.rafId = window.requestAnimationFrame(animate);
+    };
+
+    const onPointerDown = (event) => {
+      if (!model) return;
+      dragging = true;
+      lastPointerX = event.clientX;
+      stageEl.setPointerCapture?.(event.pointerId);
+    };
+
+    const onPointerMove = (event) => {
+      if (!dragging || !model) return;
+      const delta = event.clientX - lastPointerX;
+      lastPointerX = event.clientX;
+      model.rotation.y += delta * 0.012;
+      model.rotation.z = THREE.MathUtils.clamp(-delta * 0.0022, -0.18, 0.18);
+    };
+
+    const onPointerUp = (event) => {
+      if (!dragging) return;
+      dragging = false;
+      stageEl.releasePointerCapture?.(event.pointerId);
+    };
+
+    stageEl.addEventListener('pointerdown', onPointerDown);
+    stageEl.addEventListener('pointermove', onPointerMove);
+    stageEl.addEventListener('pointerup', onPointerUp);
+    stageEl.addEventListener('pointercancel', onPointerUp);
+    stageEl.addEventListener('pointerleave', onPointerUp);
+
+    const fitModel = (modelRoot) => {
+      const box = new THREE.Box3().setFromObject(modelRoot);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+      const scale = 2.46 / maxDim;
+      modelRoot.scale.multiplyScalar(scale);
+      box.setFromObject(modelRoot);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      modelRoot.position.sub(center);
+      box.setFromObject(modelRoot);
+      modelRoot.position.y -= box.min.y;
+      modelRoot.rotation.y = Math.PI * 0.12;
+    };
+
+    const loader = this.shopGarageLoader || new GLTFLoader();
+    this.shopGarageLoader = loader;
+
+    const clearCurrentModel = () => {
+      if (!model) return;
+      scene.remove(model);
+      this.disposeThreeObjectResources(model);
+      model = null;
+      if (this.shopGarageViewerContext) {
+        this.shopGarageViewerContext.model = null;
+      }
+    };
+
+    const loadModelForCurrentCar = () => {
+      if (!currentCar) return;
+      const requestId = ++loadRequestId;
+      clearCurrentModel();
+      rotationVelocity = 0;
+      if (fallbackEl) {
+        fallbackEl.src = currentCar.previewSrc || '';
+        fallbackEl.hidden = false;
+      }
+      if (!currentCar.assetSrc) return;
+      loader.load(
+        currentCar.assetSrc,
+        (gltf) => {
+          if (this.shopGarageViewerContext !== context || requestId !== loadRequestId) {
+            this.disposeThreeObjectResources(gltf?.scene || gltf?.scenes?.[0] || null);
+            return;
+          }
+          model = gltf?.scene || gltf?.scenes?.[0] || null;
+          if (!model) return;
+          model.traverse((node) => {
+            if (!node.isMesh) return;
+            node.castShadow = false;
+            node.receiveShadow = false;
+            if (node.material) {
+              node.material.metalness = Math.min(0.62, node.material.metalness ?? 0.18);
+              node.material.roughness = Math.max(0.24, node.material.roughness ?? 0.66);
+            }
+          });
+          fitModel(model);
+          scene.add(model);
+          context.model = model;
+          if (fallbackEl) fallbackEl.hidden = true;
+        },
+        undefined,
+        () => {
+          if (requestId !== loadRequestId) return;
+          if (fallbackEl) fallbackEl.hidden = false;
+        }
+      );
+    };
+
+    const setCurrentCarByOffset = (offset) => {
+      if (!cars.length) return;
+      const nextIndex = (currentCarIndex + offset + cars.length) % cars.length;
+      currentCarIndex = nextIndex;
+      currentCar = cars[currentCarIndex];
+      renderCarInfo();
+      renderActionState();
+      loadModelForCurrentCar();
+    };
+
+    const rotateHandlers = [];
+    settingsContainer.querySelectorAll('[data-shop-garage-rotate]').forEach((button) => {
+      const pointerBlocker = (event) => {
+        event.stopPropagation();
+      };
+      button.addEventListener('pointerdown', pointerBlocker);
+      const handler = () => {
+        const direction = Number(button.dataset.shopGarageRotate) || 0;
+        if (!direction) return;
+        setCurrentCarByOffset(direction);
+      };
+      button.addEventListener('click', handler);
+      rotateHandlers.push({
+        button,
+        handler,
+        cleanup: () => {
+          button.removeEventListener('click', handler);
+          button.removeEventListener('pointerdown', pointerBlocker);
+        }
+      });
+    });
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => resize())
+      : null;
+    if (resizeObserver) {
+      resizeObserver.observe(stageEl);
+    } else {
+      window.addEventListener('resize', resize);
+    }
+
+    const context = {
+      renderer,
+      model: null,
+      rafId: 0,
+      stageEl,
+      pointerHandlers: {
+        down: onPointerDown,
+        move: onPointerMove,
+        up: onPointerUp
+      },
+      rotateHandlers,
+      resizeObserver,
+      onWindowResize: resizeObserver ? null : resize
+    };
+    this.shopGarageViewerContext = context;
+
+    resize();
+    loadModelForCurrentCar();
+    animate();
+  }
+
   initShop(settingsContainer) {
     const balanceEl = settingsContainer.querySelector('#shopBalanceValue');
     const islandBalanceEl = settingsContainer.querySelector('#shopIslandBalance');
@@ -637,9 +1122,13 @@ export class ChatAppFeaturesMethods {
         const stateClass = owned
           ? (equipped ? 'is-equipped' : 'is-owned')
           : (canAfford ? 'can-buy' : 'is-locked');
+        const isCarCard = item.type === 'car';
+        const carCardAttrs = isCarCard
+          ? `data-shop-car-id="${this.escapeAttr(item.id)}"`
+          : '';
 
         return `
-          <article class="shop-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}">
+          <article class="shop-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${isCarCard ? 'shop-item-card-car' : ''}" ${carCardAttrs}>
             <div class="shop-item-top">
               <span class="shop-item-type">${getItemTypeLabel(item.type)}</span>
               <span class="shop-item-price">${this.formatCoinBalance(item.price, 1)}</span>
@@ -649,6 +1138,7 @@ export class ChatAppFeaturesMethods {
             </div>
             <h3 class="shop-item-title">${item.title}</h3>
             <p class="shop-item-description">${item.description}</p>
+            ${isCarCard ? '<span class="shop-item-card-hint">Відкрити в 3D гаражі</span>' : ''}
             <button
               type="button"
               class="shop-item-action ${stateClass}"
@@ -764,7 +1254,18 @@ export class ChatAppFeaturesMethods {
 
     gridEl.addEventListener('click', async (event) => {
       const actionBtn = event.target.closest('[data-shop-item]');
-      if (!actionBtn) return;
+      const actionAreaEl = event.target.closest('.shop-item-action');
+      const carCardEl = event.target.closest('[data-shop-car-id]');
+
+      if (!actionBtn) {
+        if (!carCardEl || actionAreaEl) return;
+        const carItem = catalogById.get(carCardEl.dataset.shopCarId || '');
+        if (!carItem || carItem.type !== 'car') return;
+        this.pendingShopGarageCarId = carItem.id;
+        this.settingsParentSection = 'messenger-settings';
+        this.showSettings('orion-drive-garage');
+        return;
+      }
 
       const item = catalogById.get(actionBtn.dataset.shopItem || '');
       if (!item) return;
@@ -4714,6 +5215,8 @@ export class ChatAppFeaturesMethods {
   }
 
   async showSettings(sectionName) {
+    this.disposeShopGarageViewer();
+
     const appRootEl = document.querySelector('.orion-app');
     if (appRootEl && sectionName !== 'mini-games') {
       appRootEl.classList.remove('mobile-game-fullscreen');
@@ -5002,6 +5505,11 @@ export class ChatAppFeaturesMethods {
       if (sectionName === 'messenger-settings') {
         this.settingsParentSection = 'messenger-settings';
         this.initShop(settingsContainer);
+      }
+
+      if (sectionName === 'orion-drive-garage') {
+        this.settingsParentSection = 'messenger-settings';
+        this.initOrionDriveGarage(settingsContainer);
       }
 
       if (sectionName === 'profile-items') {

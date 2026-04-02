@@ -639,6 +639,65 @@
     background: transparent !important;
   }
 
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    padding-bottom: calc(
+      var(--bottom-nav-height, 72px) + env(safe-area-inset-bottom) + 18px
+    ) !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-viewer-card {
+    min-height: 320px !important;
+    padding: 8px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-stage,
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-canvas {
+    min-height: 286px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-state {
+    top: 8px !important;
+    left: 8px !important;
+    min-height: 28px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-rotate-btn {
+    width: 34px !important;
+    height: 34px !important;
+    margin-top: -17px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-hint {
+    left: 10px !important;
+    right: 10px !important;
+    transform: none !important;
+    font-size: 11px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-info-card,
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-specs-card {
+    padding: 12px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-info-card h3 {
+    font-size: 24px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-meta {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-meta-item {
+    min-height: 56px !important;
+  }
+
   #settingsContainerMobile #messenger-settings .shop-balance-island {
     top: 10px !important;
     right: 12px !important;
