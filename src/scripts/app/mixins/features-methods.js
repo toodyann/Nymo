@@ -633,7 +633,7 @@ export class ChatAppFeaturesMethods {
         const canAfford = activeBalance >= item.price;
         const stateLabel = owned
           ? (equipped ? 'Встановлено' : 'Встановити')
-          : `Купити за ${this.formatCoinBalance(item.price, 1)}`;
+          : `Купити за <span class="currency-value-inline">${this.formatCoinBalance(item.price, 1)}</span>`;
         const stateClass = owned
           ? (equipped ? 'is-equipped' : 'is-owned')
           : (canAfford ? 'can-buy' : 'is-locked');
@@ -866,7 +866,7 @@ export class ChatAppFeaturesMethods {
     const gridScoreEl = settingsContainer.querySelector('#grid2048Score');
     const gridBestEl = settingsContainer.querySelector('#grid2048Best');
     const gridEarnedEl = settingsContainer.querySelector('#grid2048Earned');
-    const gridRestartBtn = settingsContainer.querySelector('#grid2048Restart');
+    const gridReplayBtn = settingsContainer.querySelector('#grid2048Replay') || settingsContainer.querySelector('#grid2048Restart');
     const gridHintEl = gridPanelEl?.querySelector('.mini-game-hint');
     const flappyPanelEl = settingsContainer.querySelector('[data-mini-game-panel="flappy"]');
     const flappyCanvasWrapEl = settingsContainer.querySelector('#flappyOrionCanvasWrap');
@@ -3999,9 +3999,9 @@ export class ChatAppFeaturesMethods {
       });
     }
 
-    if (gridRestartBtn && gridRestartBtn.dataset.bound !== 'true') {
-      gridRestartBtn.dataset.bound = 'true';
-      gridRestartBtn.addEventListener('click', () => {
+    if (gridReplayBtn && gridReplayBtn.dataset.bound !== 'true') {
+      gridReplayBtn.dataset.bound = 'true';
+      gridReplayBtn.addEventListener('click', () => {
         setMiniGameView('grid2048');
         startGrid2048();
       });
@@ -4320,7 +4320,7 @@ export class ChatAppFeaturesMethods {
         levelIslandEl.style.setProperty('--coin-level-progress', `${progressPercent}%`);
       }
       if (rewardValueEl) {
-        rewardValueEl.textContent = `${this.formatCoinBalance(stats.rewardPerTapCents, 1)} монетки`;
+        rewardValueEl.textContent = this.formatCoinBalance(stats.rewardPerTapCents, 1);
       }
     };
 
@@ -4533,7 +4533,6 @@ export class ChatAppFeaturesMethods {
           <article class="shop-item-card profile-item-card ${equipped ? 'equipped' : ''}">
             <div class="shop-item-top profile-item-top">
               <span class="shop-item-type profile-item-type">${getTypeLabel(item.type)}</span>
-              <span class="shop-item-price profile-item-price">Продаж: ${this.formatCoinBalance(sellPrice, 1)}</span>
             </div>
             <div class="shop-item-preview">
               ${createPreview(item)}
@@ -4552,7 +4551,7 @@ export class ChatAppFeaturesMethods {
                 class="shop-item-action profile-item-action profile-item-action-sell can-buy"
                 data-profile-item-action="sell"
                 data-profile-item-id="${item.id}"
-              >Продати за ${this.formatCoinBalance(sellPrice, 1)}</button>
+              >Продати за <span class="currency-value-inline">${this.formatCoinBalance(sellPrice, 1)}</span></button>
             </div>
           </article>
         `;

@@ -1317,6 +1317,10 @@ export class ChatAppMessagingMethods {
 
     if (!onlineVisible) {
       this.stopRealtimeTyping({ emit: true });
+      if (this.realtimeMessageSyncTimer) {
+        clearTimeout(this.realtimeMessageSyncTimer);
+        this.realtimeMessageSyncTimer = null;
+      }
       if (this.realtimeSocket) {
         try {
           this.realtimeSocket.removeAllListeners();
@@ -1328,6 +1332,9 @@ export class ChatAppMessagingMethods {
       this.realtimeSocket = null;
       this.realtimeSocketConnected = false;
       this.realtimeJoinedChatId = '';
+      if (typeof this.refreshServerChatSyncTimer === 'function') {
+        this.refreshServerChatSyncTimer();
+      }
       return;
     }
 
@@ -1336,6 +1343,9 @@ export class ChatAppMessagingMethods {
     }
 
     this.connectRealtimeSocket();
+    if (typeof this.refreshServerChatSyncTimer === 'function') {
+      this.refreshServerChatSyncTimer();
+    }
   }
 
   initializeRealtimeSocket() {
@@ -1406,12 +1416,25 @@ export class ChatAppMessagingMethods {
     socket.on('connect', () => {
       this.realtimeSocketConnected = true;
       this.joinRealtimeChatRoom(this.currentChat);
+      if (typeof this.refreshServerChatSyncTimer === 'function') {
+        this.refreshServerChatSyncTimer();
+      }
+      if (typeof this.runServerChatSync === 'function') {
+        this.runServerChatSync({ forceScroll: false });
+      }
     });
 
     socket.on('disconnect', () => {
       this.realtimeSocketConnected = false;
       this.realtimeJoinedChatId = '';
       this.stopRealtimeTyping({ emit: false });
+      if (this.realtimeMessageSyncTimer) {
+        clearTimeout(this.realtimeMessageSyncTimer);
+        this.realtimeMessageSyncTimer = null;
+      }
+      if (typeof this.refreshServerChatSyncTimer === 'function') {
+        this.refreshServerChatSyncTimer();
+      }
     });
 
     socket.on('userOnline', (payload) => this.handleRealtimePresenceEvent(payload, true));
@@ -1420,6 +1443,15 @@ export class ChatAppMessagingMethods {
     socket.on('userTyping', (payload) => this.handleRealtimeTypingEvent(payload));
     socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
     socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
+
+    const realtimeMessageHandler = (payload) => this.handleRealtimeMessageEvent(payload);
+    socket.on('messageCreated', realtimeMessageHandler);
+    socket.on('messageSent', realtimeMessageHandler);
+    socket.on('messageUpdated', realtimeMessageHandler);
+    socket.on('messageEdited', realtimeMessageHandler);
+    socket.on('messageDeleted', realtimeMessageHandler);
+    socket.on('messagesRead', realtimeMessageHandler);
+    socket.on('messageRead', realtimeMessageHandler);
   }
 
   joinRealtimeChatRoom(chat) {
@@ -1576,6 +1608,29 @@ export class ChatAppMessagingMethods {
     }
   }
 
+  handleRealtimeMessageEvent(payload = {}) {
+    const eventChatId = this.extractRealtimeChatId(payload);
+    const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    const shouldPrioritizeCurrent = Boolean(
+      eventChatId
+      && currentChatServerId
+      && String(eventChatId).trim() === String(currentChatServerId).trim()
+    );
+    this.scheduleServerChatSyncFromRealtime({ forceScroll: false, urgent: shouldPrioritizeCurrent });
+  }
+
+  scheduleServerChatSyncFromRealtime({ forceScroll = false, urgent = false } = {}) {
+    if (this.realtimeMessageSyncTimer) {
+      clearTimeout(this.realtimeMessageSyncTimer);
+      this.realtimeMessageSyncTimer = null;
+    }
+    const delayMs = urgent ? 40 : 140;
+    this.realtimeMessageSyncTimer = window.setTimeout(() => {
+      this.realtimeMessageSyncTimer = null;
+      this.runServerChatSync({ forceScroll }).catch(() => {});
+    }, delayMs);
+  }
+
   emitRealtimeTypingState(isTyping) {
     if (!this.isOwnTypingVisibilityEnabled()) return;
     const socket = this.realtimeSocket;
@@ -1640,21 +1695,18 @@ export class ChatAppMessagingMethods {
     if (this.serverChatSyncInitialized) return;
     this.serverChatSyncInitialized = true;
     this.serverChatSyncInFlight = false;
+    this.serverChatSyncLastRunAt = 0;
+    this.serverChatSyncMinIntervalMs = 900;
     this.initializeRealtimeSocket();
 
     this.runServerChatSync({ forceScroll: false });
-
-    if (this.serverChatSyncTimer) {
-      window.clearInterval(this.serverChatSyncTimer);
-    }
-    this.serverChatSyncTimer = window.setInterval(() => {
-      this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
-    }, 2500);
+    this.refreshServerChatSyncTimer();
 
     if (this.serverChatVisibilityHandler) {
       document.removeEventListener('visibilitychange', this.serverChatVisibilityHandler);
     }
     this.serverChatVisibilityHandler = () => {
+      this.refreshServerChatSyncTimer();
       if (document.visibilityState === 'visible') {
         this.runServerChatSync({ forceScroll: false });
       }
@@ -1662,9 +1714,28 @@ export class ChatAppMessagingMethods {
     document.addEventListener('visibilitychange', this.serverChatVisibilityHandler);
   }
 
+  refreshServerChatSyncTimer() {
+    if (this.serverChatSyncTimer) {
+      window.clearInterval(this.serverChatSyncTimer);
+      this.serverChatSyncTimer = null;
+    }
+    // Keep low-frequency HTTP polling only as fallback when realtime socket is down.
+    if (this.realtimeSocketConnected) return;
+    this.serverChatSyncTimer = window.setInterval(() => {
+      this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
+    }, 12000);
+  }
+
   async runServerChatSync({ forceScroll = false, skipWhenHidden = false } = {}) {
     if (skipWhenHidden && document.visibilityState === 'hidden') return;
     if (this.serverChatSyncInFlight) return;
+    const nowTs = Date.now();
+    if (!forceScroll) {
+      const cooldownMs = Math.max(250, Number(this.serverChatSyncMinIntervalMs) || 0);
+      const lastRunAt = Number(this.serverChatSyncLastRunAt || 0);
+      if (lastRunAt > 0 && nowTs - lastRunAt < cooldownMs) return;
+    }
+    this.serverChatSyncLastRunAt = nowTs;
     this.serverChatSyncInFlight = true;
     try {
       await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
@@ -2525,61 +2596,36 @@ export class ChatAppMessagingMethods {
       }
     }
 
-    await Promise.all(
-      nextChats.map(async (chat) => {
-        if (!chat?.serverId) return;
-        try {
-          const serverMessages = await this.fetchChatMessagesFromServer(chat);
-          let nextMessages = this.mapServerMessagesToLocal(chat, serverMessages);
-          const liveChat = this.findChatByServerId(chat.serverId);
-          if (liveChat && liveChat !== chat) {
-            nextMessages = this.mergeRecentPendingOwnMessages(nextMessages, liveChat.messages, {
-              ttlMs: 45000
-            });
-          }
-          const prevMessageSignature = Array.isArray(chat.messages)
-            ? chat.messages.map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`).join('|')
-            : '';
-          const nextMessageSignature = nextMessages
-            .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
-            .join('|');
-          const isActiveChat = Boolean(
-            (activeServerId && chat.serverId === activeServerId)
-            || chat.id === activeLocalId
-          );
-          if (prevMessageSignature !== nextMessageSignature) {
-            changed = true;
-          }
-          if (!isActiveChat) {
-            chat.messages = nextMessages;
-          }
+    nextChats.forEach((chat) => {
+      if (!chat?.serverId) return;
+      const isActiveChat = Boolean(
+        (activeServerId && chat.serverId === activeServerId)
+        || chat.id === activeLocalId
+      );
+      const cachedMessages = Array.isArray(chat.messages) ? chat.messages : [];
 
-          let hasReadState = Boolean(
-            chat.readTrackingInitialized
-            || String(chat.lastReadServerMessageId || '').trim()
-            || String(chat.lastReadMessageAt || '').trim()
-            || Number(chat.unreadCount || 0) > 0
-          );
+      let hasReadState = Boolean(
+        chat.readTrackingInitialized
+        || String(chat.lastReadServerMessageId || '').trim()
+        || String(chat.lastReadMessageAt || '').trim()
+        || Number(chat.unreadCount || 0) > 0
+      );
 
-          if (!isActiveChat && !hasReadState) {
-            const bootstrapMarker = bootstrapReadMarkerByServerId.get(chat.serverId);
-            if (bootstrapMarker && typeof bootstrapMarker === 'object') {
-              chat.lastReadServerMessageId = String(bootstrapMarker.serverMessageId || '').trim();
-              chat.lastReadMessageAt = String(bootstrapMarker.createdAt || '').trim();
-              chat.readTrackingInitialized = true;
-              changed = true;
-              hasReadState = true;
-            }
-          }
-
-          if (this.applyChatUnreadState(chat, nextMessages, { markAsRead: isActiveChat })) {
-            changed = true;
-          }
-        } catch {
-          // Keep chat list resilient if single chat messages endpoint fails.
+      if (!isActiveChat && !hasReadState) {
+        const bootstrapMarker = bootstrapReadMarkerByServerId.get(chat.serverId);
+        if (bootstrapMarker && typeof bootstrapMarker === 'object') {
+          chat.lastReadServerMessageId = String(bootstrapMarker.serverMessageId || '').trim();
+          chat.lastReadMessageAt = String(bootstrapMarker.createdAt || '').trim();
+          chat.readTrackingInitialized = true;
+          changed = true;
+          hasReadState = true;
         }
-      })
-    );
+      }
+
+      if (this.applyChatUnreadState(chat, cachedMessages, { markAsRead: isActiveChat })) {
+        changed = true;
+      }
+    });
 
     const previousSignature = previousChats
       .map((chat) => {

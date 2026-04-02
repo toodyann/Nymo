@@ -912,7 +912,7 @@ export const settingsTemplates = {
       <div class="coin-tapper-rate">
         <span>1 тап</span>
         <strong>=</strong>
-        <span id="coinTapRewardValue">0,01 монетки</span>
+        <span id="coinTapRewardValue">0,01</span>
       </div>
     </section>
 
@@ -952,6 +952,7 @@ export const settingsTemplates = {
 
         <div class="mini-game-canvas" id="grid2048Canvas" aria-live="polite">
           <div class="grid-2048" id="grid2048Board"></div>
+          <button class="btn btn-primary mini-game-play-overlay grid-2048-replay" id="grid2048Replay" type="button" aria-label="Зіграти ще раз у Orion 2048">Ще раз</button>
         </div>
       </div>
     </section>

@@ -2659,6 +2659,15 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   width: 100%;
 }
 
+.profile-item-top {
+  justify-content: flex-start;
+}
+
+.profile-item-price {
+  white-space: nowrap;
+  justify-content: flex-end;
+}
+
 .profile-items-grid.is-list .profile-item-top {
   grid-area: top;
 }
@@ -2702,11 +2711,17 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  margin-top: auto;
+}
+
+.profile-item-actions .shop-item-action {
+  margin-top: 0;
 }
 
 .profile-items-grid.is-list .profile-item-actions {
   grid-area: actions;
   align-self: stretch;
+  margin-top: 0;
 }
 
 .profile-item-action {
@@ -3654,6 +3669,9 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 .shop-item-action {
   margin-top: auto;
   min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-control);
   border: 1px solid var(--border-color);
   background: transparent;
@@ -3661,6 +3679,7 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   font: inherit;
   font-size: 13px;
   font-weight: 700;
+  text-align: center;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -4558,6 +4577,21 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
     center / contain no-repeat;
 }
 
+#grid2048Replay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"].game-over
+  #grid2048Replay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 .mini-game-panel[data-mini-game-panel="signal"].is-running #signalHuntStart,
 .mini-game-panel[data-mini-game-panel="flappy"].is-running #flappyOrionStart,
 .mini-game-panel[data-mini-game-panel="flappy"].flappy-game-over #flappyOrionStart,
@@ -4679,6 +4713,84 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   align-self: flex-start;
   padding: 8px 12px;
   background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+}
+
+:is(
+  #coinTapBalance,
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #signalHuntEarned,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+)::after {
+  content: '';
+  display: inline-block;
+  width: max(13px, 0.76em);
+  height: max(13px, 0.76em);
+  margin-left: 0.06em;
+  vertical-align: middle;
+  transform: translateY(0);
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M198.51 56.09C186.44 35.4 169.92 24 152 24H104C86.08 24 69.56 35.4 57.49 56.09 46.21 75.42 40 101 40 128s6.21 52.58 17.49 71.91C69.56 220.6 86.08 232 104 232h48c17.92 0 34.44-11.4 46.51-32.09C209.79 180.58 216 155 216 128S209.79 75.42 198.51 56.09ZM199.79 120h-32a152.78 152.78 0 0 0-9.68-48H188.7C194.82 85.38 198.86 102 199.79 120Zm-20.6-64H150.46a83.13 83.13 0 0 0-12-16H152C162 40 171.4 46 179.19 56ZM56 128c0-47.7 22-88 48-88s48 40.3 48 88-22 88-48 88S56 175.7 56 128Zm96 88H138.49a83.13 83.13 0 0 0 12-16h28.73C171.4 210 162 216 152 216Zm36.7-32H158.12a152.78 152.78 0 0 0 9.68-48h32C198.86 154 194.82 170.62 188.7 184Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M198.51 56.09C186.44 35.4 169.92 24 152 24H104C86.08 24 69.56 35.4 57.49 56.09 46.21 75.42 40 101 40 128s6.21 52.58 17.49 71.91C69.56 220.6 86.08 232 104 232h48c17.92 0 34.44-11.4 46.51-32.09C209.79 180.58 216 155 216 128S209.79 75.42 198.51 56.09ZM199.79 120h-32a152.78 152.78 0 0 0-9.68-48H188.7C194.82 85.38 198.86 102 199.79 120Zm-20.6-64H150.46a83.13 83.13 0 0 0-12-16H152C162 40 171.4 46 179.19 56ZM56 128c0-47.7 22-88 48-88s48 40.3 48 88-22 88-48 88S56 175.7 56 128Zm96 88H138.49a83.13 83.13 0 0 0 12-16h28.73C171.4 210 162 216 152 216Zm36.7-32H158.12a152.78 152.78 0 0 0 9.68-48h32C198.86 154 194.82 170.62 188.7 184Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.currency-value-inline {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:is(
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #coinTapBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #signalHuntEarned,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:is(
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #coinTapBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #signalHuntEarned,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+)::after {
+  margin-left: 0.05em;
+  vertical-align: middle;
+  transform: translateY(0);
 }
 
 .mini-game-canvas {
