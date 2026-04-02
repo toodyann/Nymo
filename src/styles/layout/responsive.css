@@ -1475,6 +1475,17 @@
     display: none !important;
   }
 
+  #settingsContainerMobile #messenger-settings .shop-header h2 {
+    gap: 8px !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-header h2 svg {
+    display: inline-flex !important;
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+  }
+
   #settingsContainerMobile #notifications-center .calls-content,
   #settingsContainerMobile #calls .calls-content,
   #settingsContainerMobile #wallet .wallet-content {

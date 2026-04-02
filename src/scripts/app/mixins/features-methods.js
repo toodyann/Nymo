@@ -4889,7 +4889,7 @@ export class ChatAppFeaturesMethods {
                 class="shop-item-action profile-item-action profile-item-action-sell can-buy"
                 data-profile-item-action="sell"
                 data-profile-item-id="${item.id}"
-              >Продати за <span class="currency-value-inline">${this.formatCoinBalance(sellPrice, 1)}</span></button>
+              >Продати за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(sellPrice, 1)}</span></button>
             </div>
           </article>
         `;

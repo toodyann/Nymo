@@ -184,7 +184,7 @@ html.dark-theme .orion-app #settingsContainerMobile .settings-section.active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 8px;
   min-height: 0;
   margin: 0 auto;
   padding: 0 50px;
@@ -206,7 +206,9 @@ html.dark-theme .orion-app #settingsContainerMobile .settings-section.active {
 }
 
 #messenger-settings .shop-header h2 svg {
-  display: none;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
@@ -2858,6 +2860,17 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 12px;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--bg-color) 92%, transparent),
+    color-mix(in srgb, var(--surface-soft) 72%, transparent)
+  );
+  box-shadow:
+    0 12px 26px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .shop-filter-trigger {
@@ -2865,27 +2878,35 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 16px;
   border-radius: var(--radius-control);
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
   color: var(--text-primary);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   font-family: inherit;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .shop-filter-trigger svg {
   display: block;
   flex-shrink: 0;
   transition: transform 0.22s ease;
+}
+
+.shop-filter-trigger:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  transform: translateY(-1px);
 }
 
 .shop-filter-trigger.is-open {
@@ -2912,16 +2933,17 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 .shop-filter-summary {
   flex: 1 1 220px;
   min-width: 0;
-  min-height: 42px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   padding: 0 14px;
   border-radius: var(--radius-control);
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
   color: var(--text-secondary);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2934,10 +2956,14 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   overflow: hidden;
   pointer-events: none;
   transform: translateY(-10px);
-  padding: 0 20px;
+  padding: 0;
   border-radius: var(--radius-card);
   border: 1px solid transparent;
-  background: var(--surface-soft);
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--bg-color) 93%, transparent),
+    color-mix(in srgb, var(--surface-soft) 74%, transparent)
+  );
   box-sizing: border-box;
   transition:
     max-height 0.28s ease,
@@ -2950,7 +2976,7 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 .shop-filter-panel-scroll {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .shop-filter-panel.is-open {
@@ -2958,8 +2984,11 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
-  padding: 20px;
-  border-color: var(--border-color);
+  padding: 16px;
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  box-shadow:
+    0 14px 30px rgba(15, 19, 32, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .shop-filter-panel-head {
@@ -2967,6 +2996,8 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
 }
 
 .shop-filter-panel-title {
@@ -2984,8 +3015,8 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-control);
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -2995,10 +3026,30 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   flex-shrink: 0;
 }
 
+.shop-filter-close:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
+  color: var(--text-primary);
+}
+
+.shop-filter-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .shop-filter-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 13px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--surface-soft) 90%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 68%, transparent)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .shop-filter-section-title {
@@ -3011,7 +3062,7 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 
 .shop-filter-options {
   display: flex;
-  gap: 10px;
+  gap: 9px;
   flex-wrap: wrap;
 }
 
@@ -3019,6 +3070,7 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-top: 2px;
 }
 
 .shop-price-row {
@@ -3031,14 +3083,74 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 }
 
 .shop-price-row strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 84px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
   color: var(--text-primary);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .shop-price-range input[type="range"] {
   width: 100%;
   margin: 0;
   accent-color: var(--primary-color);
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  background: transparent;
+}
+
+.shop-price-range input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border-color) 72%, transparent);
+}
+
+.shop-price-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
+  background: linear-gradient(
+    140deg,
+    var(--primary-color),
+    color-mix(in srgb, var(--secondary-color) 76%, #b1b7c5)
+  );
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.shop-price-range input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  border: 0;
+  background: color-mix(in srgb, var(--border-color) 72%, transparent);
+}
+
+.shop-price-range input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
+  background: linear-gradient(
+    140deg,
+    var(--primary-color),
+    color-mix(in srgb, var(--secondary-color) 76%, #b1b7c5)
+  );
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .shop-filter-actions {
@@ -3047,11 +3159,14 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
 }
 
 .shop-filter-reset,
 .shop-filter-apply {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 16px;
   border-radius: var(--radius-control);
   font-size: 13px;
@@ -3061,8 +3176,8 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 }
 
 .shop-filter-reset {
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
   color: var(--text-secondary);
 }
 
@@ -3080,10 +3195,19 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
+.shop-filter-reset:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  color: var(--text-primary);
+}
+
+.shop-filter-apply:hover {
+  filter: brightness(1.04);
+}
+
 @media (min-width: 769px) {
   .shop-filter-summary {
     flex: 0 1 auto;
-    min-width: 280px;
+    min-width: 320px;
   }
 
   .shop-filter-panel.is-open {
@@ -3092,21 +3216,41 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     overflow: visible;
     pointer-events: auto;
     transform: none;
-    padding: 20px;
-    border-color: var(--border-color);
+    padding: 18px;
+    border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  }
+
+  .shop-filter-panel-content {
+    display: grid;
+    grid-template-columns: 1.12fr 0.88fr;
+    gap: 14px;
+  }
+
+  .shop-filter-panel-content .shop-filter-section:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .shop-filter-panel-content .shop-filter-section:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+
+  .shop-filter-panel-content .shop-filter-section:last-child {
+    grid-column: 1 / -1;
   }
 }
 
 .shop-filter-btn {
-  border: 1px solid var(--border-color);
-  background: var(--surface-soft);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
   color: var(--text-secondary);
   border-radius: var(--radius-control);
-  min-height: 38px;
-  padding: 0 14px;
-  font-size: 13px;
+  min-height: 36px;
+  padding: 0 13px;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   font-family: inherit;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -3121,7 +3265,7 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     var(--border-color) 86%,
     var(--primary-color)
   );
-  background: color-mix(in srgb, var(--bg-secondary) 76%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 86%, transparent);
 }
 
 .shop-filter-btn.active {
@@ -3137,8 +3281,17 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     color-mix(in srgb, var(--primary-strong) 76%, #a3a3a3)
   );
   box-shadow:
-    0 12px 24px color-mix(in srgb, var(--primary-color) 18%, transparent),
+    0 10px 20px color-mix(in srgb, var(--primary-color) 16%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.shop-filter-trigger:focus-visible,
+.shop-filter-close:focus-visible,
+.shop-filter-btn:focus-visible,
+.shop-filter-reset:focus-visible,
+.shop-filter-apply:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 62%, #fff);
+  outline-offset: 2px;
 }
 
 .shop-grid {
