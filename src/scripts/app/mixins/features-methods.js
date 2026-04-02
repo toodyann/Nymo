@@ -449,7 +449,7 @@ export class ChatAppFeaturesMethods {
       }
 
       actionBtn.classList.add(canBuy ? 'can-buy' : 'is-locked');
-      actionBtn.innerHTML = `Купити за <span class="currency-value-inline">${this.formatCoinBalance(currentCar.price, 1)}</span>`;
+      actionBtn.innerHTML = `Купити за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(currentCar.price, 1)}</span>`;
       actionBtn.disabled = !canBuy;
     };
 
@@ -1118,17 +1118,14 @@ export class ChatAppFeaturesMethods {
         const canAfford = activeBalance >= item.price;
         const stateLabel = owned
           ? (equipped ? 'Встановлено' : 'Встановити')
-          : `Купити за <span class="currency-value-inline">${this.formatCoinBalance(item.price, 1)}</span>`;
+          : `Купити за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(item.price, 1)}</span>`;
         const stateClass = owned
           ? (equipped ? 'is-equipped' : 'is-owned')
           : (canAfford ? 'can-buy' : 'is-locked');
         const isCarCard = item.type === 'car';
-        const carCardAttrs = isCarCard
-          ? `data-shop-car-id="${this.escapeAttr(item.id)}"`
-          : '';
 
         return `
-          <article class="shop-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${isCarCard ? 'shop-item-card-car' : ''}" ${carCardAttrs}>
+          <article class="shop-item-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${isCarCard ? 'shop-item-card-car' : ''}">
             <div class="shop-item-top">
               <span class="shop-item-type">${getItemTypeLabel(item.type)}</span>
               <span class="shop-item-price">${this.formatCoinBalance(item.price, 1)}</span>
@@ -1138,13 +1135,28 @@ export class ChatAppFeaturesMethods {
             </div>
             <h3 class="shop-item-title">${item.title}</h3>
             <p class="shop-item-description">${item.description}</p>
-            ${isCarCard ? '<span class="shop-item-card-hint">Відкрити в 3D гаражі</span>' : ''}
-            <button
-              type="button"
-              class="shop-item-action ${stateClass}"
-              data-shop-item="${item.id}"
-              ${!owned && !canAfford ? 'disabled' : ''}
-            >${stateLabel}</button>
+            ${isCarCard ? `
+              <div class="shop-item-actions-stack">
+                <button
+                  type="button"
+                  class="shop-item-action shop-item-inspect-action"
+                  data-shop-garage-open="${item.id}"
+                >Оглянути</button>
+                <button
+                  type="button"
+                  class="shop-item-action ${stateClass}"
+                  data-shop-item="${item.id}"
+                  ${!owned && !canAfford ? 'disabled' : ''}
+                >${stateLabel}</button>
+              </div>
+            ` : `
+              <button
+                type="button"
+                class="shop-item-action ${stateClass}"
+                data-shop-item="${item.id}"
+                ${!owned && !canAfford ? 'disabled' : ''}
+              >${stateLabel}</button>
+            `}
           </article>
         `;
       }).join('');
@@ -1253,19 +1265,18 @@ export class ChatAppFeaturesMethods {
     gridEl.dataset.bound = 'true';
 
     gridEl.addEventListener('click', async (event) => {
-      const actionBtn = event.target.closest('[data-shop-item]');
-      const actionAreaEl = event.target.closest('.shop-item-action');
-      const carCardEl = event.target.closest('[data-shop-car-id]');
-
-      if (!actionBtn) {
-        if (!carCardEl || actionAreaEl) return;
-        const carItem = catalogById.get(carCardEl.dataset.shopCarId || '');
+      const garageBtn = event.target.closest('[data-shop-garage-open]');
+      if (garageBtn) {
+        const carItem = catalogById.get(garageBtn.dataset.shopGarageOpen || '');
         if (!carItem || carItem.type !== 'car') return;
         this.pendingShopGarageCarId = carItem.id;
         this.settingsParentSection = 'messenger-settings';
         this.showSettings('orion-drive-garage');
         return;
       }
+
+      const actionBtn = event.target.closest('[data-shop-item]');
+      if (!actionBtn) return;
 
       const item = catalogById.get(actionBtn.dataset.shopItem || '');
       if (!item) return;

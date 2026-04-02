@@ -3710,32 +3710,21 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   cursor: not-allowed;
 }
 
-.shop-item-card-car {
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+.shop-item-actions-stack {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.shop-item-card-car:hover {
-  border-color: color-mix(in srgb, var(--primary-color) 36%, var(--border-color));
-  box-shadow:
-    0 14px 28px rgba(15, 19, 32, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+.shop-item-actions-stack .shop-item-action {
+  margin-top: 0;
 }
 
-.shop-item-card-hint {
-  margin-top: -4px;
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--text-secondary) 86%, var(--primary-color));
+.shop-item-inspect-action {
+  border-color: color-mix(in srgb, var(--border-color) 86%, var(--primary-color));
+  background: color-mix(in srgb, var(--surface-soft) 94%, transparent);
+  color: var(--text-primary);
 }
 
 #orion-drive-garage .settings-content.orion-drive-garage-content {
@@ -3895,8 +3884,14 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 
 .orion-drive-garage-meta {
   margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orion-drive-garage-meta-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -3912,6 +3907,10 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
   gap: 6px;
 }
 
+.orion-drive-garage-meta-item.is-class {
+  min-height: 72px;
+}
+
 .orion-drive-garage-meta-item span {
   font-size: 11px;
   text-transform: uppercase;
@@ -3921,9 +3920,12 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 }
 
 .orion-drive-garage-meta-item strong {
-  font-size: 16px;
-  line-height: 1;
+  font-size: 15px;
+  line-height: 1.15;
   color: var(--text-primary);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .orion-drive-garage-specs-card h4 {
@@ -4014,13 +4016,13 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
     min-height: clamp(280px, 42vh, 480px);
   }
 
-  .orion-drive-garage-meta {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .orion-drive-garage-meta-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 980px) {
-  .orion-drive-garage-meta {
+  .orion-drive-garage-meta-row {
     grid-template-columns: 1fr;
   }
 }

@@ -694,6 +694,11 @@
     gap: 8px !important;
   }
 
+  #settingsContainerMobile #orion-drive-garage .orion-drive-garage-meta-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
   #settingsContainerMobile #orion-drive-garage .orion-drive-garage-meta-item {
     min-height: 56px !important;
   }

@@ -526,17 +526,19 @@ export const settingsTemplates = {
       <h3 id="shopGarageTitle">Авто</h3>
       <p id="shopGarageDescription">Опис авто.</p>
       <div class="orion-drive-garage-meta">
-        <div class="orion-drive-garage-meta-item">
+        <div class="orion-drive-garage-meta-item is-class">
           <span>Клас</span>
           <strong id="shopGarageClass">-</strong>
         </div>
-        <div class="orion-drive-garage-meta-item">
-          <span>Ціна</span>
-          <strong id="shopGaragePrice" class="currency-value-inline">0,00</strong>
-        </div>
-        <div class="orion-drive-garage-meta-item">
-          <span>Баланс</span>
-          <strong id="shopGarageBalance" class="currency-value-inline">0,00</strong>
+        <div class="orion-drive-garage-meta-row">
+          <div class="orion-drive-garage-meta-item">
+            <span>Ціна</span>
+            <strong id="shopGaragePrice" class="currency-value-inline">0,00</strong>
+          </div>
+          <div class="orion-drive-garage-meta-item">
+            <span>Баланс</span>
+            <strong id="shopGarageBalance" class="currency-value-inline">0,00</strong>
+          </div>
         </div>
       </div>
     </section>
