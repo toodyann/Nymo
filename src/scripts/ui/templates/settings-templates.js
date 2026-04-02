@@ -843,18 +843,6 @@ export const settingsTemplates = {
         </span>
       </button>
 
-      <button type="button" class="mini-game-select" data-mini-game-select="signal" aria-pressed="false">
-        <span class="mini-game-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
-            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
-          </svg>
-        </span>
-        <span>
-          <span class="mini-game-title">Полювання на сигнал</span>
-          <span class="mini-game-sub">Лови цілі на швидкість</span>
-        </span>
-      </button>
-
       <button type="button" class="mini-game-select" data-mini-game-select="grid2048" aria-pressed="false">
         <span class="mini-game-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -913,29 +901,6 @@ export const settingsTemplates = {
         <span>1 тап</span>
         <strong>=</strong>
         <span id="coinTapRewardValue">0,01</span>
-      </div>
-    </section>
-
-    <section class="mini-game-panel mini-game-view" data-mini-game-panel="signal">
-      <div class="mini-game-view-header">
-        <span class="mini-game-view-title">Полювання на сигнал</span>
-        <span class="mini-game-view-score">Рекорд: <strong id="signalHuntBest">0</strong></span>
-      </div>
-
-      <div class="mini-game-stage">
-        <div class="mini-game-score-current">
-          Очки: <strong id="signalHuntScore">0</strong> · Час: <strong id="signalHuntTime">30</strong>с · Зароблено: <strong id="signalHuntEarned">0,00</strong>
-        </div>
-
-        <div class="mini-game-canvas signal-hunt-canvas" id="signalHuntCanvas" aria-live="polite">
-          <button class="btn btn-primary mini-game-play-overlay" id="signalHuntStart" type="button" aria-label="Старт гри Полювання на сигнал">Старт</button>
-          <button class="signal-hunt-target" id="signalHuntTarget" type="button" aria-label="Зловити сигнал">
-            <svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z"></path>
-            </svg>
-          </button>
-          <p class="signal-hunt-status" id="signalHuntStatus">Натисни «Старт», щоб ловити сигнали повідомлень.</p>
-        </div>
       </div>
     </section>
 

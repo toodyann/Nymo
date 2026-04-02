@@ -834,7 +834,6 @@ export class ChatAppFeaturesMethods {
 
     const MINI_GAME_VIEW_KEY = 'orionMiniGameView';
     const normalizeMiniGameView = (value) => {
-      if (value === 'signal') return 'signal';
       if (value === 'grid2048') return 'grid2048';
       if (value === 'flappy') return 'flappy';
       if (value === 'drift') return 'drift';
@@ -851,15 +850,6 @@ export class ChatAppFeaturesMethods {
     }
     this.pendingMiniGameView = null;
 
-    const signalPanelEl = settingsContainer.querySelector('[data-mini-game-panel="signal"]');
-    const signalCanvasEl = settingsContainer.querySelector('#signalHuntCanvas');
-    const signalTargetEl = settingsContainer.querySelector('#signalHuntTarget');
-    const signalStatusEl = settingsContainer.querySelector('#signalHuntStatus');
-    const signalScoreEl = settingsContainer.querySelector('#signalHuntScore');
-    const signalTimeEl = settingsContainer.querySelector('#signalHuntTime');
-    const signalBestEl = settingsContainer.querySelector('#signalHuntBest');
-    const signalEarnedEl = settingsContainer.querySelector('#signalHuntEarned');
-    const signalStartBtn = settingsContainer.querySelector('#signalHuntStart');
     const gridPanelEl = settingsContainer.querySelector('[data-mini-game-panel="grid2048"]');
     const gridBoardEl = settingsContainer.querySelector('#grid2048Board');
     const gridCanvasEl = settingsContainer.querySelector('#grid2048Canvas');
@@ -894,17 +884,6 @@ export class ChatAppFeaturesMethods {
       const equippedCarSrc = this.getOrionDriveCarAssetSrc(this.user?.equippedDriveCar || '');
       driftCanvasEl.dataset.carSrc = equippedCarSrc || driftCanvasEl.dataset.defaultCarSrc;
     }
-    const SIGNAL_HUNT_BEST_KEY = 'orionSignalHuntBest';
-    const SIGNAL_HUNT_DURATION = 30;
-    const SIGNAL_MOVE_INTERVAL_MS = 760;
-    const signalState = {
-      isRunning: false,
-      score: 0,
-      timeLeft: SIGNAL_HUNT_DURATION,
-      best: 0,
-      earnedCents: 0,
-      rewardLogged: false
-    };
     const GRID_2048_SIZE = 4;
     const GRID_2048_BEST_KEY = 'orionGrid2048Best';
     const FLAPPY_BEST_KEY = 'orionFlappyBest';
@@ -1152,14 +1131,6 @@ export class ChatAppFeaturesMethods {
       }
     };
 
-    if (this.signalHuntTickTimer) {
-      window.clearInterval(this.signalHuntTickTimer);
-      this.signalHuntTickTimer = null;
-    }
-    if (this.signalHuntMoveTimer) {
-      window.clearInterval(this.signalHuntMoveTimer);
-      this.signalHuntMoveTimer = null;
-    }
     if (this.flappyOrionAnimationFrame) {
       window.cancelAnimationFrame(this.flappyOrionAnimationFrame);
       this.flappyOrionAnimationFrame = null;
@@ -1173,13 +1144,6 @@ export class ChatAppFeaturesMethods {
       this.orionDriftThreeContext = null;
     }
     this.orionDriftThreeContext = drift3d;
-
-    try {
-      const savedBest = Number.parseInt(window.localStorage.getItem(SIGNAL_HUNT_BEST_KEY) || '0', 10);
-      signalState.best = Number.isFinite(savedBest) && savedBest > 0 ? savedBest : 0;
-    } catch {
-      signalState.best = 0;
-    }
 
     try {
       const savedBest = Number.parseInt(window.localStorage.getItem(GRID_2048_BEST_KEY) || '0', 10);
@@ -1202,23 +1166,6 @@ export class ChatAppFeaturesMethods {
       driftState.best = 0;
     }
 
-    const updateSignalHud = () => {
-      if (signalScoreEl) signalScoreEl.textContent = String(signalState.score);
-      if (signalTimeEl) signalTimeEl.textContent = String(signalState.timeLeft);
-      if (signalBestEl) signalBestEl.textContent = String(signalState.best);
-      if (signalEarnedEl) signalEarnedEl.textContent = this.formatCoinBalance(signalState.earnedCents);
-    };
-
-    const commitSignalReward = () => {
-      if (signalState.rewardLogged || signalState.earnedCents <= 0) return;
-      this.addCoinTransaction({
-        amountCents: signalState.earnedCents,
-        title: 'Гра: Полювання на сигнал',
-        category: 'games'
-      });
-      signalState.rewardLogged = true;
-    };
-
     const commitGridReward = () => {
       if (grid2048State.rewardLogged || grid2048State.earnedCents <= 0) return;
       this.addCoinTransaction({
@@ -1237,40 +1184,6 @@ export class ChatAppFeaturesMethods {
         category: 'games'
       });
       flappyState.rewardLogged = true;
-    };
-
-    const clearSignalHuntTimers = () => {
-      if (this.signalHuntTickTimer) {
-        window.clearInterval(this.signalHuntTickTimer);
-        this.signalHuntTickTimer = null;
-      }
-      if (this.signalHuntMoveTimer) {
-        window.clearInterval(this.signalHuntMoveTimer);
-        this.signalHuntMoveTimer = null;
-      }
-    };
-
-    const placeSignalTarget = () => {
-      if (!signalCanvasEl || !signalTargetEl || !signalTargetEl.classList.contains('active')) return;
-      const canvasWidth = signalCanvasEl.clientWidth;
-      const canvasHeight = signalCanvasEl.clientHeight;
-      const targetWidth = signalTargetEl.offsetWidth || 58;
-      const targetHeight = signalTargetEl.offsetHeight || 58;
-      const padding = 12;
-      const availableWidth = Math.max(0, canvasWidth - targetWidth - padding * 2);
-      const availableHeight = Math.max(0, canvasHeight - targetHeight - padding * 2);
-      const left = Math.round(padding + Math.random() * availableWidth);
-      const top = Math.round(padding + Math.random() * availableHeight);
-      signalTargetEl.style.left = `${left}px`;
-      signalTargetEl.style.top = `${top}px`;
-    };
-
-    const saveSignalBest = () => {
-      try {
-        window.localStorage.setItem(SIGNAL_HUNT_BEST_KEY, String(signalState.best));
-      } catch {
-        // Ignore storage failures.
-      }
     };
 
     const saveGridBest = () => {
@@ -3640,64 +3553,6 @@ export class ChatAppFeaturesMethods {
       this.orionDriftAnimationFrame = driftState.rafId;
     };
 
-    const stopSignalHunt = (reason = 'finished') => {
-      if (!signalState.isRunning && reason !== 'switch') return;
-      signalState.isRunning = false;
-      if (signalPanelEl) signalPanelEl.classList.remove('is-running');
-      clearSignalHuntTimers();
-      if (signalTargetEl) signalTargetEl.classList.remove('active');
-      commitSignalReward();
-
-      if (signalState.score > signalState.best) {
-        signalState.best = signalState.score;
-        saveSignalBest();
-      }
-
-      updateSignalHud();
-
-      if (signalStartBtn) signalStartBtn.textContent = 'Старт';
-      if (signalStatusEl) {
-        if (reason === 'switch') {
-          signalStatusEl.textContent = 'Гру призупинено. Повернись, щоб зіграти знову.';
-        } else if (signalState.score > 0) {
-          signalStatusEl.textContent = `Гру завершено. Твій результат: ${signalState.score}. Зароблено: ${this.formatCoinBalance(signalState.earnedCents)}.`;
-        } else {
-          signalStatusEl.textContent = 'Час вийшов. Спробуй ще раз і впіймай більше сигналів.';
-        }
-      }
-    };
-
-    const startSignalHunt = () => {
-      if (!signalCanvasEl || !signalTargetEl) return;
-      clearSignalHuntTimers();
-
-      signalState.isRunning = true;
-      signalState.score = 0;
-      signalState.timeLeft = SIGNAL_HUNT_DURATION;
-      signalState.earnedCents = 0;
-      signalState.rewardLogged = false;
-      if (signalPanelEl) signalPanelEl.classList.add('is-running');
-      if (signalStartBtn) signalStartBtn.textContent = 'Перезапуск';
-      if (signalStatusEl) signalStatusEl.textContent = 'Лови сигнали, вони зʼявляються у випадкових точках!';
-      signalTargetEl.classList.add('active');
-      updateSignalHud();
-      placeSignalTarget();
-
-      this.signalHuntMoveTimer = window.setInterval(() => {
-        placeSignalTarget();
-      }, SIGNAL_MOVE_INTERVAL_MS);
-
-      this.signalHuntTickTimer = window.setInterval(() => {
-        signalState.timeLeft -= 1;
-        if (signalState.timeLeft <= 0) {
-          signalState.timeLeft = 0;
-          stopSignalHunt('finished');
-          return;
-        }
-        updateSignalHud();
-      }, 1000);
-    };
-
     const getGridRow = (row) => {
       const start = row * GRID_2048_SIZE;
       return grid2048State.board.slice(start, start + GRID_2048_SIZE);
@@ -3914,9 +3769,6 @@ export class ChatAppFeaturesMethods {
         panelEl.classList.toggle('active', isActive);
       });
 
-      if (safeView !== 'signal' && signalState.isRunning) {
-        stopSignalHunt('switch');
-      }
       if (safeView !== 'grid2048') {
         commitGridReward();
       }
@@ -3973,31 +3825,6 @@ export class ChatAppFeaturesMethods {
         setMiniGameView(buttonEl.dataset.miniGameSelect || 'tapper');
       });
     });
-
-    if (signalTargetEl && signalTargetEl.dataset.bound !== 'true') {
-      signalTargetEl.dataset.bound = 'true';
-      signalTargetEl.addEventListener('click', () => {
-        if (!signalState.isRunning) return;
-        const rewardCents = Math.max(2, this.getTapLevelStats().rewardPerTapCents + 1);
-        signalState.score += 1;
-        signalState.earnedCents += rewardCents;
-        this.setTapBalanceCents(this.getTapBalanceCents() + rewardCents);
-        balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents());
-        updateSignalHud();
-        signalTargetEl.classList.remove('hit');
-        void signalTargetEl.offsetWidth;
-        signalTargetEl.classList.add('hit');
-        placeSignalTarget();
-      });
-    }
-
-    if (signalStartBtn && signalStartBtn.dataset.bound !== 'true') {
-      signalStartBtn.dataset.bound = 'true';
-      signalStartBtn.addEventListener('click', () => {
-        setMiniGameView('signal');
-        startSignalHunt();
-      });
-    }
 
     if (gridReplayBtn && gridReplayBtn.dataset.bound !== 'true') {
       gridReplayBtn.dataset.bound = 'true';
@@ -4240,7 +4067,6 @@ export class ChatAppFeaturesMethods {
       }, { passive: true });
     }
 
-    updateSignalHud();
     resolveFlappyWorldSize();
     ensureFlappyAssets();
     updateFlappyHud();

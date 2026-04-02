@@ -132,7 +132,6 @@ export class ChatAppInteractionMethods {
             title: 'ІГРОВИЙ ЦЕНТР',
             items: [
               { label: 'Клікер', section: 'mini-games', icon: 'clicker', miniGameView: 'tapper' },
-              { label: 'Полювання на сигнал', section: 'mini-games', icon: 'target', miniGameView: 'signal' },
               { label: 'Orion 2048', section: 'mini-games', icon: 'grid2048', miniGameView: 'grid2048' },
               { label: 'Flappy Orion', section: 'mini-games', icon: 'flappy', miniGameView: 'flappy' },
               { label: 'Orion Drive', section: 'mini-games', icon: 'drift', miniGameView: 'drift' }

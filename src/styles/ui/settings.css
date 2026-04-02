@@ -4592,7 +4592,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   pointer-events: auto;
 }
 
-.mini-game-panel[data-mini-game-panel="signal"].is-running #signalHuntStart,
 .mini-game-panel[data-mini-game-panel="flappy"].is-running #flappyOrionStart,
 .mini-game-panel[data-mini-game-panel="flappy"].flappy-game-over #flappyOrionStart,
 .mini-game-panel[data-mini-game-panel="drift"].is-running #orionDriftStart {
@@ -4724,7 +4723,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   #shopPriceMinValue,
   #shopPriceMaxValue,
   #coinTapRewardValue,
-  #signalHuntEarned,
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
@@ -4760,7 +4758,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   #shopPriceMinValue,
   #shopPriceMaxValue,
   #coinTapRewardValue,
-  #signalHuntEarned,
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
@@ -4781,7 +4778,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   #shopPriceMinValue,
   #shopPriceMaxValue,
   #coinTapRewardValue,
-  #signalHuntEarned,
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
@@ -4852,61 +4848,6 @@ html.dark-theme .profile-settings-card.profile-settings-menu-card {
   color: var(--text-secondary);
   text-align: left;
   line-height: 1.4;
-}
-
-.signal-hunt-canvas {
-  position: relative;
-}
-
-.signal-hunt-target {
-  position: absolute;
-  left: 14px;
-  top: 14px;
-  width: 62px;
-  height: 62px;
-  border-radius: 18px;
-  border: 1px solid
-    color-mix(in srgb, var(--text-primary) 26%, var(--border-color));
-  background: color-mix(in srgb, var(--bg-color) 88%, transparent);
-  color: var(--text-primary);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
-  transition:
-    transform 0.08s ease,
-    box-shadow 0.12s ease,
-    background-color 0.12s ease;
-}
-
-.signal-hunt-target:hover {
-  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
-}
-
-.signal-hunt-target.active {
-  display: inline-flex;
-}
-
-.signal-hunt-target.hit {
-  transform: scale(0.9);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
-}
-
-.signal-hunt-status {
-  margin: 0;
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
-  text-align: center;
 }
 
 .flappy-orion-canvas-wrap {
@@ -5406,16 +5347,6 @@ html:not(.dark-theme) .mini-game-canvas {
 
   .mini-game-hint {
     text-align: center;
-    font-size: 12px;
-  }
-
-  .signal-hunt-target {
-    width: 56px;
-    height: 56px;
-  }
-
-  .signal-hunt-status {
-    padding: 10px 12px;
     font-size: 12px;
   }
 
