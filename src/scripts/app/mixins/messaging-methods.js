@@ -1329,7 +1329,6 @@ export class ChatAppMessagingMethods {
         ?? payload.senderId
         ?? payload.fromUserId
         ?? payload.authorId
-        ?? payload.id
         ?? nestedUser?.id
         ?? nestedUser?.userId
         ?? ''
@@ -1673,12 +1672,30 @@ export class ChatAppMessagingMethods {
   handleRealtimeMessageEvent(payload = {}) {
     const eventChatId = this.extractRealtimeChatId(payload);
     const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    const senderId = this.extractRealtimeUserId(payload);
+    const selfId = this.getAuthUserId();
     const shouldPrioritizeCurrent = Boolean(
       eventChatId
       && currentChatServerId
       && String(eventChatId).trim() === String(currentChatServerId).trim()
     );
-    this.scheduleServerChatSyncFromRealtime({ forceScroll: false, urgent: shouldPrioritizeCurrent });
+    const messagesContainer = document.getElementById('messagesContainer');
+    const shouldForceScroll = Boolean(
+      shouldPrioritizeCurrent
+      && (
+        (senderId && selfId && senderId === selfId)
+        || this.shouldKeepCurrentChatPinnedToBottom()
+        || (
+          messagesContainer
+          && typeof this.isMessagesNearBottom === 'function'
+          && this.isMessagesNearBottom(messagesContainer, 180)
+        )
+      )
+    );
+    this.scheduleServerChatSyncFromRealtime({
+      forceScroll: shouldForceScroll,
+      urgent: shouldPrioritizeCurrent
+    });
   }
 
   scheduleServerChatSyncFromRealtime({ forceScroll = false, urgent = false } = {}) {
@@ -1789,10 +1806,11 @@ export class ChatAppMessagingMethods {
   }
 
   async runServerChatSync({ forceScroll = false, skipWhenHidden = false } = {}) {
+    const effectiveForceScroll = forceScroll || this.shouldKeepCurrentChatPinnedToBottom();
     if (skipWhenHidden && document.visibilityState === 'hidden') return;
     if (this.serverChatSyncInFlight) return;
     const nowTs = Date.now();
-    if (!forceScroll) {
+    if (!effectiveForceScroll) {
       const cooldownMs = Math.max(250, Number(this.serverChatSyncMinIntervalMs) || 0);
       const lastRunAt = Number(this.serverChatSyncLastRunAt || 0);
       if (lastRunAt > 0 && nowTs - lastRunAt < cooldownMs) return;
@@ -1801,7 +1819,7 @@ export class ChatAppMessagingMethods {
     this.serverChatSyncInFlight = true;
     try {
       await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
-      await this.syncCurrentChatMessagesFromServer({ forceScroll, highlightOwn: false });
+      await this.syncCurrentChatMessagesFromServer({ forceScroll: effectiveForceScroll, highlightOwn: false });
     } catch {
       // Keep UI responsive if backend is temporarily unavailable.
     } finally {
@@ -2080,10 +2098,14 @@ export class ChatAppMessagingMethods {
     if (!message || typeof message !== 'object') return '';
     const type = String(message.type || 'text');
     const text = String(message.text || '').trim();
+    const attachmentUrl = String(message.attachmentUrl || message.fileUrl || '').trim();
     const imageUrl = String(message.imageUrl || '').trim();
     const audioUrl = String(message.audioUrl || '').trim();
     const fileUrl = String(message.fileUrl || message.attachmentUrl || '').trim();
-    return [type, text, imageUrl, audioUrl, fileUrl].join('|');
+    const comparableImageUrl = type === 'image' ? (attachmentUrl || imageUrl) : imageUrl;
+    const comparableAudioUrl = type === 'voice' ? (attachmentUrl || audioUrl) : audioUrl;
+    const comparableFileUrl = type === 'file' ? (fileUrl || attachmentUrl) : fileUrl;
+    return [type, text, comparableImageUrl, comparableAudioUrl, comparableFileUrl].join('|');
   }
 
   getMessagesVisualSignature(messages = []) {
@@ -2107,6 +2129,16 @@ export class ChatAppMessagingMethods {
         ].join(':');
       })
       .join('|');
+  }
+
+  isRecentOwnUnsyncedMessage(message, { ttlMs = 45000 } = {}) {
+    if (!message || typeof message !== 'object') return false;
+    if (message.from !== 'own') return false;
+    if (String(message.serverId || '').trim()) return false;
+    const timestamp = this.getMessageTimestampValue(message);
+    if (!Number.isFinite(timestamp)) return false;
+    const safeTtl = Number.isFinite(Number(ttlMs)) ? Math.max(1000, Number(ttlMs)) : 45000;
+    return Date.now() - timestamp <= safeTtl;
   }
 
   mergeRecentPendingOwnMessages(baseMessages = [], liveMessages = [], { ttlMs = 45000 } = {}) {
@@ -2138,7 +2170,7 @@ export class ChatAppMessagingMethods {
     let nextLocalId = Math.max(0, ...Array.from(usedLocalIds)) + 1;
 
     safeLive.forEach((liveMessage) => {
-      if (!liveMessage || liveMessage.from !== 'own' || liveMessage.pending !== true) return;
+      if (!this.isRecentOwnUnsyncedMessage(liveMessage, { ttlMs: safeTtl })) return;
 
       const liveServerId = String(liveMessage.serverId || '').trim();
       if (liveServerId && usedServerIds.has(liveServerId)) return;
@@ -2185,7 +2217,7 @@ export class ChatAppMessagingMethods {
       merged.push({
         ...liveMessage,
         id: localId,
-        pending: true
+        pending: liveMessage.pending === true
       });
     });
 
@@ -2231,7 +2263,7 @@ export class ChatAppMessagingMethods {
 
     const pendingOwnCandidatesByKey = new Map();
     existingMessages.forEach((msg) => {
-      if (!msg || msg.from !== 'own' || msg.pending !== true) return;
+      if (!this.isRecentOwnUnsyncedMessage(msg)) return;
       const serverId = String(msg.serverId ?? '').trim();
       if (serverId) return;
       const localId = Number(msg.id);
@@ -2373,6 +2405,10 @@ export class ChatAppMessagingMethods {
 
         const matchedLocalMessage = existingMessageByLocalId.get(localId) || null;
         const preserveOwnVisual = Boolean(from === 'own' && matchedLocalMessage);
+        const preserveLocalMediaPreview = Boolean(
+          preserveOwnVisual
+          && matchedLocalMessage?.localMediaPreview === true
+        );
         const preservedTime = preserveOwnVisual ? String(matchedLocalMessage.time || '') : '';
         const preservedDate = preserveOwnVisual ? String(matchedLocalMessage.date || '') : '';
         const preservedReplyTo = preserveOwnVisual && matchedLocalMessage.replyTo
@@ -2400,8 +2436,16 @@ export class ChatAppMessagingMethods {
           time: finalTime,
           date: finalDate,
           createdAt: String(item.createdAt ?? item.timestamp ?? item.date ?? matchedLocalMessage?.createdAt ?? '').trim(),
-          imageUrl: type === 'image' ? imageUrl : '',
-          audioUrl: type === 'voice' ? audioUrl : '',
+          imageUrl: type === 'image'
+            ? (preserveLocalMediaPreview && String(matchedLocalMessage?.imageUrl || '').trim()
+                ? String(matchedLocalMessage.imageUrl).trim()
+                : imageUrl)
+            : '',
+          audioUrl: type === 'voice'
+            ? (preserveLocalMediaPreview && String(matchedLocalMessage?.audioUrl || '').trim()
+                ? String(matchedLocalMessage.audioUrl).trim()
+                : audioUrl)
+            : '',
           fileUrl: type === 'file' ? attachmentUrl : '',
           attachmentUrl,
           fileName,
@@ -2410,6 +2454,7 @@ export class ChatAppMessagingMethods {
           edited: serverEdited || localEdited,
           replyTo: preservedReplyTo,
           pending: false,
+          localMediaPreview: preserveLocalMediaPreview,
           _sortValue: sortValue,
           _stableOrder: hasStableOrder ? stableOrder : null,
           _sourceIndex: index
@@ -2931,7 +2976,14 @@ export class ChatAppMessagingMethods {
     this.renderChatsList();
     const visualChanged = previousVisualSignature !== nextVisualSignature;
     if (visualChanged) {
-      this.renderChatAfterSync({ forceScroll, highlightId: newestAppendedMessageId });
+      const appendedIncrementally = this.canAppendMessagesIncrementally(prevMessages, nextMessages)
+        && this.appendMessagesAfterSync(nextMessages.slice(prevMessages.length), prevMessages, {
+          forceScroll,
+          highlightOwn
+        });
+      if (!appendedIncrementally) {
+        this.renderChatAfterSync({ forceScroll, highlightId: newestAppendedMessageId });
+      }
       return true;
     }
 
@@ -3400,7 +3452,7 @@ export class ChatAppMessagingMethods {
     throw new Error(bestError || lastError);
   }
 
-  appendMessage(msg, highlightClass = '') {
+  appendMessage(msg, highlightClass = '', { scrollToBottom = true } = {}) {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer || !this.currentChat) return;
     messagesContainer.classList.remove('no-content');
@@ -3430,6 +3482,7 @@ export class ChatAppMessagingMethods {
     messageEl.dataset.date = msg.date || '';
     messageEl.dataset.time = msg.time || '';
     messageEl.dataset.editable = String(this.isTextMessageEditable(msg));
+    messageEl.dataset.pending = msg?.pending === true ? 'true' : 'false';
     
     let avatarHtml = '';
     let senderNameHtml = '';
@@ -3474,7 +3527,97 @@ export class ChatAppMessagingMethods {
     messagesContainer.appendChild(messageEl);
     this.initMessageImageTransitions(messageEl);
     this.initVoiceMessageElements(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    if (scrollToBottom) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
+
+  appendDateSeparator(messagesContainer, dateKey) {
+    if (!messagesContainer || !dateKey) return;
+    const dateObj = new Date(`${dateKey}T00:00:00`);
+    let dateLabel = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: 'numeric' }).format(dateObj);
+    dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+    const sep = document.createElement('div');
+    sep.className = 'date-separator';
+    sep.innerHTML = `<span class="date-separator-text">${dateLabel}</span>`;
+    messagesContainer.appendChild(sep);
+  }
+
+  canAppendMessagesIncrementally(prevMessages = [], nextMessages = []) {
+    if (!Array.isArray(prevMessages) || !Array.isArray(nextMessages)) return false;
+    if (!prevMessages.length || nextMessages.length <= prevMessages.length) return false;
+
+    for (let index = 0; index < prevMessages.length; index += 1) {
+      const prev = prevMessages[index];
+      const next = nextMessages[index];
+      if (!prev || !next) return false;
+      const prevServerId = String(prev.serverId || '').trim();
+      const nextServerId = String(next.serverId || '').trim();
+      if (prevServerId || nextServerId) {
+        if (prevServerId !== nextServerId) return false;
+      } else if (Number(prev.id) !== Number(next.id)) {
+        return false;
+      }
+
+      const prevSignature = [
+        String(prev.type || 'text'),
+        String(prev.text || ''),
+        String(prev.time || ''),
+        String(prev.date || ''),
+        prev.edited ? '1' : '0',
+        String(prev.imageUrl || ''),
+        String(prev.audioUrl || ''),
+        String(prev.fileUrl || prev.attachmentUrl || ''),
+        String(prev.replyTo?.from || ''),
+        String(prev.replyTo?.text || '')
+      ].join('|');
+      const nextSignature = [
+        String(next.type || 'text'),
+        String(next.text || ''),
+        String(next.time || ''),
+        String(next.date || ''),
+        next.edited ? '1' : '0',
+        String(next.imageUrl || ''),
+        String(next.audioUrl || ''),
+        String(next.fileUrl || next.attachmentUrl || ''),
+        String(next.replyTo?.from || ''),
+        String(next.replyTo?.text || '')
+      ].join('|');
+      if (prevSignature !== nextSignature) return false;
+    }
+
+    return true;
+  }
+
+  appendMessagesAfterSync(appendedMessages = [], previousMessages = [], { forceScroll = false, highlightOwn = true } = {}) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer || !Array.isArray(appendedMessages) || !appendedMessages.length) return false;
+
+    const shouldStickToBottom = forceScroll || this.isMessagesNearBottom(messagesContainer, 72);
+    let previousMessage = Array.isArray(previousMessages) && previousMessages.length
+      ? previousMessages[previousMessages.length - 1]
+      : null;
+
+    appendedMessages.forEach((message) => {
+      const previousDateKey = String(previousMessage?.date || '').trim();
+      const nextDateKey = String(message?.date || new Date().toISOString().slice(0, 10)).trim();
+      if (nextDateKey && nextDateKey !== previousDateKey) {
+        this.appendDateSeparator(messagesContainer, nextDateKey);
+      }
+      const shouldHighlight = !message?.from || (highlightOwn || message.from !== 'own');
+      const highlightClass = shouldHighlight
+        ? (message?.from === 'own' ? ' new-message from-composer' : ' new-message')
+        : '';
+      this.appendMessage(message, highlightClass, { scrollToBottom: false });
+      previousMessage = message;
+    });
+
+    if (shouldStickToBottom) {
+      this.syncMessagesContainerToBottom(messagesContainer);
+    } else {
+      this.updateMessagesScrollBottomButtonVisibility();
+    }
+    return true;
   }
 
   enableMessagesMediaAutoScroll(messagesContainer, ttlMs = 1600) {
@@ -3490,6 +3633,36 @@ export class ChatAppMessagingMethods {
       }
       this.messagesMediaAutoScrollTimer = null;
     }, Math.max(600, Number(ttlMs) || 1600));
+  }
+
+  pinCurrentChatToBottom(ttlMs = 420) {
+    const safeTtl = Number.isFinite(Number(ttlMs)) ? Math.max(180, Number(ttlMs)) : 420;
+    this.currentChatBottomPinUntil = Date.now() + safeTtl;
+    const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    const currentChatLocalId = Number(this.currentChat?.id);
+    this.currentChatBottomPinKey = currentChatServerId
+      ? `server:${currentChatServerId}`
+      : (Number.isFinite(currentChatLocalId) ? `local:${currentChatLocalId}` : '');
+    if (Array.isArray(this.currentChatBottomPinTimeouts)) {
+      this.currentChatBottomPinTimeouts.forEach((timerId) => clearTimeout(timerId));
+    }
+    this.currentChatBottomPinTimeouts = [];
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer || typeof this.syncMessagesContainerToBottom !== 'function') return;
+    this.syncMessagesContainerToBottom(messagesContainer);
+  }
+
+  shouldKeepCurrentChatPinnedToBottom() {
+    const untilTs = Number(this.currentChatBottomPinUntil || 0);
+    if (!Number.isFinite(untilTs) || untilTs <= Date.now()) {
+      return false;
+    }
+    const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    const currentChatLocalId = Number(this.currentChat?.id);
+    const activeChatKey = currentChatServerId
+      ? `server:${currentChatServerId}`
+      : (Number.isFinite(currentChatLocalId) ? `local:${currentChatLocalId}` : '');
+    return Boolean(activeChatKey && activeChatKey === String(this.currentChatBottomPinKey || ''));
   }
 
   syncMessagesContainerToBottom(messagesContainer, { smooth = false } = {}) {
@@ -3552,6 +3725,12 @@ export class ChatAppMessagingMethods {
   }
 
   shouldAnimateMessageInsertion(msg, ttlMs = 4500) {
+    const type = String(msg?.type || 'text');
+    const isMediaMessage = type === 'image' || type === 'voice' || type === 'file';
+    if (isMediaMessage && msg?.pending !== true) {
+      return false;
+    }
+
     const safeTtl = Number.isFinite(Number(ttlMs)) ? Math.max(600, Number(ttlMs)) : 4500;
     if (!(this.recentAnimatedMessageKeys instanceof Map)) {
       this.recentAnimatedMessageKeys = new Map();
@@ -3849,6 +4028,7 @@ export class ChatAppMessagingMethods {
       ? { ...optimisticMessage.replyTo }
       : null;
 
+    this.pinCurrentChatToBottom();
     this.currentChat.messages.push(optimisticMessage);
     this.saveChats();
     if (this.currentChat.messages.length === 1) {
@@ -3883,20 +4063,24 @@ export class ChatAppMessagingMethods {
         if (serverMessageId) {
           optimisticCurrent.serverId = serverMessageId;
         }
-        // Keep optimistic message visible until server list confirms it.
-        // This prevents a brief "disappear -> reappear" flicker on eventual-consistent backends.
-        optimisticCurrent.pending = true;
+        optimisticCurrent.pending = false;
       }
       this.saveChats();
       this.renderChatsList();
 
-      const activeChatServerId = this.resolveChatServerId(this.currentChat);
-      window.setTimeout(() => {
-        if (!this.currentChat) return;
-        const currentServerId = this.resolveChatServerId(this.currentChat);
-        if (activeChatServerId && currentServerId !== activeChatServerId) return;
-        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
-      }, 900);
+      const hasServerMessageId = Boolean(
+        this.extractServerMessageIdFromPayload(sendResponse)
+        || String(optimisticCurrent?.serverId || '').trim()
+      );
+      if (!hasServerMessageId) {
+        const activeChatServerId = this.resolveChatServerId(this.currentChat);
+        window.setTimeout(() => {
+          if (!this.currentChat) return;
+          const currentServerId = this.resolveChatServerId(this.currentChat);
+          if (activeChatServerId && currentServerId !== activeChatServerId) return;
+          this.syncCurrentChatMessagesFromServer({ forceScroll: true, highlightOwn: false }).catch(() => {});
+        }, 900);
+      }
     } catch (error) {
       if (!sentToServer) {
         const rollbackIndex = this.currentChat.messages.findIndex((item) => {
@@ -4201,6 +4385,7 @@ export class ChatAppMessagingMethods {
       text: '',
       type: 'image',
       imageUrl: previewUrl,
+      localMediaPreview: true,
       from: 'own',
       time,
       date: now.toISOString().slice(0, 10),
@@ -4212,6 +4397,7 @@ export class ChatAppMessagingMethods {
     };
     const restoreReplyTarget = newMessage.replyTo ? { ...newMessage.replyTo } : null;
 
+    this.pinCurrentChatToBottom();
     this.currentChat.messages.push(newMessage);
     this.saveChats();
     this.clearReplyTarget();
@@ -4245,15 +4431,21 @@ export class ChatAppMessagingMethods {
         });
       const optimisticCurrent = this.currentChat.messages.find((item) => Number(item?.id) === Number(newMessage.id));
       if (optimisticCurrent) {
-        optimisticCurrent.imageUrl = uploaded.url || optimisticCurrent.imageUrl;
+        optimisticCurrent.attachmentUrl = uploaded.url || optimisticCurrent.attachmentUrl || '';
         optimisticCurrent.serverId = this.extractServerMessageIdFromPayload(sendResponse) || optimisticCurrent.serverId;
-        optimisticCurrent.pending = true;
+        optimisticCurrent.pending = false;
       }
       this.saveChats();
       this.renderChatsList();
-      window.setTimeout(() => {
-        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
-      }, 900);
+      const hasServerMessageId = Boolean(
+        this.extractServerMessageIdFromPayload(sendResponse)
+        || String(optimisticCurrent?.serverId || '').trim()
+      );
+      if (!hasServerMessageId) {
+        window.setTimeout(() => {
+          this.syncCurrentChatMessagesFromServer({ forceScroll: true, highlightOwn: false }).catch(() => {});
+        }, 900);
+      }
     } catch (error) {
       const rollbackIndex = this.currentChat.messages.findIndex((item) => Number(item?.id) === Number(newMessage.id) && !item?.serverId);
       if (rollbackIndex !== -1) {
@@ -4281,6 +4473,7 @@ export class ChatAppMessagingMethods {
       text: '',
       type: 'voice',
       audioUrl: previewUrl,
+      localMediaPreview: true,
       audioDuration: Math.max(0, Number(durationSeconds) || 0),
       from: 'own',
       time,
@@ -4293,6 +4486,7 @@ export class ChatAppMessagingMethods {
     };
     const restoreReplyTarget = newMessage.replyTo ? { ...newMessage.replyTo } : null;
 
+    this.pinCurrentChatToBottom();
     this.currentChat.messages.push(newMessage);
     this.saveChats();
     this.clearReplyTarget();
@@ -4327,15 +4521,21 @@ export class ChatAppMessagingMethods {
         });
       const optimisticCurrent = this.currentChat.messages.find((item) => Number(item?.id) === Number(newMessage.id));
       if (optimisticCurrent) {
-        optimisticCurrent.audioUrl = uploaded.url || optimisticCurrent.audioUrl;
+        optimisticCurrent.attachmentUrl = uploaded.url || optimisticCurrent.attachmentUrl || '';
         optimisticCurrent.serverId = this.extractServerMessageIdFromPayload(sendResponse) || optimisticCurrent.serverId;
-        optimisticCurrent.pending = true;
+        optimisticCurrent.pending = false;
       }
       this.saveChats();
       this.renderChatsList();
-      window.setTimeout(() => {
-        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
-      }, 900);
+      const hasServerMessageId = Boolean(
+        this.extractServerMessageIdFromPayload(sendResponse)
+        || String(optimisticCurrent?.serverId || '').trim()
+      );
+      if (!hasServerMessageId) {
+        window.setTimeout(() => {
+          this.syncCurrentChatMessagesFromServer({ forceScroll: true, highlightOwn: false }).catch(() => {});
+        }, 900);
+      }
     } catch (error) {
       const rollbackIndex = this.currentChat.messages.findIndex((item) => Number(item?.id) === Number(newMessage.id) && !item?.serverId);
       if (rollbackIndex !== -1) {
@@ -4376,6 +4576,7 @@ export class ChatAppMessagingMethods {
     };
     const restoreReplyTarget = newMessage.replyTo ? { ...newMessage.replyTo } : null;
 
+    this.pinCurrentChatToBottom();
     this.currentChat.messages.push(newMessage);
     this.saveChats();
     this.clearReplyTarget();
@@ -4415,13 +4616,19 @@ export class ChatAppMessagingMethods {
         optimisticCurrent.fileName = uploaded.fileName || optimisticCurrent.fileName;
         optimisticCurrent.attachmentMimeType = uploaded.mimeType || optimisticCurrent.attachmentMimeType;
         optimisticCurrent.serverId = this.extractServerMessageIdFromPayload(sendResponse) || optimisticCurrent.serverId;
-        optimisticCurrent.pending = true;
+        optimisticCurrent.pending = false;
       }
       this.saveChats();
       this.renderChatsList();
-      window.setTimeout(() => {
-        this.syncCurrentChatMessagesFromServer({ forceScroll: false, highlightOwn: false }).catch(() => {});
-      }, 900);
+      const hasServerMessageId = Boolean(
+        this.extractServerMessageIdFromPayload(sendResponse)
+        || String(optimisticCurrent?.serverId || '').trim()
+      );
+      if (!hasServerMessageId) {
+        window.setTimeout(() => {
+          this.syncCurrentChatMessagesFromServer({ forceScroll: true, highlightOwn: false }).catch(() => {});
+        }, 900);
+      }
     } catch (error) {
       const rollbackIndex = this.currentChat.messages.findIndex((item) => Number(item?.id) === Number(newMessage.id) && !item?.serverId);
       if (rollbackIndex !== -1) {
@@ -4891,8 +5098,12 @@ export class ChatAppMessagingMethods {
   initMessageImageTransitions(rootEl) {
     if (!rootEl) return;
     const images = rootEl.querySelectorAll ? rootEl.querySelectorAll('.message-image') : [];
+    if (!(this.loadedMessageImageUrls instanceof Set)) {
+      this.loadedMessageImageUrls = new Set();
+    }
     images.forEach((img) => {
       if (img.dataset.ready === 'true') return;
+      const sourceKey = String(img.currentSrc || img.getAttribute('src') || '').trim();
       const markLoaded = () => {
         const messagesContainer = document.getElementById('messagesContainer');
         const shouldStickToBottom = Boolean(
@@ -4904,10 +5115,17 @@ export class ChatAppMessagingMethods {
         );
         img.classList.add('is-loaded');
         img.dataset.ready = 'true';
+        if (sourceKey) {
+          this.loadedMessageImageUrls.add(sourceKey);
+        }
         if (shouldStickToBottom && typeof this.syncMessagesContainerToBottom === 'function') {
           this.syncMessagesContainerToBottom(messagesContainer);
         }
       };
+      if (sourceKey && this.loadedMessageImageUrls.has(sourceKey)) {
+        markLoaded();
+        return;
+      }
       if (img.complete && img.naturalWidth > 0) {
         markLoaded();
         return;

@@ -2696,6 +2696,7 @@ export class ChatAppInteractionMethods {
       messageEl.dataset.date = msg.date || '';
       messageEl.dataset.time = msg.time || '';
       messageEl.dataset.editable = String(this.isTextMessageEditable(msg));
+      messageEl.dataset.pending = msg?.pending === true ? 'true' : 'false';
       
       let avatarHtml = '';
       let senderNameHtml = '';

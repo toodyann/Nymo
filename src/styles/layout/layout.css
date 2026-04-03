@@ -940,10 +940,6 @@ html.dark-theme .app-chat-typing {
   justify-content: flex-start;
 }
 
-.messages-container.has-content > :first-child {
-  margin-top: auto;
-}
-
 .messages-container::before {
   content: none;
   display: none;

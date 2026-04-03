@@ -141,6 +141,15 @@
   transform-origin: left bottom;
 }
 
+.message[data-type="image"][data-pending="false"].new-message .message-bubble,
+.message[data-type="voice"][data-pending="false"].new-message .message-bubble,
+.message[data-type="file"][data-pending="false"].new-message .message-bubble {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  will-change: auto;
+}
+
 .message.other {
   column-gap: 12px;
 }
@@ -312,19 +321,16 @@ html.dark-theme .message.other .message-content {
   cursor: zoom-in;
   user-select: none;
   -webkit-user-drag: none;
-  opacity: 0;
-  filter: blur(6px);
-  transform: scale(0.985);
-  transition:
-    opacity 0.28s ease,
-    filter 0.32s ease,
-    transform 0.32s ease;
+  opacity: 1;
+  filter: none;
+  transform: none;
+  transition: none;
 }
 
 .message-image.is-loaded {
   opacity: 1;
-  filter: blur(0);
-  transform: scale(1);
+  filter: none;
+  transform: none;
 }
 
 .message-image-caption {
