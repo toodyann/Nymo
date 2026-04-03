@@ -1157,7 +1157,23 @@ html:not(.dark-theme) .alert-actions .btn {
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  isolation: isolate;
   background: var(--bg-color);
+}
+
+.contact-profile-view::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: var(--bg-color);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.contact-profile-view > * {
+  position: relative;
+  z-index: 1;
 }
 
 .orion-app:has(#chatContainer.profile-view-active)

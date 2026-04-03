@@ -3244,14 +3244,9 @@ export class ChatAppInteractionMethods {
     requestAnimationFrame(() => this.syncContactProfileMediaFiltersOffset());
   }
 
-  openContactProfileSection() {
-    if (!this.currentChat || this.currentChat.isGroup) {
-      this.showAlert('Картка контакту доступна лише для особистого чату');
-      return;
-    }
+  renderCurrentContactProfileView() {
+    if (!this.currentChat || this.currentChat.isGroup) return;
 
-    const section = document.getElementById('contactProfileView');
-    const chatContainer = document.getElementById('chatContainer');
     const heroCard = document.getElementById('contactProfileHeroCard');
     const avatar = document.getElementById('contactProfileAvatar');
     const avatarImage = document.getElementById('contactProfileAvatarImage');
@@ -3261,13 +3256,34 @@ export class ChatAppInteractionMethods {
     const bio = document.getElementById('contactProfileBio');
     const dob = document.getElementById('contactProfileDob');
     const status = document.getElementById('contactProfileStatus');
+    if (!avatar || !name || !handle || !bio || !dob || !status || !initials) return;
 
-    if (!section || !chatContainer || !avatar || !name || !handle || !bio || !dob || !status || !initials) return;
+    const participantId = String(this.currentChat.participantId || '').trim();
+    const cachedMeta = participantId && typeof this.getCachedUserMeta === 'function'
+      ? this.getCachedUserMeta(participantId)
+      : {};
+    const cachedName = participantId && typeof this.getCachedUserName === 'function'
+      ? this.getCachedUserName(participantId)
+      : '';
+    const cachedAvatar = participantId && typeof this.getCachedUserAvatar === 'function'
+      ? this.getCachedUserAvatar(participantId)
+      : '';
 
-    const chatName = this.currentChat.name || 'Контакт';
-    const chatStatus = this.currentChat.status || 'offline';
+    const chatName = String(cachedName || this.currentChat.name || 'Контакт').trim() || 'Контакт';
+    const chatStatus = this.currentChat.status || cachedMeta?.status || 'offline';
     const isOnline = chatStatus !== 'offline';
     const chatDob = this.currentChat.dob || this.currentChat.birthDate || this.currentChat.dateOfBirth || '';
+    const resolvedAvatarColor = String(
+      this.currentChat.avatarColor
+      || cachedMeta?.avatarColor
+      || this.getContactColor(chatName)
+    ).trim();
+    const resolvedAvatarImage = this.getAvatarImage(
+      cachedAvatar
+      || this.currentChat.avatarImage
+      || this.currentChat.avatarUrl
+    );
+    const hasCustomAvatar = resolvedAvatarImage.length > 0;
 
     name.textContent = chatName;
     handle.textContent = this.currentChat.handle || this.buildContactHandle(chatName);
@@ -3275,29 +3291,30 @@ export class ChatAppInteractionMethods {
     dob.textContent = this.formatContactBirthDate(chatDob);
     status.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
 
-    avatar.style.background = this.currentChat.avatarColor || this.getContactColor(chatName);
-    const customAvatarSrc = this.getAvatarImage(this.currentChat.avatarImage || this.currentChat.avatarUrl);
-    const hasCustomAvatar = customAvatarSrc.length > 0;
+    avatar.style.background = hasCustomAvatar ? 'transparent' : resolvedAvatarColor;
+    avatar.style.boxShadow = hasCustomAvatar ? 'none' : '';
     if (avatarImage) {
       avatarImage.onerror = () => {
         avatarImage.hidden = true;
         avatarImage.removeAttribute('src');
+        avatar.style.background = resolvedAvatarColor;
+        avatar.style.boxShadow = '';
         initials.hidden = false;
       };
       avatarImage.onload = () => {
-        initials.hidden = false;
-        if (hasCustomAvatar) {
-          initials.hidden = true;
-        }
+        initials.hidden = !avatarImage.hidden;
       };
       if (hasCustomAvatar) {
-        avatarImage.src = customAvatarSrc;
+        if (avatarImage.getAttribute('src') !== resolvedAvatarImage) {
+          avatarImage.src = resolvedAvatarImage;
+        }
         avatarImage.hidden = false;
       } else {
         avatarImage.hidden = true;
         avatarImage.removeAttribute('src');
       }
     }
+
     initials.textContent = this.getInitials(chatName);
     initials.hidden = hasCustomAvatar;
     avatar.dataset.avatarFrame = '';
@@ -3309,6 +3326,19 @@ export class ChatAppInteractionMethods {
     if (heroCard && typeof this.applyProfileMotion === 'function') {
       this.applyProfileMotion(heroCard);
     }
+  }
+
+  openContactProfileSection() {
+    if (!this.currentChat || this.currentChat.isGroup) {
+      this.showAlert('Картка контакту доступна лише для особистого чату');
+      return;
+    }
+
+    const section = document.getElementById('contactProfileView');
+    const chatContainer = document.getElementById('chatContainer');
+    if (!section || !chatContainer) return;
+
+    this.renderCurrentContactProfileView();
     chatContainer.classList.add('profile-view-active');
     section.setAttribute('aria-hidden', 'false');
     this.contactProfileMediaFilter = '';
@@ -3915,6 +3945,9 @@ export class ChatAppInteractionMethods {
         }
         if (avatar) {
           this.applyChatAvatarToElement(avatar, this.currentChat);
+        }
+        if (this.isContactProfileSectionActive()) {
+          this.renderCurrentContactProfileView();
         }
 
         if (contactDetails) {
