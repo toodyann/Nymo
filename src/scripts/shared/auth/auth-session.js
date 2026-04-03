@@ -1,6 +1,6 @@
+import { BASE_URL, buildApiUrl, getApiBaseUrl } from '../api/api-url.js';
+
 const AUTH_SESSION_KEY = 'orion_auth_session';
-const DEFAULT_DEV_API_BASE_URL = 'http://localhost:3000';
-const DEFAULT_PROD_API_BASE_URL = 'https://chat-app-anzi.onrender.com';
 
 function readViteEnv() {
   try {
@@ -146,16 +146,4 @@ export function syncLegacyUserProfile(user = {}) {
   window.localStorage.setItem('orion_user', JSON.stringify(profile));
 }
 
-export function buildApiUrl(path = '') {
-  const normalizedPath = String(path || '').trim();
-  if (/^https?:\/\//i.test(normalizedPath)) return normalizedPath;
-
-  const endpoint = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-  const env = readViteEnv();
-  const explicitApiBase = String(env.VITE_API_BASE_URL || '').trim();
-  const fallbackApiBase = env.DEV ? DEFAULT_DEV_API_BASE_URL : DEFAULT_PROD_API_BASE_URL;
-  const apiBase = String(explicitApiBase || fallbackApiBase)
-    .trim()
-    .replace(/\/+$/, '');
-  return apiBase ? `${apiBase}${endpoint}` : endpoint;
-}
+export { BASE_URL, buildApiUrl, getApiBaseUrl };

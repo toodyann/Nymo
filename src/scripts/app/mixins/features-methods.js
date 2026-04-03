@@ -1,5 +1,6 @@
 import { setupSettingsSwipeBack } from '../../shared/gestures/swipe-handlers.js';
 import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
+import { buildApiUrl } from '../../shared/api/api-url.js';
 import {
   getAuthSession,
   setAuthSession,
@@ -5411,16 +5412,18 @@ export class ChatAppFeaturesMethods {
             }
             avatarUpload.disabled = true;
             try {
-              const optimizedAvatar = await this.buildProfileAvatarDataUrl(file);
-              const profileResponse = await this.updateCurrentUserProfileOnServer({
-                avatarUrl: optimizedAvatar
-              });
+              const { payload: profileResponse, localPreviewUrl } = await this.uploadCurrentUserAvatarToServer(file);
               const serverAvatar = this.getAvatarImage(
                 profileResponse?.avatarImage
                 || profileResponse?.avatarUrl
+                || profileResponse?.url
+                || profileResponse?.image
                 || profileResponse?.user?.avatarImage
                 || profileResponse?.user?.avatarUrl
-                || optimizedAvatar
+                || profileResponse?.data?.avatarImage
+                || profileResponse?.data?.avatarUrl
+                || profileResponse?.data?.url
+                || localPreviewUrl
               );
 
               const nextUser = {
@@ -5952,6 +5955,69 @@ export class ChatAppFeaturesMethods {
     }
 
     return dataUrl;
+  }
+
+  buildProfileAvatarUploadFile(sourceFile, dataUrl) {
+    const match = String(dataUrl || '').match(/^data:(image\/[a-z0-9.+-]+);base64,/i);
+    const mimeType = match?.[1] || 'image/jpeg';
+    const base64 = String(dataUrl || '').split(',')[1] || '';
+    if (!base64) {
+      throw new Error('Не вдалося підготувати файл аватара до відправки.');
+    }
+
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    const safeName = String(sourceFile?.name || 'avatar.jpg').replace(/\.[^.]+$/, '') || 'avatar';
+    const extension = mimeType === 'image/png' ? 'png' : 'jpg';
+    return new File([bytes], `${safeName}.${extension}`, { type: mimeType });
+  }
+
+  async uploadCurrentUserAvatarToServer(file) {
+    const optimizedAvatar = await this.buildProfileAvatarDataUrl(file);
+    const uploadFile = this.buildProfileAvatarUploadFile(file, optimizedAvatar);
+    const fieldNames = ['file', 'avatar', 'image'];
+    let lastErrorMessage = '';
+
+    for (const fieldName of fieldNames) {
+      try {
+        const formData = new FormData();
+        formData.append(fieldName, uploadFile, uploadFile.name);
+
+        const response = await fetch(buildApiUrl('/users/me/avatar'), {
+          method: 'POST',
+          headers: this.getApiHeaders(),
+          body: formData
+        });
+        const data = await this.readJsonSafe(response);
+        if (response.ok) {
+          return {
+            payload: data && typeof data === 'object' ? data : {},
+            localPreviewUrl: optimizedAvatar
+          };
+        }
+
+        lastErrorMessage = this.getRequestErrorMessage(data, 'Не вдалося завантажити аватар.');
+      } catch (error) {
+        lastErrorMessage = String(error?.message || 'Не вдалося завантажити аватар.');
+      }
+    }
+
+    try {
+      const fallbackResponse = await this.updateCurrentUserProfileOnServer({
+        avatarUrl: optimizedAvatar
+      });
+      return {
+        payload: fallbackResponse && typeof fallbackResponse === 'object' ? fallbackResponse : {},
+        localPreviewUrl: optimizedAvatar
+      };
+    } catch (fallbackError) {
+      const fallbackMessage = String(fallbackError?.message || '').trim();
+      throw new Error(fallbackMessage || lastErrorMessage || 'Не вдалося оновити аватар на сервері.');
+    }
   }
 
   syncAvatarToAuthSession(userProfile = {}) {

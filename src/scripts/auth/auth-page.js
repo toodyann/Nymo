@@ -1,5 +1,4 @@
 import {
-  buildApiUrl,
   getAuthSession,
   getAppHomeHref,
   isAuthSessionValid,
@@ -7,6 +6,7 @@ import {
   setAuthSession,
   syncLegacyUserProfile
 } from '../shared/auth/auth-session.js';
+import { buildApiUrl } from '../shared/api/api-url.js';
 
 const PHONE_UA_RE = /^\+380\d{9}$/;
 const SIGNUP_NICKNAME_CACHE_PREFIX = 'orion_signup_nickname:';
@@ -317,10 +317,7 @@ async function updateProfileNickname(userId, nickname) {
 
   const response = await fetch(buildApiUrl('/users/me'), {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-User-Id': safeUserId
-    },
+    headers: buildAuthorizedHeaders(safeUserId, { json: true }),
     body: JSON.stringify({ nickname: safeNickname })
   });
 
@@ -342,9 +339,7 @@ async function fetchCurrentProfile(userId) {
 
   const response = await fetch(buildApiUrl('/users/me'), {
     method: 'GET',
-    headers: {
-      'X-User-Id': safeUserId
-    }
+    headers: buildAuthorizedHeaders(safeUserId)
   });
   const data = await readJsonSafe(response);
   if (!response.ok || !data || typeof data !== 'object') {
@@ -373,6 +368,27 @@ function extractAuthPayload(data, fallbackUser = {}) {
   }
 
   return { token, user };
+}
+
+function getAuthorizationHeaderValue() {
+  const session = getAuthSession();
+  const rawToken = safeTrim(
+    session?.token ||
+      session?.accessToken ||
+      session?.access_token
+  );
+  if (!rawToken) return '';
+  return rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
+}
+
+function buildAuthorizedHeaders(userId, { json = false } = {}) {
+  const headers = {};
+  if (json) headers['Content-Type'] = 'application/json';
+  const authHeader = getAuthorizationHeaderValue();
+  if (authHeader) headers.Authorization = authHeader;
+  const safeUserId = safeTrim(userId);
+  if (safeUserId) headers['X-User-Id'] = safeUserId;
+  return headers;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

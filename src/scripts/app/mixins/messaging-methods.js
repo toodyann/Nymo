@@ -1,6 +1,7 @@
 import { getSettingsTemplate } from '../../ui/templates/settings-templates.js';
 import { escapeHtml } from '../../shared/helpers/ui-helpers.js';
-import { buildApiUrl, getAuthSession } from '../../shared/auth/auth-session.js';
+import { buildApiUrl } from '../../shared/api/api-url.js';
+import { getAuthSession } from '../../shared/auth/auth-session.js';
 
 const SELF_DELETED_CHATS_STORAGE_KEY = 'orion_self_deleted_chats';
 const SELF_DELETED_MESSAGES_STORAGE_KEY = 'orion_self_deleted_messages';
@@ -60,7 +61,8 @@ export class ChatAppMessagingMethods {
   getApiHeaders({ json = false } = {}) {
     const headers = {};
     if (json) headers['Content-Type'] = 'application/json';
-    // Backend test client works via X-User-Id only.
+    const token = this.getAuthToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
     const userId = this.getAuthUserId();
     if (userId) headers['X-User-Id'] = userId;
     return headers;
@@ -610,7 +612,25 @@ export class ChatAppMessagingMethods {
 
   extractEntityId(entity) {
     if (!entity || typeof entity !== 'object') return '';
-    return String(entity.id ?? entity.userId ?? entity._id ?? entity.sub ?? '').trim();
+    const nestedUser = entity.user && typeof entity.user === 'object' ? entity.user : null;
+    const nestedMember = entity.member && typeof entity.member === 'object' ? entity.member : null;
+    const nestedProfile = entity.profile && typeof entity.profile === 'object' ? entity.profile : null;
+    return String(
+      entity.id
+        ?? entity.userId
+        ?? entity._id
+        ?? entity.sub
+        ?? nestedUser?.id
+        ?? nestedUser?.userId
+        ?? nestedUser?._id
+        ?? nestedMember?.id
+        ?? nestedMember?.userId
+        ?? nestedMember?._id
+        ?? nestedProfile?.id
+        ?? nestedProfile?.userId
+        ?? nestedProfile?._id
+        ?? ''
+    ).trim();
   }
 
   getCachedUserName(userId) {
@@ -816,25 +836,56 @@ export class ChatAppMessagingMethods {
     return scored.map((item) => item.user);
   }
 
+  extractUserCollection(payload) {
+    const queue = [payload];
+    const visited = new Set();
+
+    while (queue.length) {
+      const current = queue.shift();
+      if (!current || typeof current !== 'object') continue;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      if (Array.isArray(current)) return current;
+
+      const candidates = [
+        current.users,
+        current.items,
+        current.results,
+        current.data,
+        current.list,
+        current.rows,
+        current.members
+      ];
+
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate;
+        if (candidate && typeof candidate === 'object') {
+          queue.push(candidate);
+        }
+      }
+    }
+
+    return [];
+  }
+
   normalizeUserList(payload) {
-    const candidates = [
-      payload,
-      payload?.users,
-      payload?.data,
-      payload?.results,
-      payload?.items
-    ];
-    const source = candidates.find(Array.isArray);
-    if (!source) return [];
+    const source = this.extractUserCollection(payload);
+    if (!source.length) return [];
 
     const selfId = this.getAuthUserId();
     return source
       .filter((item) => item && typeof item === 'object')
       .map((item) => {
-        const id = String(item.id ?? item.userId ?? item._id ?? '').trim();
-        const normalizedName = this.getUserDisplayName(item);
-        const avatarImage = this.getUserAvatarImage(item);
-        const avatarColor = this.getUserAvatarColor(item);
+        const nestedUser = item.user && typeof item.user === 'object' ? item.user : null;
+        const nestedMember = item.member && typeof item.member === 'object' ? item.member : null;
+        const normalizedSource = nestedUser
+          ? { ...item, ...nestedUser }
+          : (nestedMember ? { ...item, ...nestedMember } : item);
+        const id = this.extractEntityId(normalizedSource);
+        const normalizedName = this.getUserDisplayName(normalizedSource);
+        const avatarImage = this.getUserAvatarImage(normalizedSource);
+        const avatarColor = this.getUserAvatarColor(normalizedSource);
         this.cacheKnownUserMeta(id, {
           name: normalizedName,
           avatarImage,
@@ -843,12 +894,12 @@ export class ChatAppMessagingMethods {
         return {
           id,
           name: normalizedName,
-          tag: this.getUserTag(item),
-          mobile: String(item.mobile ?? item.phone ?? '').trim(),
-          email: String(item.email ?? '').trim(),
+          tag: this.getUserTag(normalizedSource),
+          mobile: String(normalizedSource.mobile ?? normalizedSource.phone ?? '').trim(),
+          email: String(normalizedSource.email ?? '').trim(),
           avatarImage,
           avatarColor,
-          raw: item
+          raw: normalizedSource
         };
       })
       .filter((item) => item.id && item.id !== selfId);
@@ -924,10 +975,10 @@ export class ChatAppMessagingMethods {
 
     const encoded = encodeURIComponent(trimmedQuery);
     const endpoints = [
-      `/users/search?query=${encoded}`,
-      `/users/search?search=${encoded}`,
       `/users?search=${encoded}`,
-      `/users?query=${encoded}`
+      `/users?query=${encoded}`,
+      `/users/search?search=${encoded}`,
+      `/users/search?query=${encoded}`
     ];
 
     for (const endpoint of endpoints) {
@@ -943,7 +994,7 @@ export class ChatAppMessagingMethods {
           continue;
         }
         const users = this.rankUsersByQuery(this.normalizeUserList(data), trimmedQuery);
-        if (users.length > 0) return users;
+        return users;
       } catch {
         // Try next endpoint variant.
       }

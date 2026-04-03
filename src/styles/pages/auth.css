@@ -42,7 +42,7 @@ html.dark-theme .auth-page {
   transform: translate(-50%, -50%) scaleX(0.5) scaleY(0.4);
   font-family: "Erica One", sans-serif;
   font-size: clamp(100px, 21vw, 330px);
-  font-weight: 800;
+  font-weight: 400;
   letter-spacing: 0;
   line-height: 0.96;
   color: var(--auth-orion-tone);

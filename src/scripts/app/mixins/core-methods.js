@@ -1,6 +1,6 @@
 import { setupMobileSwipeBack } from '../../shared/gestures/swipe-handlers.js';
 import { getContactColor } from '../../shared/helpers/ui-helpers.js';
-import { buildApiUrl } from '../../shared/auth/auth-session.js';
+import { buildApiUrl } from '../../shared/api/api-url.js';
 
 export class ChatAppCoreMethods {
   readJsonStorage(key, fallback) {
@@ -969,7 +969,14 @@ export class ChatAppCoreMethods {
   }
 
   getAvatarImage(value) {
-    return typeof value === 'string' ? value.trim() : '';
+    const normalized = typeof value === 'string' ? value.trim() : '';
+    if (!normalized) return '';
+    if (/^(?:https?:|data:|blob:)/i.test(normalized)) return normalized;
+    if (/^\/?(?:storage|upload|uploads)\//i.test(normalized)) {
+      const path = normalized.startsWith('/') ? normalized : `/${normalized}`;
+      return buildApiUrl(path);
+    }
+    return normalized;
   }
 
   getChatAvatarMeta(chat = null) {
