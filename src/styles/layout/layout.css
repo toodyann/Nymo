@@ -940,9 +940,10 @@ html.dark-theme .app-chat-typing {
   justify-content: flex-start;
 }
 
-.messages-container::before {
-  content: none;
-  display: none;
+.messages-bottom-spacer {
+  flex: 1 0 auto;
+  min-height: 0;
+  pointer-events: none;
 }
 
 .messages-scroll-bottom-btn {

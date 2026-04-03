@@ -10,6 +10,11 @@
     min-width: 136px;
   }
 
+  .sidebar.compact:has(.desktop-secondary-menu.active[data-menu-root="navChats"]) {
+    width: 360px;
+    min-width: 360px;
+  }
+
   .sidebar.compact .search-box,
   .sidebar.compact .chats-list-header {
     display: none !important;
@@ -47,6 +52,7 @@
   }
 
   .sidebar.compact .chat-info,
+  .sidebar.compact .chat-meta,
   .sidebar.compact .chat-time,
   .sidebar.compact .chat-item-actions,
   .sidebar.compact .chat-pin-badge {
@@ -94,22 +100,22 @@
   }
 
   .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-item {
-    width: 52px;
-    min-width: 52px;
-    height: 58px;
-    padding: 0;
-    margin: 0 auto 8px;
-    justify-content: center;
-    border-radius: 14px;
-    gap: 0;
+    width: calc(100% - 12px);
+    min-width: 0;
+    height: 72px;
+    padding: 0 12px;
+    margin: 0 6px 6px;
+    justify-content: flex-start;
+    border-radius: 18px;
+    gap: 12px;
   }
 
   .sidebar.compact
     .desktop-secondary-menu.active
     .desktop-secondary-chat-avatar {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
   }
 
   .sidebar.compact
@@ -122,10 +128,18 @@
     bottom: -1px;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-info,
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-meta,
+  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-info {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-meta {
+    display: flex;
+  }
+
   .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-time {
-    display: none;
+    display: inline-flex;
   }
 }
 
@@ -491,6 +505,16 @@ html:not(.dark-theme) .chat-avatar .avatar-activity-indicator {
   min-width: 0;
 }
 
+.chat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 28px;
+}
+
 .chat-name {
   font-weight: 600;
   font-size: 14px;
@@ -520,6 +544,23 @@ html:not(.dark-theme) .chat-avatar .avatar-activity-indicator {
   font-size: 12px;
   color: var(--text-secondary);
   flex-shrink: 0;
+}
+
+.chat-unread {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--primary-color) 84%, #ffffff 16%);
+  color: #ffffff;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-sizing: border-box;
 }
 
 .chats-list-empty {

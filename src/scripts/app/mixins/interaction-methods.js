@@ -1404,7 +1404,16 @@ export class ChatAppInteractionMethods {
 
     if (scrollBottomBtn.dataset.ready !== 'true') {
       scrollBottomBtn.dataset.ready = 'true';
-      messagesContainer.addEventListener('scroll', () => this.updateMessagesScrollBottomButtonVisibility(), { passive: true });
+      messagesContainer.addEventListener('scroll', () => {
+        this.updateMessagesScrollBottomButtonVisibility();
+        if (
+          this.currentChat
+          && messagesContainer.scrollTop <= 80
+          && typeof this.loadOlderMessagesPage === 'function'
+        ) {
+          this.loadOlderMessagesPage(this.currentChat).catch(() => {});
+        }
+      }, { passive: true });
       scrollBottomBtn.addEventListener('click', () => {
         messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
         window.setTimeout(() => this.updateMessagesScrollBottomButtonVisibility(), 260);
@@ -1801,9 +1810,11 @@ export class ChatAppInteractionMethods {
       const previewText = this.getChatPreviewText(chat, lastMessage);
       const safePreviewText = this.escapeHtml(previewText || 'Немає повідомлень');
       const previewTypingClass = this.isChatTypingActive(chat) ? ' is-typing' : '';
+      const unreadCount = Math.max(0, Number(chat?.unreadCount || 0));
+      const unreadBadge = unreadCount > 99 ? '99+' : String(unreadCount);
       const chatItem = document.createElement('button');
       const pinnedClass = chat.isPinned ? ' pinned' : '';
-      chatItem.className = `chat-item ${this.currentChat?.id === chat.id ? 'active' : ''}${pinnedClass}`;
+      chatItem.className = `chat-item ${this.currentChat?.id === chat.id ? 'active' : ''}${pinnedClass}${unreadCount > 0 ? ' has-unread' : ''}`;
       chatItem.dataset.chatId = chat.id;
       chatItem.dataset.chatName = chat.name;
       chatItem.innerHTML = `
@@ -1812,7 +1823,10 @@ export class ChatAppInteractionMethods {
           <span class="chat-name">${chat.name}</span>
           <span class="chat-preview${previewTypingClass}">${safePreviewText}</span>
         </div>
-        <span class="chat-time">${lastMessage?.time || ''}</span>
+        <div class="chat-meta">
+          <span class="chat-time">${lastMessage?.time || ''}</span>
+          ${unreadCount > 0 ? `<span class="chat-unread">${unreadBadge}</span>` : ''}
+        </div>
         <span class="chat-item-arrow" aria-hidden="true">›</span>
         ${chat.isPinned ? `
           <div class="chat-pin-badge">
@@ -2299,6 +2313,9 @@ export class ChatAppInteractionMethods {
     if (this.currentChat && typeof this.markChatAsRead === 'function') {
       this.markChatAsRead(this.currentChat, { persist: true });
     }
+    if (this.currentChat && typeof this.emitRealtimeReadReceipts === 'function') {
+      this.emitRealtimeReadReceipts(this.currentChat);
+    }
     document.getElementById('newContactInput').value = '';
     
     // Hide settings sections completely
@@ -2354,7 +2371,16 @@ export class ChatAppInteractionMethods {
     this.triggerChatEnterAnimation();
     this.applyMobileChatViewportLayout();
     if (typeof this.syncCurrentChatMessagesFromServer === 'function') {
-      this.syncCurrentChatMessagesFromServer({ forceScroll: true }).catch(() => {});
+      this.syncCurrentChatMessagesFromServer({ forceScroll: true })
+        .then(() => {
+          if (this.currentChat && typeof this.emitRealtimeReadReceipts === 'function') {
+            this.emitRealtimeReadReceipts(this.currentChat);
+          }
+        })
+        .catch(() => {});
+    }
+    if (this.currentChat && typeof this.emitRealtimeReadReceipts === 'function') {
+      window.setTimeout(() => this.emitRealtimeReadReceipts(this.currentChat), 80);
     }
   }
 
@@ -2632,6 +2658,26 @@ export class ChatAppInteractionMethods {
     infoEl.style.setProperty('--app-chat-info-offset-x', `${Math.round(clampedOffset)}px`);
   }
 
+  ensureMessagesBottomSpacer(messagesContainer = null) {
+    const container = messagesContainer || document.getElementById('messagesContainer');
+    if (!container) return;
+
+    const existingSpacer = Array.from(container.children).find((node) => node.classList?.contains('messages-bottom-spacer')) || null;
+    const hasMessageContent = container.classList.contains('has-content');
+
+    if (!hasMessageContent) {
+      if (existingSpacer) existingSpacer.remove();
+      return;
+    }
+
+    const spacer = existingSpacer || document.createElement('div');
+    spacer.className = 'messages-bottom-spacer';
+    spacer.setAttribute('aria-hidden', 'true');
+    if (container.firstElementChild !== spacer) {
+      container.prepend(spacer);
+    }
+  }
+
   renderChat(highlightId = null) {
     if (typeof this.stopActiveVoicePlayback === 'function') {
       this.stopActiveVoicePlayback(true);
@@ -2660,6 +2706,7 @@ export class ChatAppInteractionMethods {
 
     messagesContainer.classList.remove('no-content');
     messagesContainer.classList.add('has-content');
+    this.ensureMessagesBottomSpacer(messagesContainer);
 
     let lastDate = null;
     this.currentChat.messages.forEach((msg, index) => {

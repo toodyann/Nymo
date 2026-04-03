@@ -79,6 +79,166 @@ export class ChatAppMessagingMethods {
     return normalized;
   }
 
+  normalizeMessageReadEntries(value) {
+    const source = Array.isArray(value) ? value : [];
+    return source
+      .map((entry) => {
+        if (!entry || typeof entry !== 'object') return null;
+        const userId = String(entry.userId ?? entry.id ?? '').trim();
+        const readAt = String(entry.readAt ?? entry.createdAt ?? '').trim();
+        if (!userId) return null;
+        return { userId, readAt };
+      })
+      .filter(Boolean);
+  }
+
+  getMessageStatusCheckSvg() {
+    return '<svg class="message-status-check" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>';
+  }
+
+  getMessageDeliveryState(message) {
+    if (!message || message.from !== 'own') return '';
+    if (message.pending === true) return '';
+
+    const selfId = this.getAuthUserId();
+    const readBy = this.normalizeMessageReadEntries(message.readBy);
+    const readByOtherUser = readBy.some((entry) => entry.userId && entry.userId !== selfId);
+    if (readByOtherUser) return 'read';
+
+    return 'sent';
+  }
+
+  getMessageDeliveryStatusHtml(message) {
+    const state = this.getMessageDeliveryState(message);
+    if (!state) return '';
+    const checkSvg = this.getMessageStatusCheckSvg();
+    const ariaLabel = state === 'read' ? 'Прочитано' : 'Надіслано';
+    return `<span class="message-status ${state}" aria-label="${ariaLabel}">${checkSvg}${state === 'read' ? checkSvg : ''}</span>`;
+  }
+
+  getMessageStatusSignature(messages = []) {
+    const source = Array.isArray(messages) ? messages : [];
+    return source
+      .map((msg) => {
+        const readBy = this.normalizeMessageReadEntries(msg?.readBy)
+          .map((entry) => `${entry.userId}:${entry.readAt}`)
+          .join(',');
+        return [
+          String(msg?.serverId || msg?.id || ''),
+          msg?.pending === true ? 'pending' : 'done',
+          readBy
+        ].join(':');
+      })
+      .join('|');
+  }
+
+  getUnreadServerMessageIdsForChat(chat = this.currentChat) {
+    const selfId = this.getAuthUserId();
+    const messages = Array.isArray(chat?.messages) ? chat.messages : [];
+    return messages
+      .filter((message) => {
+        if (!message || message.from !== 'other') return false;
+        const serverId = String(message.serverId || '').trim();
+        if (!serverId) return false;
+        const readBy = this.normalizeMessageReadEntries(message.readBy);
+        return !readBy.some((entry) => entry.userId === selfId);
+      })
+      .map((message) => String(message.serverId || '').trim())
+      .filter(Boolean);
+  }
+
+  refreshDeliveryStatusUi(messages = this.currentChat?.messages) {
+    const source = Array.isArray(messages) ? messages : [];
+    if (!source.length) return;
+    source.forEach((message) => {
+      const safeId = String(message?.id ?? '').trim();
+      if (!safeId) return;
+      const messageEl = document.querySelector(`.message[data-id="${CSS.escape(safeId)}"]`);
+      if (!messageEl) return;
+      messageEl.dataset.pending = message?.pending === true ? 'true' : 'false';
+      const metaEl = messageEl.querySelector('.message-meta');
+      if (!metaEl) return;
+      const editedLabel = message?.edited ? '<span class="message-edited">редаговано</span>' : '';
+      const deliveryStatus = this.getMessageDeliveryStatusHtml(message);
+      metaEl.innerHTML = `<span class="message-time">${message?.time || ''}</span>${editedLabel}${deliveryStatus}`;
+    });
+  }
+
+  emitRealtimeReadReceipts(chat = this.currentChat) {
+    const chatServerId = this.resolveChatServerId(chat);
+    const messageIds = this.getUnreadServerMessageIdsForChat(chat);
+    if (!chatServerId || !messageIds.length) return false;
+
+    const socket = this.realtimeSocket;
+    if (socket && this.realtimeSocketConnected) {
+      try {
+        socket.emit('markMessagesRead', { chatId: chatServerId, messageIds });
+        return true;
+      } catch {
+        // Fall through to HTTP fallback.
+      }
+    }
+
+    fetch(buildApiUrl('/messages/read-receipts'), {
+      method: 'POST',
+      headers: this.getApiHeaders({ json: true }),
+      body: JSON.stringify({ chatId: chatServerId, messageIds })
+    }).catch(() => {});
+    return false;
+  }
+
+  handleRealtimeReadReceiptsEvent(payload = {}) {
+    const chatServerId = this.extractRealtimeChatId(payload);
+    const receiptsSource = Array.isArray(payload?.receipts)
+      ? payload.receipts
+      : (payload ? [payload] : []);
+    const receipts = receiptsSource
+      .map((entry) => {
+        if (!entry || typeof entry !== 'object') return null;
+        const messageId = String(entry.messageId ?? entry.id ?? '').trim();
+        const userId = String(entry.userId ?? entry.readerId ?? '').trim();
+        const readAt = String(entry.readAt ?? entry.createdAt ?? new Date().toISOString()).trim();
+        if (!messageId || !userId) return null;
+        return { messageId, userId, readAt };
+      })
+      .filter(Boolean);
+
+    if (!receipts.length) return;
+
+    let changed = false;
+    const chats = Array.isArray(this.chats) ? this.chats : [];
+    chats.forEach((chat) => {
+      const safeChatServerId = this.resolveChatServerId(chat);
+      if (chatServerId && safeChatServerId && safeChatServerId !== chatServerId) return;
+      const messages = Array.isArray(chat?.messages) ? chat.messages : [];
+      messages.forEach((message) => {
+        const serverId = String(message?.serverId || '').trim();
+        if (!serverId) return;
+        const matchingReceipts = receipts.filter((entry) => entry.messageId === serverId);
+        if (!matchingReceipts.length) return;
+        const readBy = this.normalizeMessageReadEntries(message.readBy);
+        let localChanged = false;
+        matchingReceipts.forEach((receipt) => {
+          if (readBy.some((entry) => entry.userId === receipt.userId)) return;
+          readBy.push({ userId: receipt.userId, readAt: receipt.readAt });
+          localChanged = true;
+        });
+        if (localChanged) {
+          message.readBy = readBy;
+          changed = true;
+        }
+      });
+    });
+
+    if (!changed) return;
+    this.saveChats();
+    this.refreshDeliveryStatusUi(this.currentChat?.messages);
+    this.renderChatsList();
+    if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+      this.refreshDesktopSecondaryChatsListIfVisible();
+    }
+  }
+
   getSelfDeletedChatsMap() {
     const storageKey = this.getSelfDeletedChatsStorageKey();
     if (this.selfDeletedChatsStorageKey === storageKey && this.selfDeletedChatsMap && typeof this.selfDeletedChatsMap === 'object') {
@@ -1324,11 +1484,24 @@ export class ChatAppMessagingMethods {
   extractRealtimeUserId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedUser = payload.user && typeof payload.user === 'object' ? payload.user : null;
+    const nestedMessage = payload.message && typeof payload.message === 'object' ? payload.message : null;
+    const nestedMessageUser = nestedMessage?.user && typeof nestedMessage.user === 'object' ? nestedMessage.user : null;
+    const nestedMessageSender = nestedMessage?.sender && typeof nestedMessage.sender === 'object' ? nestedMessage.sender : null;
+    const nestedMessageAuthor = nestedMessage?.author && typeof nestedMessage.author === 'object' ? nestedMessage.author : null;
     return String(
-      payload.userId
-        ?? payload.senderId
+      payload.senderId
         ?? payload.fromUserId
         ?? payload.authorId
+        ?? nestedMessage?.senderId
+        ?? nestedMessage?.fromUserId
+        ?? nestedMessage?.authorId
+        ?? nestedMessageSender?.id
+        ?? nestedMessageSender?.userId
+        ?? nestedMessageAuthor?.id
+        ?? nestedMessageAuthor?.userId
+        ?? nestedMessageUser?.id
+        ?? nestedMessageUser?.userId
+        ?? payload.userId
         ?? nestedUser?.id
         ?? nestedUser?.userId
         ?? ''
@@ -1338,21 +1511,137 @@ export class ChatAppMessagingMethods {
   extractRealtimeChatId(payload) {
     if (!payload || typeof payload !== 'object') return '';
     const nestedChat = payload.chat && typeof payload.chat === 'object' ? payload.chat : null;
+    const nestedMessage = payload.message && typeof payload.message === 'object' ? payload.message : null;
     return String(
       payload.chatId
         ?? payload.roomId
         ?? payload.conversationId
-        ?? payload.id
+        ?? nestedMessage?.chatId
+        ?? nestedMessage?.roomId
+        ?? nestedMessage?.conversationId
         ?? nestedChat?.id
         ?? nestedChat?.chatId
+        ?? payload.id
         ?? ''
     ).trim();
+  }
+
+  getRealtimeMessageRecord(payload = {}) {
+    if (!payload || typeof payload !== 'object') return null;
+    const nestedMessage = payload.message && typeof payload.message === 'object'
+      ? payload.message
+      : null;
+    const source = nestedMessage || payload;
+    if (!source || typeof source !== 'object') return null;
+
+    return {
+      ...source,
+      id: source.id ?? source.messageId ?? payload.messageId ?? payload.id,
+      messageId: source.messageId ?? payload.messageId ?? source.id ?? payload.id,
+      chatId: source.chatId ?? payload.chatId ?? payload.roomId ?? payload.conversationId,
+      createdAt: source.createdAt ?? payload.createdAt ?? source.timestamp ?? payload.timestamp,
+      senderId: source.senderId ?? payload.senderId ?? source.fromUserId ?? payload.fromUserId ?? source.authorId ?? payload.authorId,
+      userId: source.userId ?? payload.userId
+    };
+  }
+
+  buildLocalMessageFromRealtimePayload(payload = {}, chat = null) {
+    const record = this.getRealtimeMessageRecord(payload);
+    if (!record) return null;
+    const realtimeSenderId = this.extractRealtimeUserId(payload);
+    const selfId = this.getAuthUserId();
+    const mapped = this.mapServerMessagesToLocal(
+      { ...(chat || {}), messages: [] },
+      [record]
+    );
+    const nextMessage = Array.isArray(mapped) && mapped.length ? mapped[0] : null;
+    if (!nextMessage) return null;
+    if (realtimeSenderId) {
+      nextMessage.senderId = realtimeSenderId;
+      if (selfId && realtimeSenderId !== selfId) {
+        nextMessage.from = 'other';
+      } else if (selfId && realtimeSenderId === selfId) {
+        nextMessage.from = 'own';
+      }
+    }
+    return nextMessage;
+  }
+
+  applyRealtimeIncomingChatPreview(payload = {}, { eventName = '' } = {}) {
+    const normalizedEventName = String(eventName || '').trim();
+    if (normalizedEventName !== 'messageCreated' && normalizedEventName !== 'messageSent') {
+      return false;
+    }
+
+    const eventChatId = this.extractRealtimeChatId(payload);
+    const senderId = this.extractRealtimeUserId(payload);
+    const selfId = this.getAuthUserId();
+    const isOwnEvent = Boolean(senderId && selfId && senderId === selfId);
+    if (isOwnEvent) {
+      return false;
+    }
+
+    const targetChat = this.findChatByServerId(eventChatId) || this.findDirectChatByParticipantId(senderId);
+    if (!targetChat) return false;
+
+    const currentChatServerId = this.resolveChatServerId(this.currentChat);
+    const targetChatServerId = this.resolveChatServerId(targetChat);
+    if (currentChatServerId && targetChatServerId && String(currentChatServerId) === String(targetChatServerId)) {
+      return false;
+    }
+
+    const nextMessage = this.buildLocalMessageFromRealtimePayload(payload, targetChat);
+    if (!nextMessage) return false;
+    nextMessage.from = 'other';
+    if (senderId) {
+      nextMessage.senderId = senderId;
+    }
+
+    const nextServerId = String(nextMessage.serverId || '').trim();
+    const nextComparableKey = this.getComparableMessageKey(nextMessage);
+    const nextTs = this.getMessageTimestampValue(nextMessage);
+    const existingMessages = Array.isArray(targetChat.messages) ? targetChat.messages : [];
+
+    const alreadyExists = existingMessages.some((message) => {
+      const existingServerId = String(message?.serverId || '').trim();
+      if (nextServerId && existingServerId && existingServerId === nextServerId) {
+        return true;
+      }
+      if (!nextComparableKey) return false;
+      if (this.getComparableMessageKey(message) !== nextComparableKey) return false;
+      const existingTs = this.getMessageTimestampValue(message);
+      if (!Number.isFinite(nextTs) || !Number.isFinite(existingTs)) return false;
+      return Math.abs(existingTs - nextTs) <= 2000;
+    });
+    if (alreadyExists) return false;
+
+    targetChat.messages = [...existingMessages, nextMessage];
+
+    const nextActivityAt = this.getMessageTimestampValue(nextMessage);
+    if (Number.isFinite(nextActivityAt) && nextActivityAt > 0) {
+      targetChat.activityAt = nextActivityAt;
+    }
+    targetChat.readTrackingInitialized = true;
+    targetChat.unreadCount = Math.max(0, Number(targetChat.unreadCount || 0)) + 1;
+
+    this.saveChats();
+    this.renderChatsList();
+    if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+      this.refreshDesktopSecondaryChatsListIfVisible();
+    }
+    return true;
   }
 
   findChatByServerId(chatServerId) {
     const safeId = String(chatServerId || '').trim();
     if (!safeId || !Array.isArray(this.chats)) return null;
     return this.chats.find((chat) => this.resolveChatServerId(chat) === safeId) || null;
+  }
+
+  findDirectChatByParticipantId(participantId) {
+    const safeId = String(participantId || '').trim();
+    if (!safeId || !Array.isArray(this.chats)) return null;
+    return this.chats.find((chat) => !chat?.isGroup && String(chat?.participantId || '').trim() === safeId) || null;
   }
 
   getPresenceStatusForUser(userId, fallback = 'offline') {
@@ -1470,12 +1759,75 @@ export class ChatAppMessagingMethods {
     this.bindRealtimeSocketEvents(socket);
   }
 
+  getRealtimeJoinedChatIdsSet() {
+    if (!(this.realtimeJoinedChatIds instanceof Set)) {
+      this.realtimeJoinedChatIds = new Set();
+    }
+    return this.realtimeJoinedChatIds;
+  }
+
+  syncRealtimeChatRooms(chats = this.chats) {
+    if (!this.realtimeSocketConnected || !this.realtimeSocket) return;
+
+    const nextIds = new Set(
+      (Array.isArray(chats) ? chats : [])
+        .map((chat) => this.resolveChatServerId(chat))
+        .filter(Boolean)
+    );
+    const joinedIds = this.getRealtimeJoinedChatIdsSet();
+
+    joinedIds.forEach((chatId) => {
+      if (nextIds.has(chatId)) return;
+      try {
+        this.realtimeSocket.emit('leaveChat', { chatId });
+        this.realtimeSocket.emit('leaveRoom', { chatId });
+      } catch {
+        // Ignore transient websocket errors.
+      }
+      joinedIds.delete(chatId);
+    });
+
+    nextIds.forEach((chatId) => {
+      if (joinedIds.has(chatId)) return;
+      try {
+        this.realtimeSocket.emit('joinChat', { chatId });
+        this.realtimeSocket.emit('joinRoom', { chatId });
+        joinedIds.add(chatId);
+      } catch {
+        // Ignore transient websocket errors.
+      }
+    });
+  }
+
+  leaveAllRealtimeChatRooms() {
+    if (!this.realtimeSocket) {
+      this.realtimeJoinedChatId = '';
+      if (this.realtimeJoinedChatIds instanceof Set) {
+        this.realtimeJoinedChatIds.clear();
+      }
+      return;
+    }
+
+    const joinedIds = this.getRealtimeJoinedChatIdsSet();
+    joinedIds.forEach((chatId) => {
+      try {
+        this.realtimeSocket.emit('leaveChat', { chatId });
+        this.realtimeSocket.emit('leaveRoom', { chatId });
+      } catch {
+        // Ignore transient websocket errors.
+      }
+    });
+    joinedIds.clear();
+    this.realtimeJoinedChatId = '';
+  }
+
   bindRealtimeSocketEvents(socket) {
     if (!socket || socket.__orionBound === true) return;
     socket.__orionBound = true;
 
     socket.on('connect', () => {
       this.realtimeSocketConnected = true;
+      this.syncRealtimeChatRooms(this.chats);
       this.joinRealtimeChatRoom(this.currentChat);
       if (typeof this.refreshServerChatSyncTimer === 'function') {
         this.refreshServerChatSyncTimer();
@@ -1488,6 +1840,9 @@ export class ChatAppMessagingMethods {
     socket.on('disconnect', () => {
       this.realtimeSocketConnected = false;
       this.realtimeJoinedChatId = '';
+      if (this.realtimeJoinedChatIds instanceof Set) {
+        this.realtimeJoinedChatIds.clear();
+      }
       this.stopRealtimeTyping({ emit: false });
       if (this.realtimeMessageSyncTimer) {
         clearTimeout(this.realtimeMessageSyncTimer);
@@ -1505,48 +1860,27 @@ export class ChatAppMessagingMethods {
     socket.on('typingStart', (payload) => this.handleRealtimeTypingEvent(payload, true));
     socket.on('typingStop', (payload) => this.handleRealtimeTypingEvent(payload, false));
 
-    const realtimeMessageHandler = (payload) => this.handleRealtimeMessageEvent(payload);
-    socket.on('messageCreated', realtimeMessageHandler);
-    socket.on('messageSent', realtimeMessageHandler);
-    socket.on('messageUpdated', realtimeMessageHandler);
-    socket.on('messageEdited', realtimeMessageHandler);
-    socket.on('messageDeleted', realtimeMessageHandler);
-    socket.on('messagesRead', realtimeMessageHandler);
-    socket.on('messageRead', realtimeMessageHandler);
+    socket.on('messageCreated', (payload) => this.handleRealtimeMessageEvent(payload, 'messageCreated'));
+    socket.on('messageSent', (payload) => this.handleRealtimeMessageEvent(payload, 'messageSent'));
+    socket.on('messageUpdated', (payload) => this.handleRealtimeMessageEvent(payload, 'messageUpdated'));
+    socket.on('messageEdited', (payload) => this.handleRealtimeMessageEvent(payload, 'messageEdited'));
+    socket.on('messageDeleted', (payload) => this.handleRealtimeMessageEvent(payload, 'messageDeleted'));
+    socket.on('messagesRead', (payload) => this.handleRealtimeReadReceiptsEvent(payload));
+    socket.on('messageRead', (payload) => this.handleRealtimeReadReceiptsEvent(payload));
   }
 
   joinRealtimeChatRoom(chat) {
     const chatServerId = this.resolveChatServerId(chat);
     if (!chatServerId) {
-      this.leaveRealtimeChatRoom();
+      this.realtimeJoinedChatId = '';
       return;
     }
     if (!this.realtimeSocketConnected || !this.realtimeSocket) return;
-    if (this.realtimeJoinedChatId === chatServerId) return;
-
-    this.leaveRealtimeChatRoom();
-
-    try {
-      this.realtimeSocket.emit('joinChat', { chatId: chatServerId });
-      this.realtimeSocket.emit('joinRoom', { chatId: chatServerId });
-    } catch {
-      // Ignore transient websocket errors.
-    }
+    this.syncRealtimeChatRooms(this.chats);
     this.realtimeJoinedChatId = chatServerId;
   }
 
   leaveRealtimeChatRoom() {
-    const chatServerId = String(this.realtimeJoinedChatId || '').trim();
-    if (!chatServerId || !this.realtimeSocket) {
-      this.realtimeJoinedChatId = '';
-      return;
-    }
-    try {
-      this.realtimeSocket.emit('leaveChat', { chatId: chatServerId });
-      this.realtimeSocket.emit('leaveRoom', { chatId: chatServerId });
-    } catch {
-      // Ignore transient websocket errors.
-    }
     this.realtimeJoinedChatId = '';
   }
 
@@ -1669,11 +2003,12 @@ export class ChatAppMessagingMethods {
     }
   }
 
-  handleRealtimeMessageEvent(payload = {}) {
+  handleRealtimeMessageEvent(payload = {}, eventName = '') {
     const eventChatId = this.extractRealtimeChatId(payload);
     const currentChatServerId = this.resolveChatServerId(this.currentChat);
     const senderId = this.extractRealtimeUserId(payload);
     const selfId = this.getAuthUserId();
+    this.applyRealtimeIncomingChatPreview(payload, { eventName });
     const shouldPrioritizeCurrent = Boolean(
       eventChatId
       && currentChatServerId
@@ -1953,6 +2288,64 @@ export class ChatAppMessagingMethods {
     const source = candidates.find(Array.isArray);
     if (!source) return [];
     return source.filter((item) => item && typeof item === 'object');
+  }
+
+  normalizeServerMessagesPagePayload(payload) {
+    const items = this.normalizeServerMessagesPayload(payload);
+    const directNextCursor = String(
+      payload?.nextCursor
+      ?? payload?.cursor
+      ?? payload?.next
+      ?? payload?.data?.nextCursor
+      ?? ''
+    ).trim();
+    return {
+      items,
+      nextCursor: directNextCursor || null
+    };
+  }
+
+  getChatMessagesPageSize() {
+    return 50;
+  }
+
+  getMessageStableKey(msg) {
+    if (!msg || typeof msg !== 'object') return '';
+    const serverId = String(msg.serverId || '').trim();
+    if (serverId) return `server:${serverId}`;
+    const localId = Number(msg.id);
+    return Number.isFinite(localId) && localId > 0 ? `local:${localId}` : '';
+  }
+
+  getPreservedOlderMessages(prevMessages = [], nextMessages = []) {
+    const safePrev = Array.isArray(prevMessages) ? prevMessages : [];
+    const safeNext = Array.isArray(nextMessages) ? nextMessages : [];
+    if (!safePrev.length || !safeNext.length) return [];
+
+    const nextKeys = new Set(safeNext.map((msg) => this.getMessageStableKey(msg)).filter(Boolean));
+    let earliestNextIndex = -1;
+    for (let index = 0; index < safePrev.length; index += 1) {
+      const key = this.getMessageStableKey(safePrev[index]);
+      if (key && nextKeys.has(key)) {
+        earliestNextIndex = index;
+        break;
+      }
+    }
+
+    if (earliestNextIndex > 0) {
+      return safePrev
+        .slice(0, earliestNextIndex)
+        .filter((msg) => !nextKeys.has(this.getMessageStableKey(msg)));
+    }
+
+    const oldestNextTs = this.getMessageTimestampValue(safeNext[0]);
+    if (!Number.isFinite(oldestNextTs)) return [];
+    return safePrev.filter((msg) => {
+      const key = this.getMessageStableKey(msg);
+      if (!key || nextKeys.has(key)) return false;
+      const ts = this.getMessageTimestampValue(msg);
+      return Number.isFinite(ts) && ts < oldestNextTs;
+    });
   }
 
   getChatActivityTimestampValue(chat) {
@@ -2341,6 +2734,7 @@ export class ChatAppMessagingMethods {
         const rawAudioUrl = this.normalizeAttachmentUrl(item.audioUrl ?? '');
         const attachmentMime = String(item.attachmentMimeType ?? item.mimeType ?? '').toLowerCase();
         const fileName = String(item.fileName ?? item.filename ?? item.originalName ?? item.name ?? '').trim();
+        const readBy = this.normalizeMessageReadEntries(item.readBy ?? item.reads ?? item.seenBy);
         const imageUrl = rawImageUrl || (
           attachmentMime.startsWith('image/')
             ? attachmentUrl
@@ -2451,6 +2845,7 @@ export class ChatAppMessagingMethods {
           fileName,
           attachmentMimeType: attachmentMime,
           audioDuration: Number(item.audioDuration ?? item.duration ?? 0) || 0,
+          readBy,
           edited: serverEdited || localEdited,
           replyTo: preservedReplyTo,
           pending: false,
@@ -2723,6 +3118,51 @@ export class ChatAppMessagingMethods {
       }
     }
 
+    const inactiveChatsNeedingRefresh = nextChats.filter((chat) => {
+      if (!chat?.serverId) return false;
+      const isActiveChat = Boolean(
+        (activeServerId && chat.serverId === activeServerId)
+        || chat.id === activeLocalId
+      );
+      if (isActiveChat) return false;
+
+      const serverActivityTs = this.getChatActivityTimestampValue(chat);
+      if (!Number.isFinite(serverActivityTs) || serverActivityTs <= 0) return false;
+
+      const messages = Array.isArray(chat.messages) ? chat.messages : [];
+      if (!messages.length) return true;
+
+      const lastLocalMessage = messages[messages.length - 1] || null;
+      const lastLocalTs = this.getMessageTimestampValue(lastLocalMessage);
+      if (!Number.isFinite(lastLocalTs) || lastLocalTs <= 0) return true;
+
+      return serverActivityTs > lastLocalTs + 500;
+    });
+
+    for (const chat of inactiveChatsNeedingRefresh) {
+      try {
+        const serverMessages = await this.fetchChatMessagesFromServer(chat);
+        const nextMessages = this.mapServerMessagesToLocal(chat, serverMessages);
+        const previousLastKey = Array.isArray(chat.messages) && chat.messages.length
+          ? this.getMessageStableKey(chat.messages[chat.messages.length - 1])
+          : '';
+        const nextLastKey = nextMessages.length
+          ? this.getMessageStableKey(nextMessages[nextMessages.length - 1])
+          : '';
+
+        chat.messages = nextMessages;
+        this.applyChatMessagesPaginationState(chat, {
+          nextCursor: this.inferChatMessagesNextCursor(serverMessages, chat.messagesPageSize || this.getChatMessagesPageSize())
+        });
+
+        if (previousLastKey !== nextLastKey) {
+          changed = true;
+        }
+      } catch {
+        // Keep sidebar responsive if one chat refresh fails.
+      }
+    }
+
     nextChats.forEach((chat) => {
       if (!chat?.serverId) return;
       const isActiveChat = Boolean(
@@ -2780,6 +3220,7 @@ export class ChatAppMessagingMethods {
 
     this.chats = nextChats;
     this.saveChats();
+    this.syncRealtimeChatRooms(this.chats);
 
     if (preserveSelection) {
       const restoredCurrent = this.chats.find((chat) => {
@@ -2804,6 +3245,50 @@ export class ChatAppMessagingMethods {
     return changed;
   }
 
+  async fetchChatMessagesPageFromServer(chat, { cursor = '', limit = null } = {}) {
+    const chatServerId = this.resolveChatServerId(chat);
+    if (!chatServerId) return { items: [], nextCursor: null };
+    const safeLimit = Number.isFinite(Number(limit)) ? Math.max(1, Number(limit)) : this.getChatMessagesPageSize();
+    const safeCursor = String(cursor || '').trim();
+
+    const pageParams = new URLSearchParams({
+      chatId: chatServerId,
+      limit: String(safeLimit)
+    });
+    if (safeCursor) {
+      pageParams.set('cursor', safeCursor);
+    }
+
+    const pageResponse = await fetch(buildApiUrl(`/messages/page?${pageParams.toString()}`), {
+      headers: this.getApiHeaders()
+    });
+    const pageData = await this.readJsonSafe(pageResponse);
+    if (pageResponse.ok) {
+      return this.normalizeServerMessagesPagePayload(pageData);
+    }
+
+    if (pageResponse.status !== 404 && pageResponse.status !== 405) {
+      throw new Error(this.getRequestErrorMessage(pageData, 'Не вдалося завантажити повідомлення.'));
+    }
+
+    if (safeCursor) {
+      return { items: [], nextCursor: null };
+    }
+
+    const fallbackResponse = await fetch(buildApiUrl(`/messages?chatId=${encodeURIComponent(chatServerId)}`), {
+      headers: this.getApiHeaders()
+    });
+    const fallbackData = await this.readJsonSafe(fallbackResponse);
+    if (!fallbackResponse.ok) {
+      throw new Error(this.getRequestErrorMessage(fallbackData, 'Не вдалося завантажити повідомлення.'));
+    }
+    const items = this.normalizeServerMessagesPayload(fallbackData);
+    const nextCursor = items.length >= safeLimit
+      ? String(items[items.length - 1]?.id ?? items[items.length - 1]?.messageId ?? '').trim() || null
+      : null;
+    return { items, nextCursor };
+  }
+
   async fetchChatMessagesFromServer(chat) {
     const chatServerId = this.resolveChatServerId(chat);
     if (!chatServerId) return [];
@@ -2815,6 +3300,70 @@ export class ChatAppMessagingMethods {
       throw new Error(this.getRequestErrorMessage(data, 'Не вдалося завантажити повідомлення.'));
     }
     return this.normalizeServerMessagesPayload(data);
+  }
+
+  inferChatMessagesNextCursor(messages = [], pageSize = this.getChatMessagesPageSize()) {
+    const safeMessages = Array.isArray(messages) ? messages : [];
+    const safePageSize = Number.isFinite(Number(pageSize)) ? Math.max(1, Number(pageSize)) : this.getChatMessagesPageSize();
+    if (safeMessages.length < safePageSize) return null;
+    const lastItem = safeMessages[safeMessages.length - 1];
+    return String(lastItem?.id ?? lastItem?.messageId ?? lastItem?._id ?? '').trim() || null;
+  }
+
+  applyChatMessagesPaginationState(chat, { nextCursor = null, preserveCursor = false } = {}) {
+    if (!chat || typeof chat !== 'object') return;
+    if (!preserveCursor) {
+      chat.messagesNextCursor = nextCursor ? String(nextCursor).trim() : null;
+    } else if (!('messagesNextCursor' in chat)) {
+      chat.messagesNextCursor = nextCursor ? String(nextCursor).trim() : null;
+    }
+    chat.messagesPageSize = this.getChatMessagesPageSize();
+    chat.messagesPaginationReady = true;
+  }
+
+  async loadOlderMessagesPage(chat = this.currentChat) {
+    if (!chat || this.loadingOlderMessages === true) return false;
+    const chatCursor = String(chat.messagesNextCursor || '').trim();
+    if (!chatCursor) return false;
+
+    this.loadingOlderMessages = true;
+    try {
+      const container = document.getElementById('messagesContainer');
+      const previousScrollHeight = container?.scrollHeight || 0;
+      const previousScrollTop = container?.scrollTop || 0;
+      const page = await this.fetchChatMessagesPageFromServer(chat, {
+        cursor: chatCursor,
+        limit: chat.messagesPageSize || this.getChatMessagesPageSize()
+      });
+      const pageMessages = this.mapServerMessagesToLocal(chat, page.items);
+      const existingKeys = new Set(
+        (Array.isArray(chat.messages) ? chat.messages : [])
+          .map((msg) => this.getMessageStableKey(msg))
+          .filter(Boolean)
+      );
+      const olderMessages = pageMessages.filter((msg) => {
+        const key = this.getMessageStableKey(msg);
+        return key && !existingKeys.has(key);
+      });
+
+      if (olderMessages.length) {
+        chat.messages = [...olderMessages, ...(Array.isArray(chat.messages) ? chat.messages : [])];
+      }
+      this.applyChatMessagesPaginationState(chat, { nextCursor: page.nextCursor });
+      this.saveChats();
+
+      if (olderMessages.length && container) {
+        this.skipNextRenderChatAutoScroll = true;
+        this.renderChat();
+        const nextHeight = container.scrollHeight;
+        container.scrollTop = previousScrollTop + Math.max(0, nextHeight - previousScrollHeight);
+        this.updateMessagesScrollBottomButtonVisibility();
+      }
+
+      return olderMessages.length > 0;
+    } finally {
+      this.loadingOlderMessages = false;
+    }
   }
 
   renderChatAfterSync({ forceScroll = false, highlightId = null } = {}) {
@@ -2887,9 +3436,17 @@ export class ChatAppMessagingMethods {
   async syncCurrentChatMessagesFromServer({ forceScroll = false, highlightOwn = true } = {}) {
     if (!this.currentChat) return false;
     const targetChat = this.currentChat;
+    const pageSize = targetChat.messagesPageSize || this.getChatMessagesPageSize();
     const serverMessages = await this.fetchChatMessagesFromServer(targetChat);
-    const nextMessages = this.mapServerMessagesToLocal(targetChat, serverMessages);
+    const nextRecentMessages = this.mapServerMessagesToLocal(targetChat, serverMessages);
     const prevMessages = Array.isArray(targetChat.messages) ? targetChat.messages : [];
+    const preservedOlderMessages = this.getPreservedOlderMessages(prevMessages, nextRecentMessages);
+    const nextMessages = [...preservedOlderMessages, ...nextRecentMessages];
+    const inferredNextCursor = this.inferChatMessagesNextCursor(serverMessages, pageSize);
+    this.applyChatMessagesPaginationState(targetChat, {
+      nextCursor: inferredNextCursor,
+      preserveCursor: preservedOlderMessages.length > 0 && Boolean(String(targetChat.messagesNextCursor || '').trim())
+    });
 
     const previousSignature = prevMessages
       .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
@@ -2897,10 +3454,12 @@ export class ChatAppMessagingMethods {
     const nextSignature = nextMessages
       .map((msg) => `${msg.serverId || msg.id}:${msg.text}:${msg.time}:${msg.edited ? 1 : 0}`)
       .join('|');
+    const previousStatusSignature = this.getMessageStatusSignature(prevMessages);
+    const nextStatusSignature = this.getMessageStatusSignature(nextMessages);
     const previousVisualSignature = this.getMessagesVisualSignature(prevMessages);
     const nextVisualSignature = this.getMessagesVisualSignature(nextMessages);
 
-    if (previousSignature === nextSignature) return false;
+    if (previousSignature === nextSignature && previousStatusSignature === nextStatusSignature) return false;
 
     const previousKeys = new Set(
       prevMessages
@@ -2920,6 +3479,9 @@ export class ChatAppMessagingMethods {
 
     targetChat.messages = nextMessages;
     this.applyChatUnreadState(targetChat, nextMessages, { markAsRead: true });
+    if (targetChat === this.currentChat && typeof this.emitRealtimeReadReceipts === 'function') {
+      this.emitRealtimeReadReceipts(targetChat);
+    }
     let chatMetaChanged = false;
     if (!targetChat.isGroup) {
       const otherMessages = nextMessages.filter((msg) => msg.from === 'other');
@@ -2975,6 +3537,7 @@ export class ChatAppMessagingMethods {
     this.saveChats();
     this.renderChatsList();
     const visualChanged = previousVisualSignature !== nextVisualSignature;
+    const statusChanged = previousStatusSignature !== nextStatusSignature;
     if (visualChanged) {
       const appendedIncrementally = this.canAppendMessagesIncrementally(prevMessages, nextMessages)
         && this.appendMessagesAfterSync(nextMessages.slice(prevMessages.length), prevMessages, {
@@ -2985,6 +3548,10 @@ export class ChatAppMessagingMethods {
         this.renderChatAfterSync({ forceScroll, highlightId: newestAppendedMessageId });
       }
       return true;
+    }
+
+    if (statusChanged) {
+      this.refreshDeliveryStatusUi(nextMessages);
     }
 
     if (chatMetaChanged) {
@@ -3457,6 +4024,9 @@ export class ChatAppMessagingMethods {
     if (!messagesContainer || !this.currentChat) return;
     messagesContainer.classList.remove('no-content');
     messagesContainer.classList.add('has-content');
+    if (typeof this.ensureMessagesBottomSpacer === 'function') {
+      this.ensureMessagesBottomSpacer(messagesContainer);
+    }
     if (typeof this.enableMessagesMediaAutoScroll === 'function') {
       this.enableMessagesMediaAutoScroll(messagesContainer);
     }
@@ -3499,6 +4069,9 @@ export class ChatAppMessagingMethods {
     }
     
     const editedLabel = msg.edited ? '<span class="message-edited">редаговано</span>' : '';
+    const deliveryStatus = typeof this.getMessageDeliveryStatusHtml === 'function'
+      ? this.getMessageDeliveryStatusHtml(msg)
+      : '';
     const editedClass = msg.edited ? ' edited' : '';
       const imageClass = msg.type === 'image' && msg.imageUrl ? ' has-image' : '';
       const voiceClass = msg.type === 'voice' && msg.audioUrl ? ' has-voice' : '';
@@ -3520,7 +4093,7 @@ export class ChatAppMessagingMethods {
           <div class="message-content${editedClass}${imageClass}${voiceClass}${fileClass}${inlineMetaClass}${tailClass}">
           ${replyHtml}
           ${this.buildMessageBodyHtml(msg)}
-          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}</span>
+          <span class="message-meta"><span class="message-time">${msg.time || ''}</span>${editedLabel}${deliveryStatus}</span>
         </div>
       </div>
     `;
@@ -4067,6 +4640,10 @@ export class ChatAppMessagingMethods {
       }
       this.saveChats();
       this.renderChatsList();
+      this.refreshDeliveryStatusUi(this.currentChat.messages);
+      if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+        this.refreshDesktopSecondaryChatsListIfVisible();
+      }
 
       const hasServerMessageId = Boolean(
         this.extractServerMessageIdFromPayload(sendResponse)
@@ -4437,6 +5014,10 @@ export class ChatAppMessagingMethods {
       }
       this.saveChats();
       this.renderChatsList();
+      this.refreshDeliveryStatusUi(this.currentChat.messages);
+      if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+        this.refreshDesktopSecondaryChatsListIfVisible();
+      }
       const hasServerMessageId = Boolean(
         this.extractServerMessageIdFromPayload(sendResponse)
         || String(optimisticCurrent?.serverId || '').trim()
@@ -4527,6 +5108,10 @@ export class ChatAppMessagingMethods {
       }
       this.saveChats();
       this.renderChatsList();
+      this.refreshDeliveryStatusUi(this.currentChat.messages);
+      if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+        this.refreshDesktopSecondaryChatsListIfVisible();
+      }
       const hasServerMessageId = Boolean(
         this.extractServerMessageIdFromPayload(sendResponse)
         || String(optimisticCurrent?.serverId || '').trim()
@@ -4620,6 +5205,10 @@ export class ChatAppMessagingMethods {
       }
       this.saveChats();
       this.renderChatsList();
+      this.refreshDeliveryStatusUi(this.currentChat.messages);
+      if (typeof this.refreshDesktopSecondaryChatsListIfVisible === 'function') {
+        this.refreshDesktopSecondaryChatsListIfVisible();
+      }
       const hasServerMessageId = Boolean(
         this.extractServerMessageIdFromPayload(sendResponse)
         || String(optimisticCurrent?.serverId || '').trim()
