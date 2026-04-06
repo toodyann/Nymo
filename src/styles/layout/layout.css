@@ -508,6 +508,19 @@ html.dark-theme .app-chat-typing {
   transform: none;
 }
 
+.bottom-nav-item.has-unread-dot::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: calc(50% - 16px);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--surface-soft);
+  pointer-events: none;
+}
+
 .bottom-nav-item.active svg {
   transform: none;
 }

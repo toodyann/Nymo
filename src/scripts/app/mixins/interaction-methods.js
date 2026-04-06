@@ -31,6 +31,26 @@ export class ChatAppInteractionMethods {
     });
   }
 
+  hasUnreadChats() {
+    return this.getSortedChats().some(
+      (chat) => Math.max(0, Number(chat?.unreadCount || 0)) > 0
+    );
+  }
+
+  syncChatsNavUnreadIndicator() {
+    const hasUnread = this.hasUnreadChats();
+    const targets = [
+      document.getElementById('navChats'),
+      ...document.querySelectorAll('.desktop-nav-rail-item[data-nav-target="navChats"]')
+    ];
+
+    targets.forEach((target) => {
+      if (!(target instanceof HTMLElement)) return;
+      target.classList.toggle('has-unread-dot', hasUnread);
+      target.toggleAttribute('data-has-unread', hasUnread);
+    });
+  }
+
   getDesktopSecondaryMenuConfig(targetNavId) {
     const menuMap = {
       navChats: {
@@ -1772,6 +1792,7 @@ export class ChatAppInteractionMethods {
   }
 
   renderChatsList() {
+    this.syncChatsNavUnreadIndicator();
     const chatsList = document.getElementById('chatsList');
     if (!chatsList) return;
 

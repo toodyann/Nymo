@@ -11,8 +11,8 @@
   }
 
   .sidebar.compact:has(.desktop-secondary-menu.active[data-menu-root="navChats"]) {
-    width: 360px;
-    min-width: 360px;
+    width: 156px;
+    min-width: 156px;
   }
 
   .sidebar.compact .search-box,
@@ -63,9 +63,9 @@
     .desktop-secondary-menu.active[data-menu-root="navChats"]
     .desktop-secondary-menu-header {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     height: auto;
-    padding: 8px 0 4px !important;
+    padding: 10px 8px 6px !important;
   }
 
   .sidebar.compact
@@ -83,7 +83,10 @@
     #desktopSecondaryMenuBack {
     width: 30px;
     height: 30px;
-    border-radius: 8px;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.96);
+    box-shadow: none;
   }
 
   .sidebar.compact
@@ -99,19 +102,28 @@
     padding: 8px 0 !important;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-item {
-    width: calc(100% - 12px);
-    min-width: 0;
-    height: 72px;
-    padding: 0 12px;
-    margin: 0 6px 6px;
-    justify-content: flex-start;
-    border-radius: 18px;
-    gap: 12px;
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-list {
+    align-items: center;
   }
 
   .sidebar.compact
-    .desktop-secondary-menu.active
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-item {
+    width: 56px;
+    min-width: 56px;
+    height: 56px;
+    min-height: 56px;
+    padding: 0;
+    margin: 0 auto 8px;
+    justify-content: center;
+    border-radius: 18px;
+    gap: 0;
+  }
+
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
     .desktop-secondary-chat-avatar {
     width: 42px;
     height: 42px;
@@ -119,7 +131,7 @@
   }
 
   .sidebar.compact
-    .desktop-secondary-menu.active
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
     .desktop-secondary-chat-avatar.is-image
     .avatar-activity-indicator {
     width: 10px;
@@ -128,18 +140,16 @@
     bottom: -1px;
   }
 
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-info {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-meta {
-    display: flex;
-  }
-
-  .sidebar.compact .desktop-secondary-menu.active .desktop-secondary-chat-time {
-    display: inline-flex;
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-info,
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-meta,
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-pin {
+    display: none !important;
   }
 }
 
@@ -1917,6 +1927,20 @@ html.dark-theme .bottom-nav-indicator {
   .desktop-nav-rail-item > * {
     position: relative;
     z-index: 1;
+  }
+
+  .desktop-nav-rail-item.has-unread-dot::after {
+    content: "";
+    position: absolute;
+    top: 13px;
+    right: 18px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px #050505;
+    z-index: 2;
+    pointer-events: none;
   }
 
   .desktop-nav-rail-item svg,
