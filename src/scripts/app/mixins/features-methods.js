@@ -218,6 +218,93 @@ const ORION_DRIVE_SHOP_SMOKE_COLORS = [
 ];
 
 export class ChatAppFeaturesMethods {
+  initFaqSection(settingsContainer, { behavior = 'auto' } = {}) {
+    if (!(settingsContainer instanceof HTMLElement)) return;
+
+    const faqRoot = settingsContainer.querySelector('#faq-settings');
+    const contentEl = settingsContainer.querySelector('#faq-settings .settings-content');
+    if (!(faqRoot instanceof HTMLElement) || !(contentEl instanceof HTMLElement)) return;
+
+    if (faqRoot.dataset.faqBound !== 'true') {
+      faqRoot.querySelectorAll('.faq-block-toggle').forEach((toggleEl) => {
+        if (!(toggleEl instanceof HTMLButtonElement)) return;
+        toggleEl.addEventListener('click', () => {
+          const blockEl = toggleEl.closest('.faq-block');
+          if (!(blockEl instanceof HTMLElement)) return;
+          const nextOpen = !blockEl.classList.contains('is-open');
+          blockEl.classList.toggle('is-open', nextOpen);
+          toggleEl.setAttribute('aria-expanded', String(nextOpen));
+        });
+      });
+
+      faqRoot.querySelectorAll('.faq-card-toggle').forEach((toggleEl) => {
+        if (!(toggleEl instanceof HTMLButtonElement)) return;
+        toggleEl.addEventListener('click', () => {
+          const cardEl = toggleEl.closest('.faq-card');
+          if (!(cardEl instanceof HTMLElement)) return;
+          const nextOpen = !cardEl.classList.contains('is-open');
+          cardEl.classList.toggle('is-open', nextOpen);
+          toggleEl.setAttribute('aria-expanded', String(nextOpen));
+        });
+      });
+
+      faqRoot.dataset.faqBound = 'true';
+    }
+
+    const safeSection = String(this.pendingFaqSection || 'overview').trim() || 'overview';
+    this.pendingFaqSection = null;
+
+    const blocks = Array.from(faqRoot.querySelectorAll('[data-faq-anchor]'));
+    blocks.forEach((blockEl) => {
+      if (!(blockEl instanceof HTMLElement)) return;
+      const blockName = String(blockEl.dataset.faqAnchor || '').trim();
+      blockEl.classList.toggle('is-faq-block-active', blockName === safeSection);
+    });
+
+    const targetBlock = blocks.find((blockEl) => {
+      if (!(blockEl instanceof HTMLElement)) return false;
+      return String(blockEl.dataset.faqAnchor || '').trim() === safeSection;
+    });
+    if (!(targetBlock instanceof HTMLElement)) return;
+
+    if (targetBlock.classList.contains('faq-block')) {
+      targetBlock.classList.add('is-open');
+      const blockToggleEl = targetBlock.querySelector('.faq-block-toggle');
+      if (blockToggleEl instanceof HTMLButtonElement) {
+        blockToggleEl.setAttribute('aria-expanded', 'true');
+      }
+
+      const firstCardEl = targetBlock.querySelector('.faq-card');
+      const openCardEl = targetBlock.querySelector('.faq-card.is-open');
+      const targetCardEl = openCardEl instanceof HTMLElement ? openCardEl : firstCardEl;
+      if (targetCardEl instanceof HTMLElement) {
+        targetCardEl.classList.add('is-open');
+        const cardToggleEl = targetCardEl.querySelector('.faq-card-toggle');
+        if (cardToggleEl instanceof HTMLButtonElement) {
+          cardToggleEl.setAttribute('aria-expanded', 'true');
+        }
+      }
+    }
+
+    window.requestAnimationFrame(() => {
+      const contentRect = contentEl.getBoundingClientRect();
+      const blockRect = targetBlock.getBoundingClientRect();
+      const blockCenterOffset = (blockRect.top - contentRect.top) + (blockRect.height / 2);
+      const targetTop = Math.max(
+        0,
+        Math.min(
+          contentEl.scrollHeight - contentEl.clientHeight,
+          contentEl.scrollTop + blockCenterOffset - (contentEl.clientHeight / 2)
+        )
+      );
+      if (behavior === 'smooth') {
+        contentEl.scrollTo({ top: targetTop, behavior: 'smooth' });
+      } else {
+        contentEl.scrollTop = targetTop;
+      }
+    });
+  }
+
   getOrionDriveCarCatalog() {
     return ORION_DRIVE_SHOP_CARS.map((item) => ({ ...item }));
   }
@@ -5029,6 +5116,7 @@ export class ChatAppFeaturesMethods {
       'messages': 'messages-settings',
       'appearance': 'appearance-settings',
       'language': 'language-settings',
+      'faq': 'faq-settings',
       'wallet': 'wallet',
       'profile-items': 'profile-items'
     };
@@ -5582,6 +5670,9 @@ export class ChatAppFeaturesMethods {
 
       if (sectionName === 'settings-home') {
         this.settingsParentSection = 'settings-home';
+        if (!isMobile && typeof this.syncDesktopNavRailActive === 'function') {
+          this.syncDesktopNavRailActive('navSettings');
+        }
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
         menuItems.forEach(item => {
           item.addEventListener('click', () => {
@@ -5591,6 +5682,13 @@ export class ChatAppFeaturesMethods {
             }
           });
         });
+      }
+
+      if (sectionName === 'faq-settings' && !isMobile && typeof this.syncDesktopNavRailActive === 'function') {
+        this.syncDesktopNavRailActive('navFaq');
+      }
+      if (sectionName === 'faq-settings') {
+        this.initFaqSection(settingsContainer, { behavior: 'auto' });
       }
 
       if (sectionName === 'mini-games') {

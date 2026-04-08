@@ -381,6 +381,16 @@ export const settingsTemplates = {
         <span class="settings-menu-label"><span>Мова</span></span>
         <span class="settings-menu-arrow">›</span>
       </button>
+
+      <button type="button" class="settings-menu-item" data-section="faq">
+        <span class="settings-menu-icon settings-icon-help">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+            <path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+          </svg>
+        </span>
+        <span class="settings-menu-label"><span>FAQ та допомога</span></span>
+        <span class="settings-menu-arrow">›</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1127,6 +1137,475 @@ export const settingsTemplates = {
     <div class="settings-buttons">
       <button class="btn btn-primary btn-save-messenger">Зберегти налаштування</button>
       <button class="btn btn-secondary">Скасувати</button>
+    </div>
+  </div>
+</div>
+  `.trim(),
+
+  'faq-settings': `
+<div class="settings-section settings-subsection" id="faq-settings">
+  <div class="settings-header settings-subsection-header">
+    <h2>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+        <path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+      </svg>
+      <span>FAQ та допомога</span>
+    </h2>
+  </div>
+
+  <div class="settings-content">
+    <div class="faq-page">
+      <div class="faq-hero-card" data-faq-anchor="overview">
+        <span class="faq-kicker">ORION HELP CENTER</span>
+        <h3 class="faq-hero-title">Уся базова інформація по сайту в одному місці</h3>
+        <p class="faq-hero-text">Тут зібрані головні відповіді по навігації, профілю, чатах, магазину, гаманцю, іграх і швидких способах вирішити типові проблеми.</p>
+        <div class="faq-tags" aria-label="Основні розділи довідки">
+          <span class="faq-tag">Навігація</span>
+          <span class="faq-tag">Профіль і акаунт</span>
+          <span class="faq-tag">Чати і дзвінки</span>
+          <span class="faq-tag">Магазин і Orion Value</span>
+          <span class="faq-tag">Гаманець</span>
+          <span class="faq-tag">Персоналізація</span>
+          <span class="faq-tag">Налаштування</span>
+          <span class="faq-tag">Ігри та Orion Drive</span>
+          <span class="faq-tag">Mobile версія</span>
+        </div>
+      </div>
+
+      <section class="faq-block is-open" data-faq-anchor="getting-started">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="true">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Швидкий старт</span>
+            <span class="faq-block-text">Базова навігація і перші кроки в Orion.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Що є на сайті Orion і з чого почати?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Основні розділи Orion: чати, дзвінки, магазин, гаманець, налаштування, ігровий центр і профіль. Для старту достатньо відкрити профіль, заповнити основні дані, а далі перейти в чати або магазин залежно від того, що потрібно саме зараз.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Як відрізняється desktop і mobile версія?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>На комп'ютерах Orion використовує ліву desktop-навігацію і додаткове меню розділів. На телефонах основні переходи винесені в нижню навігацію, а великі екрани налаштувань і магазину автоматично перебудовуються під вузький viewport.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Де знайти ключові розділи без довгого пошуку?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <div class="faq-mini-grid">
+                <div class="faq-mini-row"><span>Профіль</span><p>Фото, ім'я, біо, дата народження і ваші предмети.</p></div>
+                <div class="faq-mini-row"><span>Магазин</span><p>Покупка аватарів, фонів, анімацій, значків і предметів Orion Drive.</p></div>
+                <div class="faq-mini-row"><span>Гаманець</span><p>Поточний баланс Orion Value і журнал транзакцій.</p></div>
+                <div class="faq-mini-row"><span>Ігри</span><p>Клікер, Orion 2048, Flappy Orion і Orion Drive.</p></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="navigation">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Навігація</span>
+            <span class="faq-block-text">Як швидко рухатись по сайту на desktop і mobile.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Що робить desktop-secondary-menu?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>На комп'ютері secondary menu зліва показує підрозділи активного розділу: фільтри магазину, FAQ-секції, мініігри або профільні блоки. Воно не замінює основну навігацію, а пришвидшує перехід усередині поточного модуля.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Як повернутись у головний екран без довгого шляху?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>На desktop досить натиснути потрібний пункт у rail ліворуч. На телефоні для цього використовується нижня навігація. Якщо ви всередині глибокого subsection, верхній хедер або secondary menu повертає на попередній логічний рівень.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Чому деякі екрани відкриваються поверх списку чатів?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>На desktop налаштування та довідка займають основну content-area, а sidebar і навігація залишаються видимими. На mobile ці самі розділи відкриваються як fullscreen-шари, щоб не ламати вузький viewport.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="profile">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Профіль і акаунт</span>
+            <span class="faq-block-text">Керування особистими даними, предметами та приватністю.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Як змінити аватар, ім'я та опис профілю?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Відкрийте профіль і перейдіть у налаштування профілю. Там можна оновити фото, ім'я, email, короткий опис і дату народження. Після збереження зміни одразу відображаються в профілі та системних елементах акаунта.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Що таке “Мої предмети”?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Це ваша інвентарна сторінка з усіма придбаними елементами персоналізації: аватарами, фонами, анімаціями, значками та предметами Orion Drive. Саме тут можна швидко перевірити, що вже куплено і що зараз екіпіровано.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Де керувати безпекою і приватністю акаунта?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>У налаштуваннях доступний окремий блок конфіденційності. Там можна керувати видимістю профілю, статусом онлайн, індикатором набору, read receipts, останньою активністю та списком заблокованих користувачів.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="chats">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Чати і дзвінки</span>
+            <span class="faq-block-text">Розмови, повідомлення, історія дзвінків і сповіщення.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Як створити новий чат?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Використайте кнопку створення нового чату у верхній частині списку чатів або через desktop secondary menu у чатах. Після вибору контакту чат з'явиться у списку розмов, а історія повідомлень зберігатиметься в межах акаунта.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Де налаштовуються сповіщення та поведінка повідомлень?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>У налаштуваннях можна окремо контролювати звук сповіщень, desktop notifications, вібрацію, preview повідомлень, відправку Enter, автопрогравання медіа й автозбереження вкладень.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Для чого розділ дзвінків?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Розділ дзвінків використовується як окрема точка входу до телефонії та історії дзвінків. Якщо історія ще порожня, сторінка показує empty state, але структура вже готова для подальшого наповнення.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="shop">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Магазин і Orion Value</span>
+            <span class="faq-block-text">Покупки, витрати і контент для профілю та Orion Drive.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Що таке Orion Value?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Orion Value це внутрішня валюта сайту. Вона використовується для покупки візуальних предметів, кастомізацій профілю та контенту для Orion Drive. Баланс видно в магазині й у гаманці.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Що саме можна купити в магазині?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>У магазині доступні рамки й аватари, фони, анімації, значки, автомобілі Orion Drive та кольори диму. Фільтр дозволяє швидко відсіяти категорії, а список “Мої предмети” показує вже придбані позиції.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Як працюють фільтри магазину?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Фільтри зверху швидко відсіюють категорії, а mobile filter panel повторює ту саму логіку для вузьких екранів. Активні фільтри змінюють список товарів без переходу на окрему сторінку.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="wallet">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Гаманець</span>
+            <span class="faq-block-text">Баланс, транзакції та контроль витрат.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Де перевірити історію витрат і поповнень?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Для цього є окремий гаманець. У ньому відображається поточний баланс, кількість транзакцій і журнал усіх списань або нарахувань Orion Value.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Чому баланс видно і в магазині, і в гаманці?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Магазин показує баланс як частину сценарію покупки, а гаманець як окремий фінансовий екран з повною історією. Дані в обох місцях синхронізуються між собою.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Коли оновлюється список транзакцій?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Після покупки або зміни балансу гаманець повторно підтягує журнал операцій. Якщо список виглядає застарілим, достатньо ще раз зайти в гаманець або оновити сторінку.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="customization">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Персоналізація</span>
+            <span class="faq-block-text">Аватари, фони, анімації, бейджі та Orion Drive cosmetics.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Де вибирати куплені ефекти та оформлення?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Куплені елементи зберігаються у “Моїх предметах”. Саме там можна переглянути інвентар і зрозуміти, що вже придбано для профілю або Orion Drive.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Що входить у персоналізацію профілю?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>До персоналізації належать аватарні рамки, aura/background, profile motion, badge та інші візуальні прикраси. Частина з них впливає і на профільні картки, і на окремі інтерфейсні острови.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Чи пов'язані покупки з Orion Drive гаражем?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Так. Автомобілі та дим для Orion Drive теж ідуть через магазин і пов'язані з інвентарем. Тому користувач бачить єдину екосистему покупок без окремого інтерфейсу для кожної гри.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="settings">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Налаштування</span>
+            <span class="faq-block-text">Тема, мова, конфіденційність і поведінка системи.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Які налаштування доступні в Orion?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Orion має блоки для сповіщень, конфіденційності, поведінки повідомлень, теми інтерфейсу, мови та окремі профільні налаштування. На desktop ці підрозділи зручно відкривати через secondary menu.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Де перемикається тема та мова?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Для цього є окремі підрозділи “Інтерфейс” і “Мова”. Зміни застосовуються до всього сайту, а не лише до поточного екрана.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Що входить у конфіденційність?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Конфіденційність покриває онлайн-статус, індикатор набору, read receipts, видимість профілю та пов'язані системні перемикачі. Це дозволяє окремо контролювати, як інші бачать вашу активність.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="games">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Ігри та Orion Drive</span>
+            <span class="faq-block-text">Мініігри, Orion Drive і пов'язані предмети.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Які ігри є на сайті?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Ігровий центр зараз включає клікер, Orion 2048, Flappy Orion і Orion Drive. У desktop версії для цих розділів є окреме secondary menu, щоб швидко перемикатися між режимами.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Як працює Orion Drive гараж?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Гараж дозволяє переглядати авто, порівнювати їх характеристики, купувати нові моделі та екіпірувати поточну машину. Окремо підтримуються візуальні варіанти диму для коліс та ефектів заїзду.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Чи ігри пов'язані з профілем і інвентарем?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Так. Частина ігрових предметів та кастомізацій пов'язана з вашим профілем і потрапляє у спільний інвентар. Тому куплені позиції можна бачити не тільки в магазині, а й у “Моїх предметах”.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="mobile">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Mobile версія</span>
+            <span class="faq-block-text">Поведінка сайту на телефонах і вузьких екранах.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Чому mobile-інтерфейс виглядає інакше за desktop?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>На телефонах пріоритет надається нижній навігації, компактним header-блокам та fullscreen-шарам для підрозділів. Це потрібно, щоб великий desktop layout не ламався на вузькому екрані.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Що робити, якщо клавіатура перекриває інтерфейс?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Закрийте клавіатуру або перевідкрийте потрібний екран, якщо viewport з'їхав. Нові мобільні стилі вже враховують safe-area та вузькі екрани, але системна клавіатура все ще може впливати на позицію елементів.</p>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Які блоки найбільше відрізняються на mobile?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <p>Найбільше адаптовані магазин, фільтри, profile/settings subsections, mini-games та chat composer. Саме ці екрани перебудовуються сильніше за інші для коректної роботи на мобільних.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-block" data-faq-anchor="troubleshooting">
+        <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
+          <span class="faq-block-head-copy">
+            <span class="faq-block-label">Якщо щось не так</span>
+            <span class="faq-block-text">Швидкі дії, коли інтерфейс або дані поводяться нестабільно.</span>
+          </span>
+          <span class="faq-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="faq-block-body">
+          <article class="faq-card is-open">
+            <button type="button" class="faq-card-toggle" aria-expanded="true">
+              <span class="faq-card-title">Що робити, якщо сторінка працює некоректно?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <div class="faq-list">
+                <p>Оновіть сторінку або перезапустіть застосунок через логотип у desktop rail.</p>
+                <p>Перевірте, чи відкриваєте сайт у підтримуваному сучасному браузері.</p>
+                <p>Спробуйте знову зайти в акаунт, якщо не підтягується профіль або інвентар.</p>
+                <p>Якщо проблема локальна на телефоні, перевірте масштаб, viewport і чи не перекритий інтерфейс системною клавіатурою.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq-card">
+            <button type="button" class="faq-card-toggle" aria-expanded="false">
+              <span class="faq-card-title">Який найшвидший маршрут до потрібного розділу?</span>
+              <span class="faq-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="faq-card-body">
+              <div class="faq-list">
+                <p><strong>Профіль:</strong> для даних акаунта, аватара та ваших предметів.</p>
+                <p><strong>Налаштування:</strong> для теми, мови, сповіщень і приватності.</p>
+                <p><strong>Магазин:</strong> для покупки персоналізації та Orion Drive контенту.</p>
+                <p><strong>FAQ:</strong> для швидкого пошуку довідкової інформації по всьому сайту.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
     </div>
   </div>
 </div>
