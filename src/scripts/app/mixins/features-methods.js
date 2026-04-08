@@ -12,6 +12,21 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const flappyCoinSoundUrl = new URL('../../../Sounds/coin-sound.mp3', import.meta.url).href;
 const flappyWingSoundUrl = new URL('../../../Sounds/sfx-wing.mp3', import.meta.url).href;
 const flappyDieSoundUrl = new URL('../../../Sounds/sfx-die.mp3', import.meta.url).href;
+const orionDriveCarColormapUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/Textures/colormap.png', import.meta.url).href;
+
+function createOrionDriveGltfLoader() {
+  const manager = new THREE.LoadingManager();
+  manager.setURLModifier((url) => {
+    const safeUrl = String(url || '').trim();
+    if (!safeUrl) return safeUrl;
+    if (/Textures\/colormap\.png(?:[?#].*)?$/i.test(safeUrl)) {
+      return orionDriveCarColormapUrl;
+    }
+    return safeUrl;
+  });
+  return new GLTFLoader(manager);
+}
+
 const ORION_DRIVE_SHOP_CARS = [
   {
     id: 'car_taxi',
@@ -702,7 +717,7 @@ export class ChatAppFeaturesMethods {
       modelRoot.rotation.y = Math.PI * 0.12;
     };
 
-    const loader = this.shopGarageLoader || new GLTFLoader();
+    const loader = this.shopGarageLoader || createOrionDriveGltfLoader();
     this.shopGarageLoader = loader;
 
     const clearCurrentModel = () => {
@@ -880,7 +895,7 @@ export class ChatAppFeaturesMethods {
 
     const carPreviewCache = this.shopCarPreviewCache instanceof Map ? this.shopCarPreviewCache : new Map();
     const carPreviewPending = this.shopCarPreviewPending instanceof Map ? this.shopCarPreviewPending : new Map();
-    const shopPreviewLoader = this.shopPreviewLoader || new GLTFLoader();
+    const shopPreviewLoader = this.shopPreviewLoader || createOrionDriveGltfLoader();
     this.shopCarPreviewCache = carPreviewCache;
     this.shopCarPreviewPending = carPreviewPending;
     this.shopPreviewLoader = shopPreviewLoader;
@@ -1693,7 +1708,7 @@ export class ChatAppFeaturesMethods {
       steerVisual: 0,
       cameraPosition: new THREE.Vector3(0, 10, 14),
       cameraLookAt: new THREE.Vector3(0, 0, 0),
-      loader: new GLTFLoader(),
+      loader: createOrionDriveGltfLoader(),
       textureLoader: new THREE.TextureLoader(),
       themeKey: '',
       worldScale: 0.03,
