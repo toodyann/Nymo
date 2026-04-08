@@ -11,12 +11,19 @@ function dispatchOrionPwaEvent(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
+function getAppBasePath() {
+  const rawBase = typeof import.meta.env?.BASE_URL === 'string'
+    ? import.meta.env.BASE_URL
+    : '/';
+  return rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+}
+
 function getServiceWorkerRegistrationUrl() {
-  return new URL(/* @vite-ignore */ '../../sw.js', import.meta.url);
+  return new URL(`${getAppBasePath()}sw.js`, window.location.origin);
 }
 
 function getServiceWorkerScopePath() {
-  return new URL(/* @vite-ignore */ '../../', import.meta.url).pathname;
+  return getAppBasePath();
 }
 
 function queueOrionNotificationOpenRequest(payload = {}) {

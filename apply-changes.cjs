@@ -5,7 +5,7 @@ const path = require('path');
 const appJsPath = path.join(__dirname, 'src/scripts/app.js');
 let content = fs.readFileSync(appJsPath, 'utf8');
 
-// 1. Замінюємо messenger-settings template на Telegram-style
+// 1. Замінюємо messenger-settings template на оновлений стиль
 const oldMessengerSettings = `      'messenger-settings': \`
 <div class="settings-section" id="messenger-settings">
   <div class="settings-header">
@@ -690,9 +690,9 @@ cssContent = cssContent.replace(/\s*animation:[^;]+;/g, '');
 // Видаляємо @keyframes блоки
 cssContent = cssContent.replace(/@keyframes[^}]+\{[^}]+\}/g, '');
 
-// Додаємо нові стилі для Telegram-style menu
+// Додаємо нові стилі для меню
 const newCSSStyles = `
-/* Telegram-style settings menu */
+/* Settings menu */
 .settings-menu-list {
   display: flex;
   flex-direction: column;
