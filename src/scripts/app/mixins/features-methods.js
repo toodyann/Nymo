@@ -5343,7 +5343,7 @@ export class ChatAppFeaturesMethods {
       installBtn.textContent = 'Встановити';
       installBtn.disabled = false;
     } else if (isSupported) {
-      installStateEl.textContent = 'Chrome сам покаже install prompt, коли сторінка буде придатна для встановлення';
+      installStateEl.textContent = 'Браузер ще не дозволив показати вікно встановлення для цієї сторінки';
       installBtn.textContent = 'Очікування';
       installBtn.disabled = true;
     } else {
