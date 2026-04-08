@@ -1718,13 +1718,16 @@ html:not(.dark-theme) #groupAppearanceModal.modal {
 .group-info-modal-body,
 .group-appearance-modal-body {
   padding: 18px 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .group-info-header {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 4px;
+  min-width: 0;
 }
 
 .group-avatar {
@@ -1781,6 +1784,13 @@ html:not(.dark-theme) #groupAppearanceModal.modal {
   color: var(--text-secondary);
 }
 
+.group-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
 .group-modal-caption {
   font-size: 11px;
   text-transform: uppercase;
@@ -1821,22 +1831,29 @@ html:not(.dark-theme) #groupAppearanceModal.modal {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   max-height: 300px;
   overflow-y: auto;
-  padding-right: 4px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
 }
 
 .group-info-members li {
-  padding: 10px 11px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  padding: 12px 14px;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  background: transparent;
   color: var(--text-primary);
   font-size: 13px;
   display: flex;
   align-items: center;
   gap: 11px;
+}
+
+.group-info-members li:last-child {
+  border-bottom: 0;
 }
 
 .group-member-avatar {

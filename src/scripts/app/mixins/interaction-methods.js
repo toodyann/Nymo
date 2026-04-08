@@ -982,8 +982,9 @@ export class ChatAppInteractionMethods {
     if (!action) return;
 
     if (action === 'group') {
-      if (typeof this.openNewChatModal === 'function') {
-        this.openNewChatModal({ mode: 'group' });
+      if (typeof this.showSettings === 'function') {
+        this.pendingGroupCreateReturnChatId = String(this.currentChat?.id || '').trim() || null;
+        this.showSettings('group-create');
       }
       return;
     }
@@ -3292,17 +3293,20 @@ export class ChatAppInteractionMethods {
       messageEl.dataset.editable = String(this.isTextMessageEditable(msg));
       messageEl.dataset.pending = msg?.pending === true ? 'true' : 'false';
       messageEl.dataset.failed = msg?.failed === true ? 'true' : 'false';
+      messageEl.dataset.senderId = String(msg?.senderId || '');
+      messageEl.dataset.senderName = String(msg?.senderName || '');
+      messageEl.dataset.senderAvatarImage = String(msg?.senderAvatarImage || '');
+      messageEl.dataset.senderAvatarColor = String(msg?.senderAvatarColor || '');
       
       let avatarHtml = '';
       let senderNameHtml = '';
       
       if (msg.from === 'other') {
-        const otherChatAvatar = {
-          name: msg.senderName || this.currentChat?.name || 'Контакт',
-          avatarImage: this.getAvatarImage(msg.senderAvatarImage || this.currentChat?.avatarImage || this.currentChat?.avatarUrl),
-          avatarColor: msg.senderAvatarColor || this.currentChat?.avatarColor || ''
-        };
-        avatarHtml = this.getChatAvatarHtml(otherChatAvatar, 'message-avatar');
+        const senderMeta = this.getMessageSenderDisplayMeta(msg, this.currentChat);
+        avatarHtml = this.getChatAvatarHtml(senderMeta, 'message-avatar');
+        if (this.currentChat?.isGroup && senderMeta.name) {
+          senderNameHtml = `<div class="message-sender-name">${this.escapeHtml(senderMeta.name)}</div>`;
+        }
       } else {
         avatarHtml = this.getUserAvatarHtml();
       }
@@ -4374,15 +4378,48 @@ export class ChatAppInteractionMethods {
     const draft = this.groupAppearanceDraft && typeof this.groupAppearanceDraft === 'object'
       ? this.groupAppearanceDraft
       : {};
-    const nextAvatarImage = this.getAvatarImage(draft.avatarImage || '');
+    const draftAvatarImage = this.getAvatarImage(draft.avatarImage || '');
+    const nextAvatarImage = await this.resolveGroupAvatarImageForServer(draftAvatarImage, {
+      fileName: `group-${Date.now()}.jpg`
+    });
+    if (draftAvatarImage && !nextAvatarImage) {
+      await this.showAlert('Не вдалося завантажити аватар групи на сервер. Спробуйте інше зображення.');
+      return;
+    }
+    const nextAvatarColor = String(
+      draft.avatarColor
+      || this.currentChat.avatarColor
+      || this.getContactColor(nextName)
+    ).trim();
+
+    try {
+      await this.updateChatOnServer(this.currentChat, {
+        ...this.buildChatAppearancePayload({
+          name: nextName,
+          avatarImage: nextAvatarImage,
+          avatarColor: nextAvatarColor
+        })
+      });
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося оновити вигляд групи на сервері.');
+      return;
+    }
 
     this.currentChat.name = nextName;
     this.currentChat.avatarImage = nextAvatarImage;
     this.currentChat.avatarUrl = nextAvatarImage;
-    if (!nextAvatarImage) {
-      this.currentChat.avatarColor = String(draft.avatarColor || this.currentChat.avatarColor || this.getContactColor(nextName)).trim();
-    }
+    this.currentChat.avatarColor = nextAvatarColor;
     this.currentChat.localGroupAppearanceUpdatedAt = Date.now();
+    try {
+      await this.sendGroupMetaMessageToServer(this.currentChat, {
+        name: nextName,
+        avatarImage: nextAvatarImage,
+        avatarColor: nextAvatarColor,
+        participants: Array.isArray(this.currentChat.groupParticipants)
+          ? this.currentChat.groupParticipants
+          : []
+      });
+    } catch {}
 
     this.saveChats();
     this.renderChatsList();

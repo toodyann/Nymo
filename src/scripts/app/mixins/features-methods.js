@@ -5701,6 +5701,13 @@ export class ChatAppFeaturesMethods {
         this.initWalletLedger(settingsContainer);
       }
 
+      if (sectionName === 'group-create') {
+        if (!isMobile && typeof this.syncDesktopNavRailActive === 'function') {
+          this.syncDesktopNavRailActive('navChats');
+        }
+        this.initChatAreaGroupCreate(settingsContainer);
+      }
+
       if (sectionName === 'messenger-settings') {
         this.settingsParentSection = 'messenger-settings';
         this.initShop(settingsContainer);
@@ -5921,6 +5928,7 @@ export class ChatAppFeaturesMethods {
         && sectionName !== 'calls'
         && sectionName !== 'mini-games'
         && sectionName !== 'wallet'
+        && sectionName !== 'group-create'
         && sectionName !== 'settings-home') {
         this.setupSettingsSwipeBack(settingsContainer);
       }

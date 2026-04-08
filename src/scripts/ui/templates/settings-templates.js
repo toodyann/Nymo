@@ -578,7 +578,115 @@ export const settingsTemplates = {
       <div class="orion-drive-garage-specs" id="shopGarageSpecs"></div>
     </section>
 
-    <button type="button" class="shop-item-action orion-drive-garage-action" id="shopGarageActionBtn">Купити</button>
+  <button type="button" class="shop-item-action orion-drive-garage-action" id="shopGarageActionBtn">Купити</button>
+  </div>
+</div>
+  `.trim(),
+
+  'group-create': `
+<div class="settings-section settings-subsection group-create-section" id="group-create">
+  <div class="settings-header settings-subsection-header group-create-header">
+    <h2 class="settings-subsection-title">
+      <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+        <path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"></path>
+      </svg>
+      <span>Створити групу</span>
+    </h2>
+  </div>
+
+  <div class="settings-content group-create-content">
+    <div class="group-create-shell">
+      <section class="group-create-stage active" data-group-create-step="members">
+        <div class="group-create-stage-card">
+          <div class="group-create-stage-head">
+            <h3>Додайте учасників</h3>
+          </div>
+
+          <div class="settings-group group-create-section-block">
+            <div class="group-create-section-head">
+              <div class="new-chat-group-header-copy">
+                <strong>Обрані користувачі</strong>
+              </div>
+              <span class="new-chat-group-count" data-group-create-selected-count>0</span>
+            </div>
+            <div
+              class="new-chat-group-selected"
+              data-group-create-selected-slot
+              data-empty-message="Ще нікого не вибрано."
+            ></div>
+          </div>
+
+          <div class="settings-group group-create-section-block group-create-users-panel">
+            <div class="group-create-section-head">
+              <div class="new-chat-group-header-copy">
+                <strong>Ваші контакти</strong>
+              </div>
+            </div>
+            <div class="group-create-users-list new-chat-group-users" id="groupCreateUsersList"></div>
+          </div>
+
+          <div class="settings-buttons group-create-footer">
+            <button type="button" class="btn btn-secondary group-create-action" id="groupCreateMembersBackBtn">Назад</button>
+            <button type="button" class="btn btn-primary group-create-action" id="groupCreateNextBtn">
+              <span>Далі</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="group-create-stage" data-group-create-step="details">
+        <div class="group-create-stage-card">
+          <div class="group-create-stage-head">
+            <h3>Інформація про групу</h3>
+          </div>
+
+          <div class="settings-group group-create-section-block group-create-avatar-group">
+            <div class="group-create-avatar-block">
+              <div class="group-avatar group-avatar--xl" id="groupCreateAvatarPreview"></div>
+              <input type="file" id="groupCreateAvatarInput" accept="image/*" hidden />
+              <div class="group-create-avatar-actions">
+                <button type="button" class="btn btn-secondary group-create-avatar-btn" id="groupCreateAvatarBtn">Завантажити фото</button>
+                <button type="button" class="btn btn-secondary group-create-avatar-btn" id="groupCreateAvatarResetBtn">Скинути</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group group-create-section-block group-create-form-group">
+            <label class="new-chat-field">
+              <span class="new-chat-field-label">Назва групи</span>
+              <input
+                type="text"
+                id="groupCreateNameInput"
+                class="contact-input"
+                placeholder="Назва групи"
+                autocomplete="off"
+              >
+            </label>
+          </div>
+
+          <div class="settings-group group-create-section-block">
+            <div class="group-create-section-head">
+              <div class="new-chat-group-header-copy">
+                <strong>Учасники групи</strong>
+              </div>
+              <span class="new-chat-group-count" data-group-create-selected-count>0</span>
+            </div>
+            <div
+              class="new-chat-group-selected"
+              data-group-create-selected-slot
+              data-empty-message="Немає обраних учасників."
+            ></div>
+          </div>
+
+          <div class="settings-buttons group-create-footer">
+            <button type="button" class="btn btn-secondary group-create-action" id="groupCreateDetailsBackBtn">Назад</button>
+            <button type="button" class="btn btn-primary group-create-action" id="groupCreateSubmitBtn">
+              <span>Створити</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
   `.trim(),

@@ -697,14 +697,13 @@ export function mountAppShell() {
       </div>
       <button class="btn btn-secondary group-appearance-open-btn" id="openGroupAppearanceBtn">Керування виглядом</button>
     </div>
-    <div>
+    <div class="group-info-section">
       <div class="group-modal-caption">Учасники</div>
       <ul class="group-info-members" id="groupInfoMembers"></ul>
     </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" id="closeGroupInfoBtn2">Закрити</button>
-    <button class="btn btn-primary" id="saveGroupInfoBtn">Зберегти</button>
   </div>
 </div>
 
