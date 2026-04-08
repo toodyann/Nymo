@@ -1,0 +1,24 @@
+{
+  "name": "Orion",
+  "short_name": "Orion",
+  "id": "./",
+  "description": "Orion messenger as an installable progressive web app.",
+  "lang": "uk",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "prefer_related_applications": false,
+  "categories": ["communication", "social", "productivity"],
+  "icons": [
+    {
+      "src": "./pwa/icon-base.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
