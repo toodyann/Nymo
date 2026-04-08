@@ -1,9 +1,6 @@
 name: Deploy dist to gh-pages branch
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
