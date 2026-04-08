@@ -12,10 +12,38 @@ function dispatchOrionPwaEvent(name, detail = {}) {
 }
 
 function getAppBasePath() {
-  const rawBase = typeof import.meta.env?.BASE_URL === 'string'
-    ? import.meta.env.BASE_URL
-    : '/';
-  return rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+  const envBase = typeof import.meta.env?.BASE_URL === 'string'
+    ? String(import.meta.env.BASE_URL || '').trim()
+    : '';
+  if (envBase) {
+    return envBase.endsWith('/') ? envBase : `${envBase}/`;
+  }
+
+  const pathname = String(window.location.pathname || '/');
+  const normalizedPath = pathname.replace(/\/+$/, '');
+  if (normalizedPath.endsWith('/auth')) {
+    const beforeAuth = normalizedPath.slice(0, -('/auth'.length));
+    const safeBase = beforeAuth || '/';
+    return safeBase.endsWith('/') ? safeBase : `${safeBase}/`;
+  }
+
+  const authMarkerIndex = pathname.indexOf('/auth/');
+  if (authMarkerIndex >= 0) {
+    const beforeAuth = pathname.slice(0, authMarkerIndex) || '/';
+    return beforeAuth.endsWith('/') ? beforeAuth : `${beforeAuth}/`;
+  }
+
+  if (pathname.endsWith('/')) {
+    return pathname || '/';
+  }
+
+  const lastSlash = pathname.lastIndexOf('/');
+  if (lastSlash >= 0) {
+    const dirPath = pathname.slice(0, lastSlash + 1);
+    return dirPath || '/';
+  }
+
+  return '/';
 }
 
 function getServiceWorkerRegistrationUrl() {
