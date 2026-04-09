@@ -14,7 +14,7 @@
   #settingsContainerMobile #wallet .calls-header,
   #settingsContainerMobile #profile-items .profile-items-header {
     min-height: 54px !important;
-    padding: calc(env(safe-area-inset-top) + 6px) 14px 10px !important;
+    padding: calc(max(env(safe-area-inset-top), 14px) + 4px) 14px 10px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
@@ -28,6 +28,31 @@
   #settingsContainerMobile .mini-games-content,
   #settingsContainerMobile .coin-tapper-content {
     padding: 14px 14px calc(var(--bottom-nav-height, 64px) + 26px) !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-content {
+    padding-top: calc(max(env(safe-area-inset-top), 14px) + 64px) !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel {
+    display: block !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-filter-panel.is-open {
+    max-height: 1400px !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+    margin-top: 8px;
+  }
+
+  #settingsContainerMobile #profile-items .profile-items-content {
+    padding-top: calc(max(env(safe-area-inset-top), 14px) + 64px) !important;
+  }
+
+  #settingsContainerMobile #profile-items .profile-items-back-island {
+    top: calc(max(env(safe-area-inset-top), 14px) + 4px) !important;
   }
 
   #settingsContainerMobile .settings-menu-list {
@@ -6974,7 +6999,7 @@ html.dark-theme #profile-settings .profile-settings-card {
   #settingsContainerMobile #wallet .calls-header,
   #settingsContainerMobile #profile-items .profile-items-header {
     min-height: 54px !important;
-    padding: calc(env(safe-area-inset-top) + 6px) 14px 10px !important;
+    padding: calc(max(env(safe-area-inset-top), 14px) + 4px) 14px 10px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
@@ -6988,6 +7013,22 @@ html.dark-theme #profile-settings .profile-settings-card {
   #settingsContainerMobile .mini-games-content,
   #settingsContainerMobile .coin-tapper-content {
     padding: 14px 14px calc(var(--bottom-nav-height, 64px) + 26px) !important;
+  }
+
+  #settingsContainerMobile #profile-items .profile-items-content {
+    padding-top: calc(max(env(safe-area-inset-top), 14px) + 64px) !important;
+  }
+
+  #settingsContainerMobile #profile-items .profile-items-back-island {
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  #settingsContainerMobile #messenger-settings .shop-balance-island {
+    top: calc(max(env(safe-area-inset-top), 14px) + 40px) !important;
+    right: 14px !important;
+    z-index: 5 !important;
   }
 
   #settingsContainerMobile .settings-menu-list {

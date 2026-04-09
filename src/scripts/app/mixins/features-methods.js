@@ -1143,13 +1143,29 @@ export class ChatAppFeaturesMethods {
       if (filterSummaryEl) filterSummaryEl.textContent = getFilterSummary();
     };
 
+    const getFilterPanelEl = () => (
+      filterPanelEl
+      || settingsContainer.querySelector('#shopFilterPanel')
+      || settingsContainer.querySelector('.shop-filter-panel')
+    );
+    const getFilterToggleEl = () => (
+      filterToggleEl
+      || settingsContainer.querySelector('#shopFilterToggle')
+      || settingsContainer.querySelector('.shop-filter-trigger')
+    );
+
     const setFilterPanelOpen = (isOpen) => {
-      if (!filterPanelEl || !filterToggleEl) return;
-      filterPanelEl.classList.toggle('is-open', isOpen);
-      filterToggleEl.classList.toggle('is-open', isOpen);
-      filterToggleEl.setAttribute('aria-expanded', String(isOpen));
-      if (isOpen && filterPanelScrollEl) {
-        filterPanelScrollEl.scrollTop = 0;
+      const panelEl = getFilterPanelEl();
+      const toggleEl = getFilterToggleEl();
+      if (!panelEl) return;
+      panelEl.classList.toggle('is-open', isOpen);
+      if (toggleEl) {
+        toggleEl.classList.toggle('is-open', isOpen);
+        toggleEl.setAttribute('aria-expanded', String(isOpen));
+      }
+      const scrollEl = filterPanelScrollEl || panelEl.querySelector('.shop-filter-panel-scroll');
+      if (isOpen && scrollEl) {
+        scrollEl.scrollTop = 0;
       }
     };
 
@@ -1166,9 +1182,15 @@ export class ChatAppFeaturesMethods {
       const balanceCardReached = balanceCardEl
         ? currentScrollTop >= Math.max(0, balanceCardEl.offsetTop - 18)
         : false;
+      const isMobileViewport = window.innerWidth <= 768;
 
       if (shopHeaderEl) {
-        shopHeaderEl.classList.toggle('is-hidden', balanceCardReached);
+        // Keep header stable on mobile to avoid instant hidden state from dynamic content paddings.
+        if (isMobileViewport) {
+          shopHeaderEl.classList.remove('is-hidden');
+        } else {
+          shopHeaderEl.classList.toggle('is-hidden', balanceCardReached);
+        }
       }
 
       if (balanceIslandEl && balanceCardEl) {
@@ -1280,17 +1302,32 @@ export class ChatAppFeaturesMethods {
       }, { passive: true });
     }
 
-    if (filterToggleEl && filterToggleEl.dataset.bound !== 'true') {
-      filterToggleEl.dataset.bound = 'true';
-      filterToggleEl.addEventListener('click', () => {
-        const shouldOpen = !filterPanelEl?.classList.contains('is-open');
+    const bindFilterToggleEl = getFilterToggleEl();
+    if (bindFilterToggleEl && bindFilterToggleEl.dataset.bound !== 'true') {
+      bindFilterToggleEl.dataset.bound = 'true';
+      let lastFilterToggleAt = 0;
+      const handleFilterToggle = (event) => {
+        if (event?.cancelable) event.preventDefault();
+        if (typeof event?.stopPropagation === 'function') event.stopPropagation();
+        const now = Date.now();
+        const minGap = event?.type === 'click' ? 700 : 220;
+        if (now - lastFilterToggleAt < minGap) return;
+        lastFilterToggleAt = now;
+        const shouldOpen = !getFilterPanelEl()?.classList.contains('is-open');
         setFilterPanelOpen(shouldOpen);
-      });
+      };
+      bindFilterToggleEl.addEventListener('click', handleFilterToggle);
+      bindFilterToggleEl.addEventListener('pointerup', handleFilterToggle);
+      bindFilterToggleEl.addEventListener('touchstart', handleFilterToggle, { passive: false });
+      bindFilterToggleEl.addEventListener('touchend', handleFilterToggle, { passive: false });
     }
 
     if (filterPanelEl && filterPanelEl.dataset.bound !== 'true') {
       filterPanelEl.dataset.bound = 'true';
-      filterPanelEl.addEventListener('click', (event) => {
+      const handlePanelInteraction = (event) => {
+        if (event?.type === 'touchend' && event?.cancelable) {
+          event.preventDefault();
+        }
         if (event.target.closest('#shopFilterClose')) {
           closeFilterPanel(event);
           return;
@@ -1302,7 +1339,9 @@ export class ChatAppFeaturesMethods {
         if (!group || !value) return;
         filterState[group] = value;
         syncFilterControls();
-      });
+      };
+      filterPanelEl.addEventListener('click', handlePanelInteraction);
+      filterPanelEl.addEventListener('touchend', handlePanelInteraction, { passive: false });
     }
 
     if (minPriceEl && minPriceEl.dataset.bound !== 'true') {
