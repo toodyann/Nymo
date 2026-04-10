@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'orion-shell-v1';
-const RUNTIME_CACHE = 'orion-runtime-v1';
+const SHELL_CACHE = 'orion-shell-v2';
+const RUNTIME_CACHE = 'orion-runtime-v2';
 const APP_SHELL_FILES = [
   './',
   './index.html',
@@ -47,18 +47,30 @@ self.addEventListener('activate', (event) => {
 
 async function handleNavigationRequest(request) {
   const runtimeCache = await caches.open(RUNTIME_CACHE);
+  const cachedResponse = await runtimeCache.match(request);
+  const appShellResponse = await caches.match(resolveScopeUrl('./index.html'))
+    || await caches.match(resolveScopeUrl('./'));
+
+  const networkPromise = fetch(request)
+    .then(async (response) => {
+      if (response && response.ok) {
+        await runtimeCache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  if (cachedResponse || appShellResponse) {
+    void networkPromise;
+    return cachedResponse || appShellResponse;
+  }
+
   try {
-    const response = await fetch(request);
-    if (response && response.ok) {
-      await runtimeCache.put(request, response.clone());
-    }
-    return response;
+    const response = await networkPromise;
+    if (response) return response;
+    return appShellResponse;
   } catch (_) {
-    return (
-      await runtimeCache.match(request)
-      || await caches.match(resolveScopeUrl('./index.html'))
-      || await caches.match(resolveScopeUrl('./'))
-    );
+    return appShellResponse;
   }
 }
 

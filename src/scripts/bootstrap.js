@@ -6,6 +6,7 @@ import {
   redirectToAuthPage,
   syncLegacyUserProfile
 } from './shared/auth/auth-session.js';
+import { getApiBaseUrl } from './shared/api/api-url.js';
 
 function dispatchOrionPwaEvent(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -168,6 +169,235 @@ async function registerOrionServiceWorker() {
   }
 }
 
+function getNetworkQualitySnapshot() {
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+  const effectiveType = String(connection?.effectiveType || '').trim().toLowerCase();
+  const downlink = Number(connection?.downlink || 0);
+  const rtt = Number(connection?.rtt || 0);
+  const isPoor = Boolean(
+    effectiveType === 'slow-2g'
+    || effectiveType === '2g'
+    || (Number.isFinite(downlink) && downlink > 0 && downlink < 1)
+    || (Number.isFinite(rtt) && rtt >= 450)
+  );
+  return {
+    isOnline: navigator.onLine !== false,
+    isPoor
+  };
+}
+
+function ensureOrionNetworkStatusUi() {
+  if (!document.body) return null;
+  let root = document.getElementById('orionNetworkStatus');
+  if (root) return root;
+
+  root = document.createElement('div');
+  root.id = 'orionNetworkStatus';
+  root.className = 'orion-network-status-layer';
+  root.setAttribute('aria-live', 'polite');
+  root.innerHTML = `
+    <div class="orion-network-loading-pill" id="orionNetworkLoadingPill" role="status" aria-hidden="true">
+      <span class="orion-network-spinner" aria-hidden="true"></span>
+      <span class="orion-network-loading-text">Очікування з'єднання...</span>
+    </div>
+    <div class="orion-network-warning-banner" id="orionNetworkWarningBanner" role="status" aria-hidden="true"></div>
+  `;
+  document.body.appendChild(root);
+  return root;
+}
+
+function installOrionNetworkResilience() {
+  if (window.__ORION_NETWORK_RESILIENCE_INSTALLED) return;
+  window.__ORION_NETWORK_RESILIENCE_INSTALLED = true;
+
+  const apiOrigin = (() => {
+    try {
+      return new URL(getApiBaseUrl()).origin;
+    } catch {
+      return '';
+    }
+  })();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => ensureOrionNetworkStatusUi(), { once: true });
+  } else {
+    ensureOrionNetworkStatusUi();
+  }
+
+  const getLoadingPill = () => document.getElementById('orionNetworkLoadingPill');
+  const getWarningBanner = () => document.getElementById('orionNetworkWarningBanner');
+
+  let activeApiRequests = 0;
+  let loadingPillTimer = null;
+  let slowConnectionTimer = null;
+  let slowWarningVisible = false;
+  let warningAutoHideTimer = null;
+  let wasOffline = navigator.onLine === false;
+
+  const hideLoadingPill = () => {
+    const loadingPill = getLoadingPill();
+    if (!loadingPill) return;
+    loadingPill.classList.remove('is-visible');
+    loadingPill.setAttribute('aria-hidden', 'true');
+  };
+
+  const showLoadingPill = () => {
+    const loadingPill = getLoadingPill();
+    if (!loadingPill) return;
+    loadingPill.classList.add('is-visible');
+    loadingPill.setAttribute('aria-hidden', 'false');
+  };
+
+  const showWarning = (message = '', { variant = 'warning', autoHideMs = 0 } = {}) => {
+    const warningBanner = getWarningBanner();
+    if (!warningBanner) return;
+    if (warningAutoHideTimer) {
+      clearTimeout(warningAutoHideTimer);
+      warningAutoHideTimer = null;
+    }
+    warningBanner.textContent = String(message || '').trim();
+    warningBanner.classList.toggle('is-success', variant === 'success');
+    warningBanner.classList.add('is-visible');
+    warningBanner.setAttribute('aria-hidden', 'false');
+    if (autoHideMs > 0) {
+      warningAutoHideTimer = window.setTimeout(() => {
+        warningAutoHideTimer = null;
+        refreshConnectionWarning();
+      }, autoHideMs);
+    }
+  };
+
+  const hideWarning = () => {
+    const warningBanner = getWarningBanner();
+    if (!warningBanner) return;
+    if (warningAutoHideTimer) {
+      clearTimeout(warningAutoHideTimer);
+      warningAutoHideTimer = null;
+    }
+    warningBanner.classList.remove('is-success');
+    warningBanner.classList.remove('is-visible');
+    warningBanner.setAttribute('aria-hidden', 'true');
+  };
+
+  const refreshConnectionWarning = () => {
+    const snapshot = getNetworkQualitySnapshot();
+    if (!snapshot.isOnline) {
+      wasOffline = true;
+      showWarning('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.');
+      return;
+    }
+    if (snapshot.isPoor) {
+      showWarning('Погане зʼєднання. Оновлення даних може тривати довше.');
+      return;
+    }
+    if (activeApiRequests === 0 && !slowWarningVisible) {
+      hideWarning();
+    }
+  };
+
+  const startApiRequest = () => {
+    activeApiRequests += 1;
+    if (loadingPillTimer) {
+      clearTimeout(loadingPillTimer);
+      loadingPillTimer = null;
+    }
+    if (activeApiRequests === 1) {
+      loadingPillTimer = window.setTimeout(() => {
+        loadingPillTimer = null;
+        if (activeApiRequests > 0) showLoadingPill();
+      }, 150);
+    }
+    if (!slowConnectionTimer) {
+      slowConnectionTimer = window.setTimeout(() => {
+        slowConnectionTimer = null;
+        if (activeApiRequests > 0 && navigator.onLine !== false) {
+          slowWarningVisible = true;
+          showWarning('Сервер відповідає повільно. Чекаємо зʼєднання...');
+        }
+      }, 4200);
+    }
+  };
+
+  const finishApiRequest = () => {
+    activeApiRequests = Math.max(0, activeApiRequests - 1);
+    if (activeApiRequests > 0) return;
+
+    if (loadingPillTimer) {
+      clearTimeout(loadingPillTimer);
+      loadingPillTimer = null;
+    }
+    if (slowConnectionTimer) {
+      clearTimeout(slowConnectionTimer);
+      slowConnectionTimer = null;
+    }
+
+    hideLoadingPill();
+    slowWarningVisible = false;
+    refreshConnectionWarning();
+  };
+
+  const isTrackedApiRequest = (input) => {
+    if (!apiOrigin) return false;
+    try {
+      const rawUrl = typeof input === 'string' ? input : input?.url;
+      if (!rawUrl) return false;
+      const resolvedUrl = new URL(rawUrl, window.location.href);
+      return resolvedUrl.origin === apiOrigin;
+    } catch {
+      return false;
+    }
+  };
+
+  if (!window.__ORION_FETCH_WRAPPED && typeof window.fetch === 'function') {
+    const nativeFetch = window.fetch.bind(window);
+    window.__ORION_FETCH_WRAPPED = true;
+
+    window.fetch = async (...args) => {
+      const trackedRequest = isTrackedApiRequest(args[0]);
+      if (trackedRequest) startApiRequest();
+      try {
+        const response = await nativeFetch(...args);
+        if (trackedRequest && !response.ok && response.status >= 500) {
+          showWarning('Сервер тимчасово недоступний. Спробуйте ще раз.');
+        }
+        return response;
+      } catch (error) {
+        if (trackedRequest) {
+          if (navigator.onLine === false) {
+            showWarning('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.');
+          } else {
+            showWarning('Погане зʼєднання з сервером. Очікуємо відновлення...');
+          }
+        }
+        throw error;
+      } finally {
+        if (trackedRequest) finishApiRequest();
+      }
+    };
+  }
+
+  window.addEventListener('online', () => {
+    const snapshot = getNetworkQualitySnapshot();
+    if (wasOffline && snapshot.isOnline && !snapshot.isPoor) {
+      wasOffline = false;
+      showWarning('Зʼєднання відновлено. Синхронізуємо дані…', {
+        variant: 'success',
+        autoHideMs: 2600
+      });
+      return;
+    }
+    wasOffline = false;
+    refreshConnectionWarning();
+  });
+  window.addEventListener('offline', () => {
+    wasOffline = true;
+    refreshConnectionWarning();
+  });
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+  connection?.addEventListener?.('change', refreshConnectionWarning);
+  refreshConnectionWarning();
+}
+
 function bootOrionApp() {
   if (window.__ORION_APP_BOOTSTRAPPED) return;
   window.__ORION_APP_BOOTSTRAPPED = true;
@@ -194,6 +424,7 @@ function bootOrionApp() {
 
 bindServiceWorkerNotificationRouting();
 bindPwaLifecycleEvents();
+installOrionNetworkResilience();
 window.addEventListener('load', () => {
   registerOrionServiceWorker().catch(() => {});
 }, { once: true });

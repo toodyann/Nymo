@@ -9,4 +9,5 @@
 @import './ui/components.css';
 @import './ui/modal.css';
 @import './ui/settings.css';
+@import './ui/network-status.css';
 @import './layout/responsive.css';
