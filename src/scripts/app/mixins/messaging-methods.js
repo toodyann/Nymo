@@ -1122,8 +1122,12 @@ export class ChatAppMessagingMethods {
 
   getUserAvatarColor(user) {
     if (!user || typeof user !== 'object') return '';
-    const value = user.avatarColor ?? user.profileColor ?? '';
-    return String(value || '').trim();
+    const avatarImage = this.getUserAvatarImage(user);
+    if (avatarImage) {
+      const value = user.avatarColor ?? user.profileColor ?? '';
+      return String(value || '').trim();
+    }
+    return this.getContactColor(this.getUserDisplayName(user));
   }
 
   getCurrentUserDisplayName() {

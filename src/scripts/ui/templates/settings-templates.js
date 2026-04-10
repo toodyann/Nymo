@@ -202,12 +202,11 @@ export const settingsTemplates = {
         </div>
         <div class="profile-avatar-actions">
           <span class="profile-settings-kicker">Фото профілю</span>
-          <p class="profile-settings-note">Оновіть аватар або виберіть новий градієнт для швидкої візуальної зміни.</p>
+          <p class="profile-settings-note">Оновіть аватар, щоб змінити вигляд профілю в чатах і меню.</p>
           <label class="profile-upload-btn">
             <input type="file" id="profileAvatarUpload" accept="image/*" />
             Змінити фото профілю
           </label>
-          <button class="btn btn-secondary btn-change-avatar">Випадковий градієнт</button>
         </div>
       </div>
     </div>

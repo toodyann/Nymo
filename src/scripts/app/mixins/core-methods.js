@@ -48,7 +48,7 @@ export class ChatAppCoreMethods {
       bio: 'Вітаю!',
       birthDate: '',
       createdAt: new Date().toISOString(),
-      avatarColor: 'linear-gradient(135deg, #6b7280, #9ca3af)',
+      avatarColor: '',
       avatarImage: '',
       avatarUrl: '',
       equippedAvatarFrame: '',
@@ -1038,20 +1038,6 @@ export class ChatAppCoreMethods {
       .slice(0, 2);
   }
 
-  getRandomAvatarGradient() {
-    const colors = [
-      'linear-gradient(135deg, #6b7280, #9ca3af)',
-      'linear-gradient(135deg, #667eea, #764ba2)',
-      'linear-gradient(135deg, #f093fb, #f5576c)',
-      'linear-gradient(135deg, #4facfe, #00f2fe)',
-      'linear-gradient(135deg, #43e97b, #38f9d7)',
-      'linear-gradient(135deg, #fa709a, #a3a3a3)',
-      'linear-gradient(135deg, #30cfd0, #330867)',
-      'linear-gradient(135deg, #a8edea, #fed6e3)'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
-
   escapeAttr(value) {
     return String(value)
       .replace(/&/g, '&amp;')
@@ -1076,7 +1062,7 @@ export class ChatAppCoreMethods {
     const source = chat && typeof chat === 'object' ? chat : {};
     const name = String(source?.name || 'Користувач').trim() || 'Користувач';
     const avatarImage = this.getAvatarImage(source?.avatarImage || source?.avatarUrl);
-    const avatarColor = source?.avatarColor || this.getContactColor(name);
+    const avatarColor = avatarImage ? String(source?.avatarColor || '').trim() : this.getContactColor(name);
     return {
       name,
       avatarImage,
@@ -1127,9 +1113,6 @@ export class ChatAppCoreMethods {
   applyUserAvatarToElement(avatarEl, name = '') {
     if (!avatarEl) return;
     const displayName = name || this.user?.name || 'Користувач Orion';
-    if (!this.user?.avatarColor) {
-      this.user.avatarColor = this.getRandomAvatarGradient();
-    }
     const userAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
     if (userAvatarImage) {
       this.user.avatarImage = userAvatarImage;
@@ -1138,10 +1121,12 @@ export class ChatAppCoreMethods {
       avatarEl.style.backgroundImage = `url("${this.escapeAttr(userAvatarImage)}")`;
       avatarEl.style.backgroundColor = 'transparent';
     } else {
+      const fallbackAvatarColor = this.getContactColor(displayName);
+      this.user.avatarColor = fallbackAvatarColor;
       avatarEl.style.backgroundImage = '';
       avatarEl.style.backgroundColor = '';
       avatarEl.textContent = this.getInitials(displayName);
-      avatarEl.style.background = this.user.avatarColor || this.getContactColor(displayName);
+      avatarEl.style.background = fallbackAvatarColor;
     }
   }
 
@@ -1153,16 +1138,16 @@ export class ChatAppCoreMethods {
       const safeUrl = this.escapeAttr(userAvatarImage);
       return `<div class="message-avatar is-image" style="background-image: url(&quot;${safeUrl}&quot;);"></div>`;
     }
-    const initials = this.getInitials(this.user?.name || 'Користувач Orion');
-    return `<div class="message-avatar" style="background: ${this.user.avatarColor}">${initials}</div>`;
+    const displayName = this.user?.name || 'Користувач Orion';
+    const initials = this.getInitials(displayName);
+    const fallbackAvatarColor = this.getContactColor(displayName);
+    this.user.avatarColor = fallbackAvatarColor;
+    return `<div class="message-avatar" style="background: ${fallbackAvatarColor}">${initials}</div>`;
   }
 
   renderProfileAvatar(avatarEl) {
     if (!avatarEl) return;
     const name = this.user?.name || 'Користувач Orion';
-    if (!this.user?.avatarColor) {
-      this.user.avatarColor = this.getRandomAvatarGradient();
-    }
     const imageEl = avatarEl.querySelector('.profile-avatar-image');
     const initialsEl = avatarEl.querySelector('.profile-avatar-initials');
 
@@ -1182,7 +1167,9 @@ export class ChatAppCoreMethods {
         initialsEl.textContent = this.getInitials(name);
         initialsEl.style.display = 'flex';
       }
-      avatarEl.style.background = this.user.avatarColor;
+      const fallbackAvatarColor = this.getContactColor(name);
+      this.user.avatarColor = fallbackAvatarColor;
+      avatarEl.style.background = fallbackAvatarColor;
     }
 
     this.applyAvatarDecoration(avatarEl);

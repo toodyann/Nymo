@@ -5674,11 +5674,6 @@ export class ChatAppFeaturesMethods {
           });
         }
         
-        const changeAvatarBtn = settingsContainer.querySelector('.btn-change-avatar');
-        if (changeAvatarBtn) {
-          changeAvatarBtn.addEventListener('click', () => this.handleAvatarChange(settingsContainer));
-        }
-
         const cancelProfileBtn = settingsContainer.querySelector('.btn-cancel-profile');
         if (cancelProfileBtn) {
           cancelProfileBtn.addEventListener('click', () => {
@@ -6011,7 +6006,7 @@ export class ChatAppFeaturesMethods {
         this.setupSettingsSwipeBack(settingsContainer);
       }
       
-      const closeButtons = settingsContainer.querySelectorAll('.btn-secondary:not(.btn-change-avatar):not(.btn-cancel-profile)');
+      const closeButtons = settingsContainer.querySelectorAll('.btn-secondary:not(.btn-cancel-profile)');
       closeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
           if ((sectionName === 'profile-settings' || sectionName.endsWith('-settings')) && btn.closest('.settings-buttons')) {
@@ -6338,31 +6333,4 @@ export class ChatAppFeaturesMethods {
     syncLegacyUserProfile(mergedUser);
   }
 
-  handleAvatarChange(settingsContainer) {
-    const colors = [
-      'linear-gradient(135deg, #6b7280, #9ca3af)',
-      'linear-gradient(135deg, #667eea, #764ba2)',
-      'linear-gradient(135deg, #f093fb, #f5576c)',
-      'linear-gradient(135deg, #4facfe, #00f2fe)',
-      'linear-gradient(135deg, #43e97b, #38f9d7)',
-      'linear-gradient(135deg, #fa709a, #a3a3a3)',
-      'linear-gradient(135deg, #30cfd0, #330867)',
-      'linear-gradient(135deg, #a8edea, #fed6e3)'
-    ];
-
-    let colorIndex = colors.findIndex(c => c === this.user.avatarColor);
-    if (colorIndex === -1) colorIndex = 0;
-    
-    colorIndex = (colorIndex + 1) % colors.length;
-    const newColor = colors[colorIndex];
-    
-    const avatarDiv = settingsContainer.querySelector('.profile-avatar-large');
-    this.user.avatarColor = newColor;
-    this.user.avatarImage = '';
-    this.user.avatarUrl = '';
-
-    if (avatarDiv) {
-      this.renderProfileAvatar(avatarDiv);
-    }
-  }
 }

@@ -5,6 +5,17 @@ const pagesBase = `/${repositoryName}/`;
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? pagesBase : '/',
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173
+    }
+  },
   build: {
     rollupOptions: {
       input: {

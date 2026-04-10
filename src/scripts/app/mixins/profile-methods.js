@@ -25,7 +25,6 @@ forwardMethods(ChatAppProfileMethods, ChatAppCoreMethods, [
   'syncProfileCosmetics',
   'updateProfileMenuButton',
   'getInitials',
-  'getRandomAvatarGradient',
   'escapeAttr',
   'applyUserAvatarToElement',
   'getUserAvatarHtml',
@@ -35,6 +34,5 @@ forwardMethods(ChatAppProfileMethods, ChatAppCoreMethods, [
 ]);
 
 forwardMethods(ChatAppProfileMethods, ChatAppFeaturesMethods, [
-  'saveProfileSettings',
-  'handleAvatarChange'
+  'saveProfileSettings'
 ]);

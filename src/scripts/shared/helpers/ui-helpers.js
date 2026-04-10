@@ -374,21 +374,22 @@ export function escapeHtml(text) {
  * @returns {string} - CSS gradient
  */
 export function getContactColor(name) {
-  const baseColors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-    '#F7DC6F', '#BB8FCE', '#85C1E9', '#FF9F43', '#6FCF97'
+  const gradients = [
+    ['#FF6B6B', '#F06595'],
+    ['#4ECDC4', '#45B7D1'],
+    ['#45B7D1', '#6C5CE7'],
+    ['#FFA07A', '#FF6B6B'],
+    ['#98D8C8', '#6FCF97'],
+    ['#F7DC6F', '#FFB347'],
+    ['#BB8FCE', '#8E44AD'],
+    ['#85C1E9', '#4ECDC4'],
+    ['#FF9F43', '#FF6B6B'],
+    ['#6FCF97', '#45B7D1']
   ];
 
-  if (!name) return baseColors[0];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash;
-  }
-  const idx1 = Math.abs(hash) % baseColors.length;
-  const idx2 = Math.abs((hash >> 3)) % baseColors.length;
-  const c1 = baseColors[idx1];
-  const c2 = baseColors[idx2];
+  const safeName = String(name || '').trim();
+  const length = safeName.length || 1;
+  const [c1, c2] = gradients[length % gradients.length];
   return `linear-gradient(135deg, ${c1}, ${c2})`;
 }
 
