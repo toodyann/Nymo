@@ -667,6 +667,30 @@ export function mountAppShell() {
   </div>
 </div>
 
+<!-- Profile QR modal -->
+<div class="modal" id="profileQrModal" aria-hidden="true">
+  <div class="modal-body profile-qr-modal-body">
+    <article class="profile-qr-card" id="profileQrCard">
+      <button class="btn-close profile-qr-card-close" id="closeProfileQrBtn" aria-label="Закрити">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="profile-qr-card-head">
+        <span class="profile-qr-card-dot" aria-hidden="true"></span>
+        <span class="profile-qr-card-brand">Orion</span>
+      </div>
+      <div class="profile-qr-canvas-wrap">
+        <canvas id="profileQrCanvas" width="280" height="280" aria-label="QR код профілю"></canvas>
+      </div>
+      <div class="profile-qr-meta">
+        <div class="profile-qr-meta-name" id="profileQrName">Користувач Orion</div>
+        <div class="profile-qr-meta-handle" id="profileQrHandle">@orion.user</div>
+      </div>
+    </article>
+  </div>
+</div>
+
 <!-- Модальний фон -->
 <div class="modal-overlay" id="modalOverlay"></div>
 

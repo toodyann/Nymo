@@ -5689,6 +5689,7 @@ export class ChatAppFeaturesMethods {
         const inlineEditBtn = settingsContainer.querySelector('.profile-edit-inline');
         const profileMyItemsBtn = settingsContainer.querySelector('#profileMyItemsBtn');
         const profileWalletBtn = settingsContainer.querySelector('#profileWalletBtn');
+        const profileQrBtn = settingsContainer.querySelector('#profileQrBtn');
         const menuItems = settingsContainer.querySelectorAll('.settings-menu-item');
 
         this.renderProfileAvatar(avatarDiv);
@@ -5711,6 +5712,13 @@ export class ChatAppFeaturesMethods {
           profileWalletBtn.addEventListener('click', () => {
             this.settingsParentSection = 'profile';
             this.showSettings('wallet');
+          });
+        }
+        if (profileQrBtn) {
+          profileQrBtn.addEventListener('click', () => {
+            if (typeof this.openProfileQrModal === 'function') {
+              this.openProfileQrModal();
+            }
           });
         }
 

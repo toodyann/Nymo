@@ -66,7 +66,7 @@ export const settingsTemplates = {
             </svg>
             <span>Гаманець</span>
           </button>
-          <button class="profile-action-btn" aria-label="QR код">
+          <button class="profile-action-btn" id="profileQrBtn" aria-label="QR код">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zM13 3h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zM15 13h2v2h-2v-2zm4 0h2v6h-2v-6zm-4 4h6v2h-6v-2z" fill="currentColor"/>
             </svg>

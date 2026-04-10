@@ -8,6 +8,7 @@ import {
   formatMessageDateTime
 } from '../../shared/helpers/ui-helpers.js';
 import { clearAuthSession, redirectToAuthPage } from '../../shared/auth/auth-session.js';
+import QRCode from 'qrcode';
 
 export class ChatAppInteractionMethods {
   enforcePlainChatModalHeader() {
@@ -1471,19 +1472,32 @@ export class ChatAppInteractionMethods {
     document.getElementById('closeModalBtn').addEventListener('click', () => this.closeNewChatModal());
     document.getElementById('cancelBtn').addEventListener('click', () => this.closeNewChatModal());
     document.getElementById('confirmBtn').addEventListener('click', () => this.createNewChat());
+    const closeProfileQrBtn = document.getElementById('closeProfileQrBtn');
+    if (closeProfileQrBtn) {
+      closeProfileQrBtn.addEventListener('click', () => this.closeProfileQrModal());
+    }
     const modalOverlay = document.getElementById('modalOverlay');
     if (modalOverlay) {
       modalOverlay.addEventListener('click', () => {
         const newChatModal = document.getElementById('newChatModal');
+        const profileQrModal = document.getElementById('profileQrModal');
         const groupInfoModal = document.getElementById('groupInfoModal');
         const groupAppearanceModal = document.getElementById('groupAppearanceModal');
         const addToGroupModal = document.getElementById('addToGroupModal');
         if (newChatModal?.classList.contains('active')) this.closeNewChatModal();
+        if (profileQrModal?.classList.contains('active')) this.closeProfileQrModal();
         if (groupInfoModal?.classList.contains('active')) this.closeGroupInfoModal();
         if (groupAppearanceModal?.classList.contains('active')) {
           this.closeGroupAppearanceModal({ restoreGroupInfo: false });
         }
         if (addToGroupModal?.classList.contains('active')) this.closeAddToGroupModal();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const profileQrModal = document.getElementById('profileQrModal');
+        if (profileQrModal?.classList.contains('active')) {
+          this.closeProfileQrModal();
+        }
       });
     }
     
@@ -3396,9 +3410,236 @@ export class ChatAppInteractionMethods {
   syncSharedModalOverlayState() {
     const overlay = document.getElementById('modalOverlay');
     if (!overlay) return;
-    const modalIds = ['newChatModal', 'groupInfoModal', 'groupAppearanceModal', 'addToGroupModal'];
+    const modalIds = ['newChatModal', 'profileQrModal', 'groupInfoModal', 'groupAppearanceModal', 'addToGroupModal'];
     const shouldShow = modalIds.some((id) => document.getElementById(id)?.classList.contains('active'));
     overlay.classList.toggle('active', shouldShow);
+  }
+
+  buildProfileQrHandle(name = '') {
+    const normalized = String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/['`’]/g, '')
+      .replace(/[^a-z0-9а-яіїєґ]+/gi, '.')
+      .replace(/\.+/g, '.')
+      .replace(/^\.|\.$/g, '');
+    return `@${normalized || 'orion.user'}`;
+  }
+
+  getProfileQrSnapshot() {
+    const name = String(this.user?.name || 'Користувач Orion').trim() || 'Користувач Orion';
+    const handle = this.buildProfileQrHandle(name);
+    const userId = String(this.user?.id || '').trim();
+    const profileUrl = this.buildProfileQrLink(userId, handle);
+    const payload = {
+      app: 'Orion',
+      type: 'profile',
+      version: 1,
+      userId,
+      name,
+      handle,
+      profileUrl
+    };
+
+    return {
+      name,
+      handle,
+      payload,
+      payloadText: profileUrl
+    };
+  }
+
+  buildProfileQrLink(userId = '', handle = '') {
+    const safeUserId = String(userId || '').trim();
+    const safeHandle = String(handle || '').replace(/^@+/, '').trim().toLowerCase();
+    const url = new URL(window.location.href);
+    url.hash = '';
+    url.search = '';
+    if (safeUserId) {
+      url.searchParams.set('profile', safeUserId);
+    }
+    if (safeHandle) {
+      url.searchParams.set('handle', safeHandle);
+    }
+    url.searchParams.set('via', 'qr');
+    return url.toString();
+  }
+
+  clearProfileQrLinkParamsFromUrl() {
+    const url = new URL(window.location.href);
+    const keys = ['profile', 'handle', 'via'];
+    let changed = false;
+    keys.forEach((key) => {
+      if (url.searchParams.has(key)) {
+        url.searchParams.delete(key);
+        changed = true;
+      }
+    });
+    if (!changed) return;
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', nextUrl);
+  }
+
+  async consumeProfileQrDeepLinkFromUrl() {
+    if (this.profileQrDeepLinkHandled === true) return;
+    this.profileQrDeepLinkHandled = true;
+
+    const url = new URL(window.location.href);
+    const profileId = String(url.searchParams.get('profile') || '').trim();
+    const handleParam = String(url.searchParams.get('handle') || '').trim().replace(/^@+/, '');
+    if (!profileId && !handleParam) return;
+
+    const normalizedHandle = handleParam.toLowerCase();
+    const selfId = String(this.getAuthUserId?.() || '').trim();
+    if (profileId && selfId && profileId === selfId) {
+      this.clearProfileQrLinkParamsFromUrl();
+      const navProfile = document.getElementById('navProfile');
+      if (navProfile) this.setActiveNavButton(navProfile);
+      this.showSettings('profile');
+      return;
+    }
+
+    try {
+      let targetUser = null;
+      if (typeof this.loadAllRegisteredUsers === 'function') {
+        const users = await this.loadAllRegisteredUsers(true);
+        if (Array.isArray(users)) {
+          targetUser = users.find((user) => {
+            const candidateId = String(user?.id || '').trim();
+            const candidateHandle = String(user?.tag || '').trim().toLowerCase();
+            if (profileId && candidateId === profileId) return true;
+            if (!profileId && normalizedHandle && candidateHandle === normalizedHandle) return true;
+            return false;
+          }) || null;
+        }
+      }
+
+      if (!targetUser && profileId) {
+        const cached = typeof this.getCachedUserMeta === 'function'
+          ? this.getCachedUserMeta(profileId)
+          : {};
+        targetUser = {
+          id: profileId,
+          name: String(cached?.name || handleParam || 'Користувач').trim() || 'Користувач',
+          avatarImage: this.getAvatarImage(cached?.avatarImage || ''),
+          avatarColor: String(cached?.avatarColor || '').trim()
+        };
+      }
+
+      if (!targetUser) {
+        await this.showAlert('Користувача з цього QR не знайдено.');
+        this.clearProfileQrLinkParamsFromUrl();
+        return;
+      }
+
+      const navChats = document.getElementById('navChats');
+      if (navChats) this.setActiveNavButton(navChats);
+      await this.openOrCreateDirectChatByUser(targetUser);
+      this.closeContactProfileSection();
+      this.openContactProfileSection();
+      this.clearProfileQrLinkParamsFromUrl();
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося відкрити профіль з QR.');
+      this.clearProfileQrLinkParamsFromUrl();
+    }
+  }
+
+  bindProfileQrCardMotion() {
+    const card = document.getElementById('profileQrCard');
+    if (!card || card.dataset.motionBound === 'true') return;
+    card.dataset.motionBound = 'true';
+
+    const supportsFinePointer = () => (
+      window.matchMedia('(hover: hover)').matches
+      && window.matchMedia('(pointer: fine)').matches
+    );
+
+    let rafId = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    const applyMotion = () => {
+      rafId = 0;
+      const rotateY = pointerX * 8;
+      const rotateX = -pointerY * 8;
+      const moveX = pointerX * 3;
+      const moveY = pointerY * 3;
+      const glowX = (pointerX + 1) * 50;
+      const glowY = (pointerY + 1) * 50;
+      card.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      card.style.setProperty('--qr-mx', `${glowX}%`);
+      card.style.setProperty('--qr-my', `${glowY}%`);
+    };
+
+    const resetMotion = () => {
+      pointerX = 0;
+      pointerY = 0;
+      card.style.transform = '';
+      card.style.setProperty('--qr-mx', '50%');
+      card.style.setProperty('--qr-my', '28%');
+      card.classList.remove('is-active');
+    };
+
+    card.addEventListener('pointermove', (event) => {
+      if (!supportsFinePointer()) return;
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const relativeX = (event.clientX - rect.left) / rect.width;
+      const relativeY = (event.clientY - rect.top) / rect.height;
+      pointerX = Math.max(-1, Math.min(1, (relativeX - 0.5) * 2));
+      pointerY = Math.max(-1, Math.min(1, (relativeY - 0.5) * 2));
+      card.classList.add('is-active');
+      if (!rafId) rafId = window.requestAnimationFrame(applyMotion);
+    });
+    card.addEventListener('pointerleave', resetMotion);
+    card.addEventListener('pointercancel', resetMotion);
+    card.addEventListener('mouseleave', resetMotion);
+    resetMotion();
+  }
+
+  async openProfileQrModal() {
+    const modal = document.getElementById('profileQrModal');
+    const canvas = document.getElementById('profileQrCanvas');
+    const nameEl = document.getElementById('profileQrName');
+    const handleEl = document.getElementById('profileQrHandle');
+    const card = document.getElementById('profileQrCard');
+    if (!modal || !(canvas instanceof HTMLCanvasElement) || !nameEl || !handleEl || !card) return;
+
+    const snapshot = this.getProfileQrSnapshot();
+    nameEl.textContent = snapshot.name;
+    handleEl.textContent = snapshot.handle;
+
+    try {
+      await QRCode.toCanvas(canvas, snapshot.payloadText, {
+        width: 280,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: {
+          dark: '#151515',
+          light: '#ffffff'
+        }
+      });
+    } catch (error) {
+      await this.showAlert(error?.message || 'Не вдалося згенерувати QR код.');
+      return;
+    }
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    this.bindProfileQrCardMotion();
+    card.style.transform = '';
+    card.style.setProperty('--qr-mx', '50%');
+    card.style.setProperty('--qr-my', '28%');
+    card.classList.remove('is-active');
+    this.syncSharedModalOverlayState();
+  }
+
+  closeProfileQrModal() {
+    const modal = document.getElementById('profileQrModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    this.syncSharedModalOverlayState();
   }
 
   async confirmAddToGroup() {

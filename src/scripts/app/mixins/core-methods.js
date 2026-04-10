@@ -1617,6 +1617,12 @@ export class ChatAppCoreMethods {
       this.initializeServerChatSync();
     }
 
+    if (typeof this.consumeProfileQrDeepLinkFromUrl === 'function') {
+      window.setTimeout(() => {
+        this.consumeProfileQrDeepLinkFromUrl();
+      }, 120);
+    }
+
     this.refreshCoinWalletFromBackend({ includeTransactions: false, silent: true }).catch(() => {});
 
   }
