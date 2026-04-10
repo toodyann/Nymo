@@ -415,7 +415,7 @@ html.dark-theme .bottom-nav-indicator {
     inset: 0;
     background-image:
       linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-      url("../../Assets/Background-sidebar.jpg");
+      url("../../../Assets/Background-sidebar.jpg");
     background-size: cover;
     background-position: left center;
     background-repeat: no-repeat;
@@ -430,7 +430,7 @@ html.dark-theme .bottom-nav-indicator {
   html:not(.dark-theme) .desktop-secondary-menu.active::before {
     background-image:
       linear-gradient(rgba(252, 254, 255, 0.72), rgba(247, 250, 253, 0.68)),
-      url("../../Assets/Background-sidebar-white.jpg");
+      url("../../../Assets/Background-sidebar-white.jpg");
     opacity: 0.9;
     filter: blur(14px) brightness(1.04) saturate(0.78) contrast(0.92);
   }

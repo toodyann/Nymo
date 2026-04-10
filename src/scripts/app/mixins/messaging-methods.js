@@ -3392,6 +3392,29 @@ export class ChatAppMessagingMethods {
     }
   }
 
+  isLikelyNetworkPolicyError(error) {
+    const message = String(error?.message || error || '').trim().toLowerCase();
+    if (!message) return false;
+    return (
+      message.includes('failed to fetch') ||
+      message.includes('networkerror') ||
+      message.includes('load failed') ||
+      message.includes('network request failed') ||
+      message.includes('cors') ||
+      message.includes('preflight')
+    );
+  }
+
+  applyServerSyncBackoff(ms = 180_000) {
+    const safeMs = Math.max(30_000, Number(ms) || 0);
+    const untilTs = Date.now() + safeMs;
+    this.serverChatSyncBackoffUntilTs = untilTs;
+    this.realtimeSocketRetryAfterTs = Math.max(
+      Number(this.realtimeSocketRetryAfterTs || 0),
+      untilTs
+    );
+  }
+
   initializeRealtimeSocket() {
     if (this.realtimeSocketInitialized) return;
     this.realtimeSocketInitialized = true;
@@ -3429,6 +3452,8 @@ export class ChatAppMessagingMethods {
     const userId = this.getAuthUserId();
     const socketUrl = this.getRealtimeSocketUrl();
     if (!this.isOwnOnlineVisibilityEnabled() || !ioFactory || !userId || !socketUrl) return;
+    const retryAfter = Number(this.realtimeSocketRetryAfterTs || 0);
+    if (retryAfter > Date.now()) return;
 
     if (this.realtimeSocket && (this.realtimeSocket.connected || this.realtimeSocket.active)) {
       return;
@@ -3544,6 +3569,13 @@ export class ChatAppMessagingMethods {
       }
       if (typeof this.refreshServerChatSyncTimer === 'function') {
         this.refreshServerChatSyncTimer();
+      }
+    });
+
+    socket.on('connect_error', (error) => {
+      this.realtimeSocketConnected = false;
+      if (this.isLikelyNetworkPolicyError(error)) {
+        this.applyServerSyncBackoff(180_000);
       }
     });
 
@@ -3839,6 +3871,8 @@ export class ChatAppMessagingMethods {
     if (skipWhenHidden && document.visibilityState === 'hidden') return;
     if (this.serverChatSyncInFlight) return;
     const nowTs = Date.now();
+    const syncBackoffUntil = Number(this.serverChatSyncBackoffUntilTs || 0);
+    if (syncBackoffUntil > nowTs) return;
     if (!effectiveForceScroll) {
       const cooldownMs = Math.max(250, Number(this.serverChatSyncMinIntervalMs) || 0);
       const lastRunAt = Number(this.serverChatSyncLastRunAt || 0);
@@ -3849,7 +3883,11 @@ export class ChatAppMessagingMethods {
     try {
       await this.syncChatsFromServer({ preserveSelection: true, renderIfChanged: true });
       await this.syncCurrentChatMessagesFromServer({ forceScroll: effectiveForceScroll, highlightOwn: false });
-    } catch {
+      this.serverChatSyncBackoffUntilTs = 0;
+    } catch (error) {
+      if (this.isLikelyNetworkPolicyError(error)) {
+        this.applyServerSyncBackoff(180_000);
+      }
       // Keep UI responsive if backend is temporarily unavailable.
     } finally {
       this.serverChatSyncInFlight = false;

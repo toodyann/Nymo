@@ -149,6 +149,19 @@ export class ChatAppCoreMethods {
     return Number.isFinite(parsed) ? parsed : NaN;
   }
 
+  isLikelyNetworkPolicyError(error) {
+    const message = String(error?.message || error || '').trim().toLowerCase();
+    if (!message) return false;
+    return (
+      message.includes('failed to fetch') ||
+      message.includes('networkerror') ||
+      message.includes('load failed') ||
+      message.includes('network request failed') ||
+      message.includes('cors') ||
+      message.includes('preflight')
+    );
+  }
+
   extractWalletBalanceMinorUnits(payload) {
     const root = payload && typeof payload === 'object' ? payload : {};
     const candidates = [
@@ -278,6 +291,7 @@ export class ChatAppCoreMethods {
     const transactionsSuccessTtlMs = 20_000;
     const walletFailureCooldownMs = 30_000;
     const transactionsFailureCooldownMs = 30_000;
+    const walletNetworkPolicyCooldownMs = 180_000;
 
     if (!force) {
       if (this.walletRefreshPromise) {
@@ -298,6 +312,16 @@ export class ChatAppCoreMethods {
           currency,
           cached: true,
           skipped: 'wallet-backoff'
+        };
+      }
+
+      const walletNetworkRetryAfter = Number(this.walletNetworkPolicyRetryAfterTs || 0);
+      if (walletNetworkRetryAfter > now) {
+        return {
+          balance: this.getTapBalanceCents(),
+          currency,
+          cached: true,
+          skipped: 'wallet-network-policy-backoff'
         };
       }
 
@@ -366,6 +390,7 @@ export class ChatAppCoreMethods {
         this.setTapBalanceCents(nextBalance, { syncBackend: false });
       }
       this.walletRefreshRetryAfterTs = 0;
+      this.walletNetworkPolicyRetryAfterTs = 0;
       this.walletLastRefreshAt = Date.now();
 
       if (includeTransactions) {
@@ -391,7 +416,14 @@ export class ChatAppCoreMethods {
         currency
       };
     })().catch((error) => {
-      this.walletRefreshRetryAfterTs = Date.now() + walletFailureCooldownMs;
+      if (this.isLikelyNetworkPolicyError(error)) {
+        const retryAt = Date.now() + walletNetworkPolicyCooldownMs;
+        this.walletRefreshRetryAfterTs = retryAt;
+        this.walletTransactionsRetryAfterTs = retryAt;
+        this.walletNetworkPolicyRetryAfterTs = retryAt;
+      } else {
+        this.walletRefreshRetryAfterTs = Date.now() + walletFailureCooldownMs;
+      }
       if (!silent) {
         console.warn('[wallet] Failed to refresh wallet from backend:', error);
       }
