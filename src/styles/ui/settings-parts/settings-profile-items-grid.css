@@ -1,0 +1,381 @@
+/* Auto-split from src/styles/ui/settings.css | part 09 */
+
+.profile-items-grid.is-list .shop-item-preview-card {
+  width: min(100%, 128px);
+  min-height: 76px;
+  padding: 10px;
+}
+
+.profile-items-grid.is-list .shop-item-preview-badges {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.profile-items-grid.is-list .profile-item-title {
+  grid-area: title;
+}
+
+.profile-items-grid.is-list .profile-item-description {
+  grid-area: desc;
+  min-height: 0;
+}
+
+.profile-items-grid.is-list .shop-item-price.profile-item-price {
+  display: none;
+}
+
+.profile-item-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.profile-item-actions .shop-item-action {
+  margin-top: 0;
+}
+
+.profile-items-grid.is-list .profile-item-actions {
+  grid-area: actions;
+  align-self: stretch;
+  margin-top: 0;
+}
+
+.profile-item-action {
+  min-height: 42px;
+}
+
+.profile-item-action-sell {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 36%,
+    var(--border-color)
+  );
+}
+
+.profile-items-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: var(--radius-card);
+  border: 1px dashed color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: var(--surface-soft);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.profile-items-empty strong {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.shop-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 24px calc(var(--bottom-nav-height, 72px) + 44px) !important;
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--primary-color) 10%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 76%, transparent),
+      transparent 42%
+    );
+}
+
+.shop-balance-card,
+.wallet-balance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-color);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--bg-color) 88%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 68%, transparent)
+  );
+  box-shadow:
+    0 14px 32px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.shop-kicker,
+.wallet-balance-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+
+.shop-balance-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.shop-balance-meta > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shop-balance-label,
+.wallet-balance-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.shop-balance-value,
+.wallet-balance-value {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.shop-balance-badge {
+  margin-left: auto;
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.shop-balance-note,
+.wallet-balance-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.shop-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--bg-color) 92%, transparent),
+    color-mix(in srgb, var(--surface-soft) 72%, transparent)
+  );
+  box-shadow:
+    0 12px 26px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.shop-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.shop-filter-trigger svg {
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.shop-filter-trigger:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 34%,
+    var(--border-color)
+  );
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  transform: translateY(-1px);
+}
+
+.shop-filter-trigger.is-open {
+  color: #ffffff;
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+
+.shop-filter-trigger.is-open svg {
+  transform: rotate(90deg);
+}
+
+.shop-filter-summary {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-filter-panel {
+  display: block;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-10px);
+  padding: 0;
+  border-radius: var(--radius-card);
+  border: 1px solid transparent;
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--bg-color) 93%, transparent),
+    color-mix(in srgb, var(--surface-soft) 74%, transparent)
+  );
+  box-sizing: border-box;
+  transition:
+    max-height 0.28s ease,
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    padding 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.shop-filter-panel-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shop-filter-panel.is-open {
+  max-height: 1200px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  padding: 16px;
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  box-shadow:
+    0 14px 30px rgba(15, 19, 32, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.shop-filter-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--border-color) 88%, transparent);
+}
+
+.shop-filter-panel-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.shop-filter-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.shop-filter-close svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.shop-filter-close:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 36%,
+    var(--border-color)
+  );
+  color: var(--text-primary);
+}
+
+.shop-filter-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shop-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--surface-soft) 90%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 68%, transparent)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.shop-filter-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.shop-filter-options {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}

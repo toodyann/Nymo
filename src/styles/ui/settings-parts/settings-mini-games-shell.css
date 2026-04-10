@@ -1,0 +1,394 @@
+/* Auto-split from src/styles/ui/settings.css | part 14 */
+
+/* Mini games */
+.mini-games-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  background: transparent;
+}
+
+#mini-games {
+  background: transparent;
+  touch-action: pan-y;
+}
+
+.coin-tapper-content {
+  width: 100%;
+  gap: 26px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 96px 32px calc(var(--bottom-nav-height, 72px) + 56px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  text-align: center;
+  background: transparent;
+  touch-action: pan-y;
+  position: relative;
+}
+
+.coin-level-island {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  left: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 120px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-color) 90%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  text-align: left;
+  overflow: hidden;
+  isolation: isolate;
+  --coin-level-progress: 0%;
+}
+
+.coin-level-island::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  width: max(0px, calc(var(--coin-level-progress) - 4px));
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--primary-color) 24%, transparent) 0%,
+    color-mix(in srgb, var(--primary-color) 56%, transparent) 100%
+  );
+  transition: width 0.22s ease;
+  z-index: 0;
+}
+
+.coin-level-island-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.coin-level-island-label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.coin-level-island-value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.coin-tapper-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+
+.coin-tapper-balance-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.coin-tapper-balance {
+  font-size: clamp(32px, 6vw, 54px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.coin-tapper-hint {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.coin-tapper-button {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.14s ease,
+    filter 0.14s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  margin-top: 4px;
+}
+
+.coin-tapper-button:hover {
+  filter: brightness(1.03);
+}
+
+.coin-tapper-button:active,
+.coin-tapper-button.is-tapping {
+  transform: scale(0.94);
+  filter: saturate(1.08);
+}
+
+.coin-tapper-image {
+  display: block;
+  width: min(72vw, 260px);
+  height: min(72vw, 260px);
+  max-width: 260px;
+  max-height: 260px;
+  min-width: 180px;
+  min-height: 180px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  touch-action: manipulation;
+}
+
+.coin-tapper-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-color) 78%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.coin-tapper-rate strong {
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.mini-games-list {
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.mini-game-select {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--glass);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  text-align: left;
+}
+
+.mini-game-select:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow);
+}
+
+.mini-game-select.active {
+  border-color: color-mix(
+    in srgb,
+    var(--text-primary) 18%,
+    var(--border-color)
+  );
+  background: color-mix(in srgb, var(--surface-soft) 86%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
+.mini-game-icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex: 0 0 38px;
+}
+
+.mini-game-icon svg {
+  display: block;
+}
+
+.mini-game-title {
+  font-weight: 700;
+  font-size: 16px;
+  display: block;
+}
+
+.mini-game-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: block;
+  margin-top: 2px;
+}
+
+.mini-game-view {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 980px);
+  align-self: center;
+  padding: 18px;
+  border-radius: var(--radius-card);
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.mini-game-view.active {
+  display: flex;
+}
+
+#mini-games[data-active-mini-game="drift"] .mini-games-content {
+  gap: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#mini-games[data-active-mini-game="flappy"] .mini-games-content {
+  gap: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#mini-games[data-active-mini-game="grid2048"] .mini-games-content {
+  gap: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"] {
+  width: 100%;
+  max-width: none;
+  padding: 14px;
+  border-radius: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"] {
+  width: 100%;
+  max-width: none;
+  padding: 14px;
+  border-radius: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"]
+  .mini-game-stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"]
+  .mini-game-stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+#mini-games[data-active-mini-game="flappy"]
+  .mini-game-panel[data-mini-game-panel="flappy"]
+  .flappy-orion-canvas-wrap {
+  height: 100%;
+  min-height: 0;
+}
+
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"]
+  #grid2048Canvas {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.mini-game-play-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  min-width: 72px;
+  height: 72px;
+  min-height: 72px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  line-height: 0;
+  color: #111111;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 88%, #000000 12%);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.36),
+    0 0 0 1px rgba(255, 255, 255, 0.26) inset;
+  z-index: 9;
+}

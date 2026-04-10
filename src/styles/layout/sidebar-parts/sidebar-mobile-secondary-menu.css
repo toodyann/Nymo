@@ -1,0 +1,7 @@
+/* Auto-split from src/styles/layout/sidebar.css | part 03 */
+
+@media (max-width: 768px) {
+  .desktop-secondary-menu {
+    display: none !important;
+  }
+}

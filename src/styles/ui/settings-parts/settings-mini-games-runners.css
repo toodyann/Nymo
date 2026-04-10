@@ -1,0 +1,396 @@
+/* Auto-split from src/styles/ui/settings.css | part 15 */
+
+.mini-game-play-overlay::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.4 114.49 88.32 26.35a16 16 0 0 0-16.2-.3A15.86 15.86 0 0 0 64 39.87V216.13A15.94 15.94 0 0 0 80 232a16.07 16.07 0 0 0 8.36-2.35L232.4 141.51a15.81 15.81 0 0 0 0-27ZM80 215.94V40l143.83 88Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.4 114.49 88.32 26.35a16 16 0 0 0-16.2-.3A15.86 15.86 0 0 0 64 39.87V216.13A15.94 15.94 0 0 0 80 232a16.07 16.07 0 0 0 8.36-2.35L232.4 141.51a15.81 15.81 0 0 0 0-27ZM80 215.94V40l143.83 88Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+#grid2048Replay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#mini-games[data-active-mini-game="grid2048"]
+  .mini-game-panel[data-mini-game-panel="grid2048"].game-over
+  #grid2048Replay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mini-game-panel[data-mini-game-panel="flappy"].is-running #flappyOrionStart,
+.mini-game-panel[data-mini-game-panel="flappy"].flappy-game-over
+  #flappyOrionStart,
+.mini-game-panel[data-mini-game-panel="drift"].is-running #orionDriftStart {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  #mini-games[data-active-mini-game="grid2048"]
+    .mini-game-panel[data-mini-game-panel="grid2048"] {
+    background: var(--bg-color);
+  }
+
+  #mini-games[data-active-mini-game="grid2048"]
+    .mini-game-panel[data-mini-game-panel="grid2048"]
+    #grid2048Board.grid-2048 {
+    width: min(100%, clamp(500px, 72vh, 860px));
+    height: min(100%, clamp(500px, 72vh, 860px));
+    max-width: calc(100% - 8px);
+    max-height: calc(100% - 8px);
+    margin: 0 auto;
+    flex: 0 0 auto;
+  }
+}
+
+#mini-games[data-active-mini-game="drift"]
+  .mini-game-panel[data-mini-game-panel="drift"] {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  border-radius: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#mini-games[data-active-mini-game="drift"] .orion-drift-stage {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.mini-game-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-inner);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  border: 1px solid var(--border-color);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+.mini-game-mobile-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  color: var(--text-primary);
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  line-height: 1;
+}
+
+.mini-game-view-title {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.mini-game-view-score {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 7px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+}
+
+.mini-game-view-score strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.mini-game-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.mini-game-panel {
+  display: none;
+  width: 100%;
+}
+
+.mini-game-panel.active {
+  display: flex;
+}
+
+.mini-game-score-current {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+}
+
+:is(
+  #coinTapBalance,
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+)::after {
+  content: "";
+  display: inline-block;
+  width: max(13px, 0.76em);
+  height: max(13px, 0.76em);
+  margin-left: 0.06em;
+  vertical-align: middle;
+  transform: translateY(0);
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M198.51 56.09C186.44 35.4 169.92 24 152 24H104C86.08 24 69.56 35.4 57.49 56.09 46.21 75.42 40 101 40 128s6.21 52.58 17.49 71.91C69.56 220.6 86.08 232 104 232h48c17.92 0 34.44-11.4 46.51-32.09C209.79 180.58 216 155 216 128S209.79 75.42 198.51 56.09ZM199.79 120h-32a152.78 152.78 0 0 0-9.68-48H188.7C194.82 85.38 198.86 102 199.79 120Zm-20.6-64H150.46a83.13 83.13 0 0 0-12-16H152C162 40 171.4 46 179.19 56ZM56 128c0-47.7 22-88 48-88s48 40.3 48 88-22 88-48 88S56 175.7 56 128Zm96 88H138.49a83.13 83.13 0 0 0 12-16h28.73C171.4 210 162 216 152 216Zm36.7-32H158.12a152.78 152.78 0 0 0 9.68-48h32C198.86 154 194.82 170.62 188.7 184Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M198.51 56.09C186.44 35.4 169.92 24 152 24H104C86.08 24 69.56 35.4 57.49 56.09 46.21 75.42 40 101 40 128s6.21 52.58 17.49 71.91C69.56 220.6 86.08 232 104 232h48c17.92 0 34.44-11.4 46.51-32.09C209.79 180.58 216 155 216 128S209.79 75.42 198.51 56.09ZM199.79 120h-32a152.78 152.78 0 0 0-9.68-48H188.7C194.82 85.38 198.86 102 199.79 120Zm-20.6-64H150.46a83.13 83.13 0 0 0-12-16H152C162 40 171.4 46 179.19 56ZM56 128c0-47.7 22-88 48-88s48 40.3 48 88-22 88-48 88S56 175.7 56 128Zm96 88H138.49a83.13 83.13 0 0 0 12-16h28.73C171.4 210 162 216 152 216Zm36.7-32H158.12a152.78 152.78 0 0 0 9.68-48h32C198.86 154 194.82 170.62 188.7 184Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.currency-value-inline {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:is(
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #coinTapBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:is(
+  #shopBalanceValue,
+  #walletBalanceValue,
+  #profileItemsBalance,
+  #shopIslandBalance,
+  #coinTapBalance,
+  #shopPriceMinValue,
+  #shopPriceMaxValue,
+  #coinTapRewardValue,
+  #grid2048Earned,
+  #orionDriftOrbs,
+  .shop-item-price,
+  .wallet-history-item-amount,
+  .currency-value-inline
+)::after {
+  margin-left: 0.05em;
+  vertical-align: middle;
+  transform: translateY(0);
+}
+
+.mini-game-canvas {
+  width: 100%;
+  height: clamp(320px, 52vh, 500px);
+  max-width: 100%;
+  max-height: none;
+  border-radius: var(--radius-inner);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 58%),
+    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.16), transparent 54%),
+    color-mix(in srgb, var(--bg-color) 86%, #000000 14%);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.mini-game-panel.game-over .mini-game-canvas::after {
+  content: attr(data-end-message);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.45;
+  padding: 24px;
+  white-space: pre-line;
+  z-index: 3;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: rgba(8, 10, 14, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.mini-game-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  box-sizing: border-box;
+}
+
+.mini-game-btn {
+  min-width: 132px;
+  flex-shrink: 0;
+}
+
+.mini-game-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.flappy-orion-canvas-wrap {
+  position: relative;
+}
+
+.flappy-orion-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.orion-drift-canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  height: 100%;
+  background:
+    radial-gradient(
+      circle at 50% 10%,
+      rgba(255, 255, 255, 0.08),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 50% 86%,
+      rgba(255, 255, 255, 0.05),
+      transparent 46%
+    ),
+    #111318;
+}
+
+html:not(.dark-theme) .orion-drift-canvas-wrap {
+  background:
+    radial-gradient(
+      circle at 50% 12%,
+      rgba(255, 242, 214, 0.62),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 50% 88%,
+      rgba(214, 183, 132, 0.2),
+      transparent 48%
+    ),
+    #f0e4d2;
+}
+
+.orion-drift-stage {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+}
+
+.orion-drift-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.orion-drift-hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.orion-drift-orbs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  padding: 7px 10px;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
+    0 8px 18px color-mix(in srgb, #000000 16%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.orion-drift-main {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  border-radius: 999px;
+  padding: 7px 12px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent),
+    0 8px 18px color-mix(in srgb, #000000 16%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}

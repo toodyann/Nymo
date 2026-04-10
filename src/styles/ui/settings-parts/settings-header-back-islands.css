@@ -1,0 +1,383 @@
+/* Auto-split from src/styles/ui/settings.css | part 02 */
+
+#notifications-center .calls-header h2,
+#calls .calls-header h2,
+#profile-items .profile-items-header h2,
+#wallet .calls-header h2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  margin: 0 auto;
+  border-radius: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  pointer-events: auto;
+}
+
+#notifications-center .calls-header h2 svg,
+#calls .calls-header h2 svg,
+#profile-items .profile-items-header h2 svg,
+#wallet .calls-header h2 svg {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+#profile-items .profile-items-back-island {
+  position: absolute;
+  top: 14px;
+  left: 24px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  color: var(--text-primary);
+  border: none;
+  background: transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#profile-items .profile-items-back-island svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+html:not(.dark-theme) #notifications-center .calls-header h2,
+html:not(.dark-theme) #calls .calls-header h2,
+html:not(.dark-theme) #profile-items .profile-items-header h2,
+html:not(.dark-theme) #wallet .calls-header h2 {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html:not(.dark-theme) #profile-items .profile-items-back-island {
+  border: none;
+  background: transparent;
+  box-shadow:
+    0 10px 22px rgba(15, 19, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.dark-theme #notifications-center .calls-header h2,
+html.dark-theme #calls .calls-header h2,
+html.dark-theme #profile-items .profile-items-header h2,
+html.dark-theme #wallet .calls-header h2 {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html.dark-theme #profile-items .profile-items-back-island {
+  border: none;
+  background: transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#profile-items .profile-items-back-island:hover,
+#profile-items .profile-items-back-island:active {
+  background: transparent;
+}
+
+#notifications-center .calls-content,
+#calls .calls-content,
+#profile-items .profile-items-content,
+#wallet .wallet-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  background: transparent;
+  padding-top: 70px;
+  box-sizing: border-box;
+}
+
+.settings-subsection {
+  position: relative;
+  background: transparent;
+}
+
+.settings-subsection .settings-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 0 0;
+  min-height: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.settings-header.settings-subsection-header {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.settings-header.settings-subsection-header .settings-subsection-title {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.settings-subsection .settings-header .settings-subsection-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+  width: auto;
+  max-width: calc(100% - 72px);
+  box-sizing: border-box;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  pointer-events: none;
+  position: static;
+  transform: none;
+}
+
+.settings-subsection .settings-header .settings-subsection-title svg {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.settings-subsection .settings-subsection-back {
+  position: absolute;
+  top: 14px;
+  left: 24px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  color: var(--text-primary);
+  border: none;
+  background: transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.settings-subsection .settings-subsection-back svg {
+  display: block;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.settings-subsection .settings-subsection-back svg * {
+  cursor: pointer;
+}
+
+html:not(.dark-theme) .settings-subsection .settings-subsection-title {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html:not(.dark-theme) .settings-subsection .settings-subsection-back {
+  background: transparent;
+  box-shadow:
+    0 10px 22px rgba(15, 19, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.dark-theme .settings-subsection .settings-subsection-title {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html.dark-theme .settings-subsection .settings-subsection-back {
+  background: transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Use the same island surface as .shop-filter-summary for all header islands */
+#messenger-settings .shop-balance-island,
+#profile-items .profile-items-back-island,
+.settings-subsection .settings-subsection-back {
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+#messenger-settings .shop-header h2,
+#notifications-center .calls-header h2,
+#calls .calls-header h2,
+#profile-items .profile-items-header h2,
+#wallet .calls-header h2,
+.settings-subsection .settings-header .settings-subsection-title,
+#profile-settings .settings-header h2 {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#profile-items .profile-items-back-island,
+.settings-subsection .settings-subsection-back {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.settings-subsection .settings-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  background: transparent;
+  padding: 70px 20px calc(var(--bottom-nav-height, 72px) + 24px);
+  box-sizing: border-box;
+}
+
+.settings-group {
+  margin-bottom: 24px;
+  background-color: var(--bg-color);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+}
+
+.settings-group h3 {
+  margin: 0;
+  padding: 16px 20px 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  letter-spacing: 0.5px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  background-color: var(--bg-color);
+  transition: background-color 0.15s ease;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.settings-item:active {
+  background-color: var(--bg-secondary);
+}
+
+.settings-item-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-item-label span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 3px;
+  font-size: 16px;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.settings-item-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e0e0e0;
+  border-radius: 26px;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s ease;
+}

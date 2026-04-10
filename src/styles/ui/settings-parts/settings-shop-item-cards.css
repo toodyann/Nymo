@@ -1,0 +1,388 @@
+/* Auto-split from src/styles/ui/settings.css | part 12 */
+
+.shop-item-action.can-buy {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 36%,
+    var(--border-color)
+  );
+}
+
+.shop-item-action.is-owned {
+  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+}
+
+.shop-item-action.is-equipped {
+  border-color: var(--secondary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.shop-item-action.is-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.shop-item-actions-stack {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-item-actions-stack .shop-item-action {
+  margin-top: 0;
+}
+
+.shop-item-inspect-action {
+  border-color: color-mix(
+    in srgb,
+    var(--border-color) 86%,
+    var(--primary-color)
+  );
+  background: color-mix(in srgb, var(--surface-soft) 94%, transparent);
+  color: var(--text-primary);
+}
+
+#orion-drive-garage .settings-content.orion-drive-garage-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  grid-template-areas:
+    "viewer info"
+    "viewer specs"
+    "action action";
+  gap: 14px;
+  align-items: stretch;
+  padding-bottom: calc(var(--bottom-nav-height, 72px) + 34px);
+}
+
+.orion-drive-garage-viewer-card,
+.orion-drive-garage-info-card,
+.orion-drive-garage-specs-card {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-color) 88%, transparent);
+  box-shadow:
+    0 12px 26px rgba(15, 19, 32, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.orion-drive-garage-viewer-card {
+  grid-area: viewer;
+  padding: 12px;
+  min-height: clamp(360px, 52vh, 620px);
+  display: flex;
+  flex-direction: column;
+}
+
+.orion-drive-garage-stage {
+  position: relative;
+  flex: 1;
+  min-height: clamp(340px, 48vh, 590px);
+  border-radius: calc(var(--radius-card) - 4px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background:
+    radial-gradient(
+      circle at 50% 6%,
+      rgba(255, 255, 255, 0.14),
+      transparent 52%
+    ),
+    radial-gradient(circle at 50% 110%, rgba(0, 0, 0, 0.28), transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 86%, transparent),
+      color-mix(in srgb, var(--bg-color) 92%, transparent)
+    );
+}
+
+.orion-drive-garage-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: clamp(340px, 48vh, 590px);
+  touch-action: pan-y;
+}
+
+.orion-drive-garage-fallback {
+  position: absolute;
+  inset: 16% 16% 22%;
+  width: auto;
+  max-width: 68%;
+  max-height: 62%;
+  margin: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.26));
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.orion-drive-garage-state {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  z-index: 2;
+}
+
+.orion-drive-garage-rotate-btn {
+  position: absolute;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  margin-top: -19px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.orion-drive-garage-rotate-btn.rotate-left {
+  left: 10px;
+}
+
+.orion-drive-garage-rotate-btn.rotate-right {
+  right: 10px;
+}
+
+.orion-drive-garage-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  z-index: 2;
+}
+
+.orion-drive-garage-info-card,
+.orion-drive-garage-specs-card {
+  padding: 18px;
+}
+
+.orion-drive-garage-info-card {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orion-drive-garage-info-card h3 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.orion-drive-garage-info-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.orion-drive-garage-meta {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orion-drive-garage-meta-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.orion-drive-garage-meta-item {
+  min-height: 64px;
+  padding: 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.orion-drive-garage-meta-item.is-class {
+  min-height: 72px;
+}
+
+.orion-drive-garage-meta-item span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.orion-drive-garage-meta-item strong {
+  font-size: 15px;
+  line-height: 1.15;
+  color: var(--text-primary);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.orion-drive-garage-specs-card h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.orion-drive-garage-specs-card {
+  grid-area: specs;
+}
+
+.orion-drive-garage-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orion-drive-garage-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.orion-drive-garage-spec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.orion-drive-garage-spec-row span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.orion-drive-garage-spec-row strong {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.orion-drive-garage-spec-meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  overflow: hidden;
+}
+
+.orion-drive-garage-spec-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--primary-color) 78%, #6ee7b7),
+    color-mix(in srgb, var(--secondary-color) 74%, #93c5fd)
+  );
+}
+
+.shop-item-action.orion-drive-garage-action {
+  grid-area: action;
+  min-height: 46px;
+  font-size: 14px;
+}
+
+@media (max-width: 1320px) {
+  #orion-drive-garage .settings-content.orion-drive-garage-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "viewer"
+      "info"
+      "specs"
+      "action";
+  }
+
+  .orion-drive-garage-viewer-card {
+    min-height: clamp(300px, 48vh, 520px);
+  }
+
+  .orion-drive-garage-stage,
+  .orion-drive-garage-canvas {
+    min-height: clamp(280px, 42vh, 480px);
+  }
+
+  .orion-drive-garage-meta-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .orion-drive-garage-meta-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-settings-hero-card,
+.profile-settings-form-card {
+  padding: 22px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-settings-card.profile-settings-menu-card {
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  box-shadow: none;
+}
+
+html.dark-theme .profile-settings-card.profile-settings-menu-card {
+  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  box-shadow: none;
+}
+
+.profile-content > .profile-settings-menu-card {
+  margin-top: 10px;
+}
+
+.profile-section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.profile-section-heading h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+}

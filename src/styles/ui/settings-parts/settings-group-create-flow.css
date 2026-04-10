@@ -1,0 +1,383 @@
+/* Auto-split from src/styles/ui/settings.css | part 01 */
+
+#group-create .new-chat-group-chip:hover {
+  background-color: var(--bg-secondary);
+}
+
+#group-create .new-chat-group-chip-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+}
+
+#group-create .new-chat-group-chip-name {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+#group-create .new-chat-group-chip-remove {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+}
+
+#group-create .group-create-users-list {
+  overflow: hidden;
+}
+
+#group-create .new-chat-group-users {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  max-height: 440px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+#group-create .new-chat-group-users-empty {
+  padding: 18px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+#group-create .group-create-contact-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  background: var(--bg-color);
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+#group-create .group-create-contact-row:last-child {
+  border-bottom: none;
+}
+
+#group-create .group-create-contact-row:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+#group-create .group-create-contact-row:active {
+  background-color: var(--bg-secondary);
+}
+
+#group-create .new-chat-group-user.active {
+  background-color: var(--bg-secondary);
+}
+
+#group-create .new-chat-group-user-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#group-create .new-chat-group-user.active .new-chat-group-user-indicator {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 62%,
+    var(--border-color)
+  );
+  background: color-mix(in srgb, var(--primary-color) 90%, #ffffff);
+  color: #ffffff;
+}
+
+#group-create .group-create-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 0 0;
+  margin-top: 6px;
+}
+
+#group-create .group-create-action {
+  min-width: 164px;
+  min-height: 42px;
+}
+
+#group-create .group-create-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  #group-create .group-create-header {
+    padding: 10px 14px 0;
+    min-height: 60px;
+  }
+
+  #group-create .group-create-content {
+    padding: 78px 14px 16px;
+  }
+
+  #group-create .group-create-stage-card {
+    padding: 0;
+  }
+
+  #group-create .group-create-stage-head h3 {
+    font-size: 17px;
+  }
+
+  #group-create .group-create-avatar-block {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #group-create .new-chat-group-users {
+    max-height: none;
+  }
+
+  #group-create .group-create-footer {
+    flex-direction: column-reverse;
+  }
+
+  #group-create .group-create-action {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+#messenger-settings .shop-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: transparent !important;
+  min-height: 0;
+  padding: 14px 0 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  pointer-events: none;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+#messenger-settings .shop-header.is-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+#messenger-settings {
+  position: relative;
+  background: transparent;
+}
+
+#messenger-settings .shop-balance-island {
+  position: absolute;
+  top: 14px;
+  right: 24px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+#messenger-settings .shop-balance-island.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#messenger-settings .shop-balance-island-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+#messenger-settings .shop-balance-island-value {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+#messenger-settings .shop-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  background: transparent;
+}
+
+#messenger-settings .shop-header h2 {
+  position: static;
+  left: auto;
+  transform: none;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 50px;
+  border-radius: 0;
+  font-size: 18px;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+#messenger-settings .shop-header h2,
+#notifications-center .calls-header h2,
+#calls .calls-header h2,
+#profile-items .profile-items-header h2,
+#wallet .calls-header h2 {
+  width: auto;
+  max-width: calc(100% - 72px);
+  box-sizing: border-box;
+  padding: 0;
+}
+
+#messenger-settings .shop-header h2 svg {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+#messenger-settings .shop-content {
+  padding-top: 78px !important;
+}
+
+#wallet .wallet-content {
+  padding-top: 78px !important;
+}
+
+html:not(.dark-theme) #messenger-settings .shop-header h2 {
+  color: #0f1320;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html:not(.dark-theme) #messenger-settings .shop-balance-island {
+  border: 1px solid rgba(20, 24, 36, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 10px 22px rgba(15, 19, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html.dark-theme #messenger-settings .shop-header h2 {
+  color: #ffffff;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html:not(.dark-theme) #messenger-settings .shop-header h2 svg,
+html.dark-theme #messenger-settings .shop-header h2 svg {
+  color: inherit;
+}
+
+html.dark-theme #messenger-settings .shop-balance-island {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  background: transparent;
+}
+
+#calls {
+  position: relative;
+  background: transparent;
+}
+
+#notifications-center {
+  position: relative;
+  background: transparent;
+}
+
+#profile-items {
+  position: relative;
+  background: transparent;
+}
+
+#wallet {
+  position: relative;
+  background: transparent;
+}
+
+#notifications-center .calls-header,
+#calls .calls-header,
+#profile-items .profile-items-header,
+#wallet .calls-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 0 0;
+  background: transparent;
+  pointer-events: none;
+}

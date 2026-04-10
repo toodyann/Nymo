@@ -1,0 +1,383 @@
+/* Auto-split from src/styles/ui/modal.css | part 02 */
+
+#newChatModal .new-chat-panel,
+#newChatModal .group-fields.active {
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 66%, transparent);
+  background-color: rgba(28, 34, 48, 0.56);
+  background-image: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.015)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: none;
+}
+
+html:not(.dark-theme) #newChatModal .new-chat-panel,
+html:not(.dark-theme) #newChatModal .group-fields.active {
+  background-color: rgba(255, 255, 255, 0.52);
+  background-image: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.52),
+    rgba(255, 255, 255, 0.22)
+  );
+}
+
+#newChatModal .new-chat-panel {
+  background-color: transparent;
+  background-image: none;
+  padding: 14px;
+}
+
+#newChatModal .group-fields.active {
+  padding: 14px;
+}
+
+#newChatModal .contact-input {
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+#newChatModal .new-chat-mode {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+#newChatModal .new-chat-tips {
+  display: none;
+}
+
+#newChatModal .new-chat-footer {
+  padding: 12px 18px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 64%, transparent);
+  gap: 8px;
+  background: transparent;
+}
+
+#newChatModal .new-chat-footer .btn {
+  min-height: 46px;
+  width: 170px;
+  min-width: 170px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.04)
+  );
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+html:not(.dark-theme) #newChatModal .new-chat-footer .btn {
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.74),
+    rgba(255, 255, 255, 0.34)
+  );
+}
+
+#newChatModal .new-chat-footer .btn-primary,
+#newChatModal .new-chat-footer .btn-secondary {
+  width: 170px;
+  min-width: 170px;
+}
+
+#newChatModal .new-chat-footer .btn:hover {
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.08)
+  );
+  border-color: color-mix(in srgb, var(--border-color) 84%, transparent);
+}
+
+@media (max-width: 1024px) {
+  #newChatModal.modal {
+    width: min(94vw, 520px);
+  }
+}
+
+.alert-modal {
+  width: min(92vw, 420px);
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.alert-overlay.is-notice .alert-modal {
+  border-color: color-mix(in srgb, #22c55e 34%, var(--border-color));
+}
+
+.alert-overlay.is-error .alert-modal {
+  border-color: color-mix(in srgb, #ef4444 34%, var(--border-color));
+}
+
+.alert-modal.active {
+  animation: alertPopIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html:not(.dark-theme) .alert-modal {
+  background: #ffffff;
+  border-color: rgba(20, 24, 36, 0.12);
+  box-shadow: 0 10px 28px rgba(15, 19, 32, 0.12);
+}
+
+html:not(.dark-theme) .alert-overlay.is-notice .alert-modal {
+  border-color: color-mix(in srgb, #22c55e 28%, rgba(20, 24, 36, 0.12));
+}
+
+.alert-modal-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  gap: 12px;
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+  min-height: 0;
+}
+
+.alert-modal-inner::before {
+  content: none;
+}
+
+.alert-overlay.is-notice .alert-modal-inner::before {
+  content: none;
+}
+
+html:not(.dark-theme) .alert-modal-inner::before {
+  content: none;
+}
+
+html:not(.dark-theme) .alert-overlay.is-notice .alert-modal-inner::before {
+  content: none;
+}
+
+.alert-modal-inner > * {
+  position: relative;
+  z-index: 1;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.alert-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.alert-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.alert-title-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.alert-header h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+.alert-close {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  border-radius: 8px;
+}
+
+.alert-close:hover {
+  color: var(--text-primary);
+  background-color: color-mix(in srgb, var(--bg-color) 66%, transparent);
+}
+
+.alert-body {
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: min(38vh, 240px);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.alert-message-text {
+  white-space: pre-wrap;
+}
+
+.alert-confirm-option {
+  margin-top: 10px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: color 0.16s ease;
+}
+
+.alert-confirm-option:hover {
+  color: var(--text-primary);
+}
+
+.alert-confirm-option:focus-within {
+  color: var(--text-primary);
+}
+
+.alert-confirm-option-input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: 0 0 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.alert-confirm-option-input::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: transform 0.14s ease;
+  background: currentColor;
+  color: #ffffff;
+  clip-path: polygon(14% 53%, 0 67%, 40% 100%, 100% 26%, 86% 12%, 39% 68%);
+}
+
+.alert-confirm-option-input:checked {
+  border-color: color-mix(in srgb, var(--primary-color) 72%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 86%, #5f6e83);
+}
+
+.alert-confirm-option-input:checked::before {
+  transform: scale(1);
+}
+
+.alert-confirm-option-input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 48%, #94a3b8);
+  outline-offset: 2px;
+}
+
+.alert-confirm-option-text {
+  line-height: 1.25;
+  color: inherit;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.alert-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+  font-weight: 600;
+  min-width: 96px;
+}
+
+html:not(.dark-theme) .alert-actions .btn {
+  background: transparent;
+}
+
+.alert-actions .btn:hover {
+  background: color-mix(in srgb, var(--bg-color) 66%, transparent);
+}
+
+.alert-actions #alertOkBtn {
+  border-color: var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.alert-actions #alertOkBtn:hover {
+  background: color-mix(in srgb, var(--bg-color) 66%, transparent);
+}
+
+.contact-profile-view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  background: var(--bg-color);
+}

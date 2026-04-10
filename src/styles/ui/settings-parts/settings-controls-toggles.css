@@ -1,0 +1,389 @@
+/* Auto-split from src/styles/ui/settings.css | part 03 */
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #111111;
+}
+
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .toggle-slider {
+  background-color: #39393d;
+}
+
+.dark-theme .toggle-switch input:checked + .toggle-slider {
+  background-color: #ffffff;
+}
+
+.dark-theme .toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22);
+}
+
+.dark-theme .toggle-switch input:checked + .toggle-slider:before {
+  background-color: #111111;
+}
+
+.form-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 15px;
+  cursor: pointer;
+  outline: none;
+}
+
+.settings-item-action-select {
+  min-width: 132px;
+}
+
+.form-select:hover {
+  border-color: var(--primary-color);
+}
+
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.settings-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px;
+  margin-top: auto;
+  background-color: var(--bg-color);
+}
+
+.settings-buttons .btn {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.settings-buttons .btn-primary,
+.settings-buttons .btn-secondary {
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
+}
+
+.settings-buttons .btn-primary:hover,
+.settings-buttons .btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 96%, transparent);
+  color: var(--text-primary);
+}
+
+.about-buttons,
+.help-buttons {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  margin-top: auto;
+  background-color: var(--bg-color);
+}
+
+.settings-subsection .settings-buttons {
+  padding: 10px 0 0;
+  margin-top: 0;
+  background: transparent;
+}
+
+.settings-subsection .settings-buttons .btn {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  color: var(--text-primary);
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 32px 20px 24px 20px;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+}
+
+.about-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.about-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.version {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.about-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+}
+
+.about-section h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.about-section p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.about-section a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.about-section a:hover {
+  text-decoration: underline;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.features-list li {
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.features-list li:hover {
+  background-color: rgba(0, 122, 255, 0.1);
+  transform: translateX(4px);
+}
+
+#faq-settings .settings-content {
+  width: min(100%, 980px);
+  max-width: 100%;
+  margin: 0 auto;
+  padding-bottom: max(240px, calc(var(--bottom-nav-height, 72px) + 140px));
+}
+
+#faq-settings .settings-header h2 {
+  font-size: 18px;
+}
+
+#faq-settings .faq-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#faq-settings .faq-hero-card,
+#faq-settings .faq-block {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--surface-soft) 92%, transparent);
+  box-shadow: var(--shadow);
+}
+
+#faq-settings .faq-hero-card {
+  padding: 20px;
+}
+
+#faq-settings .faq-kicker {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+}
+
+#faq-settings .faq-hero-title {
+  margin: 10px 0;
+  font-size: 22px;
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+#faq-settings .faq-hero-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+#faq-settings .faq-tags {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+#faq-settings .faq-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 86%, transparent);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#faq-settings .faq-tag::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  border-radius: 999px;
+  background: var(--primary-color);
+  opacity: 0.78;
+  flex-shrink: 0;
+}
+
+#faq-settings .faq-block {
+  padding: 0;
+  overflow: hidden;
+}
+
+#faq-settings .faq-block.is-faq-block-active {
+  border-color: color-mix(
+    in srgb,
+    var(--primary-color) 32%,
+    var(--border-color)
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 12%, transparent),
+    var(--shadow);
+}
+
+#faq-settings .faq-block-head {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+}
+
+#faq-settings .faq-block-head-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+#faq-settings .faq-block-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+#faq-settings .faq-block-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+#faq-settings .faq-chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-right: 1.8px solid currentColor;
+  border-bottom: 1.8px solid currentColor;
+  color: var(--text-secondary);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+
+#faq-settings .faq-block.is-open > .faq-block-head .faq-chevron {
+  transform: rotate(225deg);
+}
+
+#faq-settings .faq-block-body {
+  display: none;
+  padding: 0 18px 18px;
+}
+
+#faq-settings .faq-block.is-open > .faq-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#faq-settings .faq-card {
+  display: block;
+  border-radius: var(--radius-inner);
+  border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+  background: color-mix(in srgb, var(--bg-color) 88%, transparent);
+  overflow: hidden;
+}
+
+#faq-settings .faq-card-toggle {
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+}
