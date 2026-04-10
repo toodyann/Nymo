@@ -942,21 +942,33 @@ export class ChatAppCoreMethods {
   applyAvatarDecoration(avatarEl) {
     if (!avatarEl) return;
     const frame = this.user?.equippedAvatarFrame || '';
-    avatarEl.dataset.avatarFrame = frame;
+    if (frame) {
+      avatarEl.dataset.avatarFrame = frame;
+    } else {
+      avatarEl.removeAttribute('data-avatar-frame');
+    }
     avatarEl.classList.toggle('has-avatar-frame', Boolean(frame));
   }
 
   applyProfileAura(cardEl) {
     if (!cardEl) return;
     const aura = this.user?.equippedProfileAura || '';
-    cardEl.dataset.profileAura = aura;
+    if (aura) {
+      cardEl.dataset.profileAura = aura;
+    } else {
+      cardEl.removeAttribute('data-profile-aura');
+    }
     cardEl.classList.toggle('has-profile-aura', Boolean(aura));
   }
 
   applyProfileMotion(cardEl) {
     if (!cardEl) return;
     const motion = this.user?.equippedProfileMotion || '';
-    cardEl.dataset.profileMotion = motion;
+    if (motion) {
+      cardEl.dataset.profileMotion = motion;
+    } else {
+      cardEl.removeAttribute('data-profile-motion');
+    }
     cardEl.classList.toggle('has-profile-motion', Boolean(motion));
   }
 

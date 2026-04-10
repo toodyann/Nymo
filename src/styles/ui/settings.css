@@ -2793,15 +2793,15 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 .shop-item-preview-card[data-profile-motion="glint"]::after {
   background: linear-gradient(
     115deg,
-    transparent 12%,
-    rgba(255, 255, 255, 0.02) 28%,
-    rgba(255, 255, 255, 0.3) 44%,
-    rgba(107, 114, 128, 0.18) 52%,
-    rgba(255, 255, 255, 0.02) 64%,
-    transparent 82%
+    transparent 6%,
+    rgba(255, 255, 255, 0.015) 22%,
+    rgba(255, 255, 255, 0.2) 42%,
+    rgba(107, 114, 128, 0.12) 50%,
+    rgba(255, 255, 255, 0.015) 68%,
+    transparent 90%
   );
-  transform: translateX(-60%) skewX(-12deg);
-  animation: profileMotionGlint 4.8s linear infinite;
+  transform: translateX(-135%) skewX(-9deg);
+  animation: profileMotionGlint 9.2s linear infinite;
 }
 
 .profile-hero-card[data-profile-motion="orbit"]::after,
@@ -2853,11 +2853,19 @@ html.dark-theme .profile-hero-card[data-profile-aura="midnight"] {
 }
 
 @keyframes profileMotionGlint {
-  from {
-    transform: translateX(-60%) skewX(-12deg);
+  0% {
+    transform: translateX(-135%) skewX(-9deg);
+    opacity: 0;
   }
-  to {
-    transform: translateX(60%) skewX(-12deg);
+  18% {
+    opacity: 0.56;
+  }
+  82% {
+    opacity: 0.56;
+  }
+  100% {
+    transform: translateX(135%) skewX(-9deg);
+    opacity: 0;
   }
 }
 
