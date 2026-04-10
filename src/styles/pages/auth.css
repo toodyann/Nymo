@@ -368,6 +368,31 @@ html.dark-theme .auth-submit {
   text-align: center;
 }
 
+.auth-feedback {
+  min-height: 18px;
+  margin: 8px 0 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.auth-feedback.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.auth-feedback.is-error {
+  color: #ef6a6a;
+}
+
+.auth-feedback.is-success {
+  color: #65d48d;
+}
+
 .auth-inline-btn {
   border: none;
   background: transparent;

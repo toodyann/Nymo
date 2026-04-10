@@ -111,6 +111,33 @@ function isBackendUnavailableError(error) {
   );
 }
 
+function isInvalidCredentialsError(error) {
+  const status = Number(error?.status || 0);
+  if ([400, 401, 403, 404, 422].includes(status)) return true;
+  const message = safeTrim(error?.message).toLowerCase();
+  if (!message) return false;
+  return (
+    message.includes('unauthorized') ||
+    message.includes('invalid') ||
+    message.includes('wrong password') ||
+    message.includes('incorrect') ||
+    message.includes('невір') ||
+    message.includes('неправ') ||
+    message.includes('пароль') ||
+    message.includes('номер')
+  );
+}
+
+function hasOfflineCredentialsMismatch(phone, password) {
+  const normalizedPhone = normalizePhone(phone);
+  const safePassword = safeTrim(password);
+  if (!PHONE_UA_RE.test(normalizedPhone) || !safePassword) return false;
+  const users = ensureDefaultOfflineUserSeeded();
+  const samePhoneUser = users.find((item) => item.phone === normalizedPhone);
+  if (!samePhoneUser) return false;
+  return samePhoneUser.password !== safePassword;
+}
+
 function tryOfflineLogin(phone, password) {
   const normalizedPhone = normalizePhone(phone);
   const safePassword = safeTrim(password);
@@ -405,6 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('authThemeToggle');
   const authFormsRoot = document.querySelector('.auth-forms');
   const authPageRoot = document.querySelector('.auth-page');
+  const loginFeedback = document.getElementById('authLoginFeedback');
+  const registerFeedback = document.getElementById('authRegisterFeedback');
   const switchToRegisterBtn = document.getElementById('switchToRegister');
   const switchToLoginBtn = document.getElementById('switchToLogin');
   const passwordToggles = document.querySelectorAll('[data-toggle-password]');
@@ -466,9 +495,31 @@ document.addEventListener('DOMContentLoaded', () => {
     setFormLoadingState(registerForm, pending && state.mode === 'register');
   };
 
+  const clearFeedbackElement = (element) => {
+    if (!(element instanceof HTMLElement)) return;
+    element.textContent = '';
+    element.classList.remove('is-visible', 'is-error', 'is-success');
+  };
+
+  const clearFeedback = () => {
+    clearFeedbackElement(loginFeedback);
+    clearFeedbackElement(registerFeedback);
+  };
+
   const setFeedback = (message, type = 'error') => {
     const text = safeTrim(message);
-    if (!text) return;
+    if (!text) {
+      clearFeedback();
+      return;
+    }
+    const target = state.mode === 'register' ? registerFeedback : loginFeedback;
+    clearFeedback();
+    if (target instanceof HTMLElement) {
+      target.textContent = text;
+      target.classList.add('is-visible');
+      target.classList.toggle('is-success', type === 'success');
+      target.classList.toggle('is-error', type !== 'success');
+    }
     const method = type === 'success' ? 'info' : 'warn';
     console[method](`[auth] ${text}`);
   };
@@ -549,6 +600,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  for (const input of authFormsRoot.querySelectorAll('input')) {
+    if (!(input instanceof HTMLInputElement)) continue;
+    input.addEventListener('input', () => {
+      if (!state.pending) setFeedback('');
+    });
+  }
+
   const initialDark = readInitialTheme();
   const updateThemeToggleA11y = () => {
     const isDark = document.documentElement.classList.contains('dark-theme');
@@ -618,6 +676,10 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'Виконано локальний вхід (demo mode).';
         setFeedback(fallbackMessage, 'success');
         redirectToAppHomeNow();
+        return;
+      }
+      if (isInvalidCredentialsError(error) || hasOfflineCredentialsMismatch(phone, password)) {
+        setFeedback('Неправильний номер або пароль.');
         return;
       }
       setFeedback(error?.message || 'Не вдалося виконати вхід.');
