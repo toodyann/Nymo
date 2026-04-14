@@ -164,7 +164,7 @@ async function registerOrionServiceWorker() {
     watchPwaRegistrationForUpdates(registration);
     return registration;
   } catch (error) {
-    console.warn('Orion service worker registration failed.', error);
+    console.warn('Nymo service worker registration failed.', error);
     return null;
   }
 }

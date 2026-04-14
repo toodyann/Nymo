@@ -1,4 +1,11 @@
-const orionLogoAssetUrl = new URL('../../../Assets/Orion_logo.png', import.meta.url).href;
+const nymoLogoDarkAssetUrl = new URL('../../../Assets/Nymo_logo_white.png', import.meta.url).href;
+const nymoLogoLightAssetUrl = new URL('../../../Assets/Nymo_logo_black.png', import.meta.url).href;
+
+function resolveActiveLogo() {
+  return document.documentElement.classList.contains('dark-theme')
+    ? nymoLogoDarkAssetUrl
+    : nymoLogoLightAssetUrl;
+}
 
 export function mountAppShell() {
   const appContainer = document.getElementById('app');
@@ -12,7 +19,14 @@ export function mountAppShell() {
   <header class="app-header">
     <div class="app-header-left">
       <div class="chat-brand">
-        <img class="app-logo" src="${orionLogoAssetUrl}" alt="Orion" />
+        <img
+          class="app-logo"
+          src="${resolveActiveLogo()}"
+          data-brand-logo="true"
+          data-logo-dark-src="${nymoLogoDarkAssetUrl}"
+          data-logo-light-src="${nymoLogoLightAssetUrl}"
+          alt="Nymo"
+        />
       </div>
       <div class="app-chat-info" id="appChatInfo">
         <div class="app-chat-avatar" id="appChatAvatar"></div>
@@ -70,7 +84,14 @@ export function mountAppShell() {
   <aside class="sidebar">
     <nav class="desktop-nav-rail" aria-label="Основна навігація">
       <button class="desktop-nav-rail-brand" id="desktopRailReload" type="button" title="Перезавантажити" aria-label="Перезавантажити">
-        <img class="desktop-nav-rail-logo" src="${orionLogoAssetUrl}" alt="Orion" />
+        <img
+          class="desktop-nav-rail-logo"
+          src="${resolveActiveLogo()}"
+          data-brand-logo="true"
+          data-logo-dark-src="${nymoLogoDarkAssetUrl}"
+          data-logo-light-src="${nymoLogoLightAssetUrl}"
+          alt="Nymo"
+        />
       </button>
       <button class="desktop-nav-rail-item" type="button" data-nav-target="navChats" title="Чати" aria-label="Чати">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"></path></svg>
@@ -679,14 +700,14 @@ export function mountAppShell() {
       </button>
       <div class="profile-qr-card-head">
         <span class="profile-qr-card-dot" aria-hidden="true"></span>
-        <span class="profile-qr-card-brand">Orion</span>
+        <span class="profile-qr-card-brand">Nymo</span>
       </div>
       <div class="profile-qr-canvas-wrap">
         <canvas id="profileQrCanvas" width="280" height="280" aria-label="QR код профілю"></canvas>
       </div>
       <div class="profile-qr-meta">
-        <div class="profile-qr-meta-name" id="profileQrName">Користувач Orion</div>
-        <div class="profile-qr-meta-handle" id="profileQrHandle">@orion.user</div>
+        <div class="profile-qr-meta-name" id="profileQrName">Користувач Nymo</div>
+        <div class="profile-qr-meta-handle" id="profileQrHandle">@nymo.user</div>
       </div>
     </article>
   </div>

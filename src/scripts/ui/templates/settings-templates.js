@@ -1,10 +1,10 @@
-// Шаблони налаштувань для Orion
+// Шаблони налаштувань для Nymo
 
-const orionValueAssetUrl = new URL('../../../Assets/Orion_value.png', import.meta.url).href;
-const flappyOrionSpriteAssetUrl = new URL('../../../Assets/Flappy-Orion-Sprite.png', import.meta.url).href;
-const orionDriveCarAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/race.glb', import.meta.url).href;
-const orionDriveConeAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/cone.glb', import.meta.url).href;
-const orionDriveBoxAssetUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/box.glb', import.meta.url).href;
+const orionValueAssetUrl = new URL('../../../Assets/Nymo_value.png', import.meta.url).href;
+const flappyOrionSpriteAssetUrl = new URL('../../../Assets/Flappy-Nymo-Sprite.png', import.meta.url).href;
+const orionDriveCarAssetUrl = new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/race.glb', import.meta.url).href;
+const orionDriveConeAssetUrl = new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/cone.glb', import.meta.url).href;
+const orionDriveBoxAssetUrl = new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/box.glb', import.meta.url).href;
 
 export const settingsTemplates = {
   'profile': `
@@ -27,11 +27,11 @@ export const settingsTemplates = {
         </div>
 
         <div class="profile-name-row">
-          <h2 class="profile-name" id="profileDisplayName">Користувач Orion</h2>
+          <h2 class="profile-name" id="profileDisplayName">Користувач Nymo</h2>
           <span class="profile-name-badges" id="profileNameBadges" aria-hidden="true"></span>
         </div>
         <div class="profile-handle-row">
-          <p class="profile-handle" id="profileDisplayHandle">@orion.user</p>
+          <p class="profile-handle" id="profileDisplayHandle">@nymo.user</p>
           <span class="profile-status-pill" id="profileDisplayStatus" data-status="online" aria-label="Онлайн"></span>
         </div>
         <p class="profile-bio" id="profileDisplayBio">Вітаю!</p>
@@ -94,7 +94,7 @@ export const settingsTemplates = {
         <p>Рівень заповнення профілю для кращої персоналізації.</p>
       </article>
       <article class="profile-summary-card">
-        <span class="profile-summary-kicker">У Orion з</span>
+        <span class="profile-summary-kicker">У Nymo з</span>
         <h3 id="profileStatMemberSince">цього місяця</h3>
         <p>Дата першого входу та початку використання платформи.</p>
       </article>
@@ -225,7 +225,7 @@ export const settingsTemplates = {
             id="profileName"
             class="form-input"
             placeholder="Введіть ваше ім'я"
-            value="Користувач Orion"
+            value="Користувач Nymo"
           />
         </div>
 
@@ -432,7 +432,7 @@ export const settingsTemplates = {
         </span>
         <span class="settings-menu-label mobile-sections-label">
           <strong>Магазин</strong>
-          <small>Покупки, косметика профілю та Orion Drive</small>
+          <small>Покупки, косметика профілю та Nymo Drive</small>
         </span>
         <span class="settings-menu-arrow">›</span>
       </button>
@@ -458,7 +458,7 @@ export const settingsTemplates = {
         </span>
         <span class="settings-menu-label mobile-sections-label">
           <strong>Ігри</strong>
-          <small>Мініігри, Flappy Orion, 2048 та Orion Drive</small>
+          <small>Мініігри, Flappy Nymo, 2048 та Nymo Drive</small>
         </span>
         <span class="settings-menu-arrow">›</span>
       </button>
@@ -485,14 +485,14 @@ export const settingsTemplates = {
 
   <div class="shop-content">
     <div class="shop-balance-card">
-      <span class="shop-kicker">ORION VALUE</span>
+      <span class="shop-kicker">NYMO VALUE</span>
       <div class="shop-balance-meta">
         <div>
           <div class="shop-balance-label">Доступний баланс</div>
           <div class="shop-balance-value" id="shopBalanceValue">0,00</div>
         </div>
       </div>
-      <p class="shop-balance-note">Прокачуйте профіль і Orion Drive предметами, які купуються лише за монети.</p>
+      <p class="shop-balance-note">Прокачуйте профіль і Nymo Drive предметами, які купуються лише за монети.</p>
     </div>
 
     <div class="shop-filter-toolbar">
@@ -525,8 +525,8 @@ export const settingsTemplates = {
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="aura">Фон</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="motion">Анімація</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="badge">Значки</button>
-                <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="car">Авто Orion Drive</button>
-                <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="smoke">Дим Orion Drive</button>
+                <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="car">Авто Nymo Drive</button>
+                <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="smoke">Дим Nymo Drive</button>
 	            </div>
 	          </div>
 
@@ -598,7 +598,7 @@ export const settingsTemplates = {
       <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
         <path d="M176,112H152a8,8,0,0,1,0-16h24a8,8,0,0,1,0,16ZM104,96H96V88a8,8,0,0,0-16,0v8H72a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0v-8h8a8,8,0,0,0,0-16ZM241.48,200.65a36,36,0,0,1-54.94,4.81c-.12-.12-.24-.24-.35-.37L146.48,160h-37L69.81,205.09l-.35.37A36.08,36.08,0,0,1,44,216,36,36,0,0,1,8.56,173.75a.68.68,0,0,1,0-.14L24.93,89.52A59.88,59.88,0,0,1,83.89,40H172a60.08,60.08,0,0,1,59,49.25c0,.06,0,.12,0,.18l16.37,84.17a.68.68,0,0,1,0,.14A35.74,35.74,0,0,1,241.48,200.65ZM172,144a44,44,0,0,0,0-88H83.89A43.9,43.9,0,0,0,40.68,92.37l0,.13L24.3,176.59A20,20,0,0,0,58,194.3l41.92-47.59a8,8,0,0,1,6-2.71Zm59.7,32.59-8.74-45A60,60,0,0,1,172,160h-4.2L198,194.31a20.09,20.09,0,0,0,17.46,5.39,20,20,0,0,0,16.23-23.11Z"></path>
       </svg>
-      <span>Гараж Orion Drive</span>
+      <span>Гараж Nymo Drive</span>
     </h2>
   </div>
 
@@ -623,7 +623,7 @@ export const settingsTemplates = {
     </section>
 
     <section class="orion-drive-garage-info-card">
-      <span class="shop-kicker">ORION DRIVE</span>
+      <span class="shop-kicker">NYMO DRIVE</span>
       <h3 id="shopGarageTitle">Авто</h3>
       <p id="shopGarageDescription">Опис авто.</p>
       <div class="orion-drive-garage-meta">
@@ -804,7 +804,7 @@ export const settingsTemplates = {
 
       <div class="settings-item">
         <div class="settings-item-label">
-          <span>Застосунок Orion</span>
+          <span>Застосунок Nymo</span>
           <p class="settings-item-desc" id="pwaInstallState">Перевірка можливості встановлення...</p>
         </div>
         <button type="button" class="btn btn-secondary settings-item-action" id="pwaInstallActionBtn">Встановити</button>
@@ -1122,7 +1122,7 @@ export const settingsTemplates = {
         </span>
         <span>
           <span class="mini-game-title">Клікер</span>
-          <span class="mini-game-sub">Тапай і збирай Orion Value</span>
+          <span class="mini-game-sub">Тапай і збирай Nymo Value</span>
         </span>
       </button>
 
@@ -1134,7 +1134,7 @@ export const settingsTemplates = {
           </svg>
         </span>
         <span>
-          <span class="mini-game-title">Orion 2048</span>
+          <span class="mini-game-title">Nymo 2048</span>
           <span class="mini-game-sub">Обʼєднуй плитки та заробляй</span>
         </span>
       </button>
@@ -1146,7 +1146,7 @@ export const settingsTemplates = {
           </svg>
         </span>
         <span>
-          <span class="mini-game-title">Flappy Orion</span>
+          <span class="mini-game-title">Flappy Nymo</span>
           <span class="mini-game-sub">Пролітай перешкоди</span>
         </span>
       </button>
@@ -1158,7 +1158,7 @@ export const settingsTemplates = {
           </svg>
         </span>
         <span>
-          <span class="mini-game-title">Orion Drive</span>
+          <span class="mini-game-title">Nymo Drive</span>
           <span class="mini-game-sub">Дрифт і збір монет</span>
         </span>
       </button>
@@ -1172,12 +1172,12 @@ export const settingsTemplates = {
         </div>
       </div>
 
-      <span class="coin-tapper-kicker">ORION VALUE</span>
+      <span class="coin-tapper-kicker">NYMO VALUE</span>
       <div class="coin-tapper-balance-label">Загальний баланс</div>
       <div class="coin-tapper-balance" id="coinTapBalance">0,00</div>
 
       <button class="coin-tapper-button" id="coinTapBtn" type="button" aria-label="Заробити монети">
-        <img class="coin-tapper-image" src="${orionValueAssetUrl}" alt="Orion Value" />
+        <img class="coin-tapper-image" src="${orionValueAssetUrl}" alt="Nymo Value" />
       </button>
 
       <div class="coin-tapper-rate">
@@ -1189,7 +1189,7 @@ export const settingsTemplates = {
 
     <section class="mini-game-panel mini-game-view" data-mini-game-panel="grid2048">
       <div class="mini-game-view-header">
-        <span class="mini-game-view-title">Orion 2048</span>
+        <span class="mini-game-view-title">Nymo 2048</span>
         <span class="mini-game-view-score">Рекорд: <strong id="grid2048Best">0</strong></span>
       </div>
 
@@ -1200,14 +1200,14 @@ export const settingsTemplates = {
 
         <div class="mini-game-canvas" id="grid2048Canvas" aria-live="polite">
           <div class="grid-2048" id="grid2048Board"></div>
-          <button class="btn btn-primary mini-game-play-overlay grid-2048-replay" id="grid2048Replay" type="button" aria-label="Зіграти ще раз у Orion 2048">Ще раз</button>
+          <button class="btn btn-primary mini-game-play-overlay grid-2048-replay" id="grid2048Replay" type="button" aria-label="Зіграти ще раз у Nymo 2048">Ще раз</button>
         </div>
       </div>
     </section>
 
     <section class="mini-game-panel mini-game-view" data-mini-game-panel="flappy">
       <div class="mini-game-view-header">
-        <span class="mini-game-view-title">Flappy Orion</span>
+        <span class="mini-game-view-title">Flappy Nymo</span>
         <span class="mini-game-view-score">Рекорд: <strong id="flappyOrionBest">0</strong></span>
       </div>
 
@@ -1221,7 +1221,7 @@ export const settingsTemplates = {
             width="960"
             height="540"
           ></canvas>
-          <button class="btn btn-primary mini-game-play-overlay" id="flappyOrionStart" type="button" aria-label="Старт гри Flappy Orion">Старт</button>
+          <button class="btn btn-primary mini-game-play-overlay" id="flappyOrionStart" type="button" aria-label="Старт гри Flappy Nymo">Старт</button>
         </div>
       </div>
     </section>
@@ -1256,9 +1256,9 @@ export const settingsTemplates = {
 
           <p class="orion-drift-status" id="orionDriftStatus">Відкритий режим: катайся вільно. Керування: стрілки або W/A/S/D.</p>
 
-          <button class="orion-drift-start-overlay mini-game-play-overlay" id="orionDriftStart" type="button" aria-label="Старт гри Orion Drive">Старт</button>
+          <button class="orion-drift-start-overlay mini-game-play-overlay" id="orionDriftStart" type="button" aria-label="Старт гри Nymo Drive">Старт</button>
 
-          <div class="orion-drift-controls" aria-label="Мобільне керування Orion Drive">
+          <div class="orion-drift-controls" aria-label="Мобільне керування Nymo Drive">
             <div class="orion-drift-controls-group">
               <button class="orion-drift-control-btn" id="orionDriftSteerLeft" type="button" aria-label="Поворот ліворуч">
                 <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
@@ -1335,18 +1335,18 @@ export const settingsTemplates = {
   <div class="settings-content">
     <div class="faq-page">
       <div class="faq-hero-card" data-faq-anchor="overview">
-        <span class="faq-kicker">ORION HELP CENTER</span>
+        <span class="faq-kicker">NYMO HELP CENTER</span>
         <h3 class="faq-hero-title">Уся базова інформація по сайту в одному місці</h3>
         <p class="faq-hero-text">Тут зібрані головні відповіді по навігації, профілю, чатах, магазину, гаманцю, іграх і швидких способах вирішити типові проблеми.</p>
         <div class="faq-tags" aria-label="Основні розділи довідки">
           <span class="faq-tag">Навігація</span>
           <span class="faq-tag">Профіль і акаунт</span>
           <span class="faq-tag">Чати і дзвінки</span>
-          <span class="faq-tag">Магазин і Orion Value</span>
+          <span class="faq-tag">Магазин і Nymo Value</span>
           <span class="faq-tag">Гаманець</span>
           <span class="faq-tag">Персоналізація</span>
           <span class="faq-tag">Налаштування</span>
-          <span class="faq-tag">Ігри та Orion Drive</span>
+          <span class="faq-tag">Ігри та Nymo Drive</span>
           <span class="faq-tag">Mobile версія</span>
         </div>
       </div>
@@ -1355,18 +1355,18 @@ export const settingsTemplates = {
         <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="true">
           <span class="faq-block-head-copy">
             <span class="faq-block-label">Швидкий старт</span>
-            <span class="faq-block-text">Базова навігація і перші кроки в Orion.</span>
+            <span class="faq-block-text">Базова навігація і перші кроки в Nymo.</span>
           </span>
           <span class="faq-chevron" aria-hidden="true"></span>
         </button>
         <div class="faq-block-body">
           <article class="faq-card is-open">
             <button type="button" class="faq-card-toggle" aria-expanded="true">
-              <span class="faq-card-title">Що є на сайті Orion і з чого почати?</span>
+              <span class="faq-card-title">Що є на сайті Nymo і з чого почати?</span>
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Основні розділи Orion: чати, дзвінки, магазин, гаманець, налаштування, ігровий центр і профіль. Для старту достатньо відкрити профіль, заповнити основні дані, а далі перейти в чати або магазин залежно від того, що потрібно саме зараз.</p>
+              <p>Основні розділи Nymo: чати, дзвінки, магазин, гаманець, налаштування, ігровий центр і профіль. Для старту достатньо відкрити профіль, заповнити основні дані, а далі перейти в чати або магазин залежно від того, що потрібно саме зараз.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1375,7 +1375,7 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>На комп'ютерах Orion використовує ліву desktop-навігацію і додаткове меню розділів. На телефонах основні переходи винесені в нижню навігацію, а великі екрани налаштувань і магазину автоматично перебудовуються під вузький viewport.</p>
+              <p>На комп'ютерах Nymo використовує ліву desktop-навігацію і додаткове меню розділів. На телефонах основні переходи винесені в нижню навігацію, а великі екрани налаштувань і магазину автоматично перебудовуються під вузький viewport.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1386,9 +1386,9 @@ export const settingsTemplates = {
             <div class="faq-card-body">
               <div class="faq-mini-grid">
                 <div class="faq-mini-row"><span>Профіль</span><p>Фото, ім'я, біо, дата народження і ваші предмети.</p></div>
-                <div class="faq-mini-row"><span>Магазин</span><p>Покупка аватарів, фонів, анімацій, значків і предметів Orion Drive.</p></div>
-                <div class="faq-mini-row"><span>Гаманець</span><p>Поточний баланс Orion Value і журнал транзакцій.</p></div>
-                <div class="faq-mini-row"><span>Ігри</span><p>Клікер, Orion 2048, Flappy Orion і Orion Drive.</p></div>
+                <div class="faq-mini-row"><span>Магазин</span><p>Покупка аватарів, фонів, анімацій, значків і предметів Nymo Drive.</p></div>
+                <div class="faq-mini-row"><span>Гаманець</span><p>Поточний баланс Nymo Value і журнал транзакцій.</p></div>
+                <div class="faq-mini-row"><span>Ігри</span><p>Клікер, Nymo 2048, Flappy Nymo і Nymo Drive.</p></div>
               </div>
             </div>
           </article>
@@ -1458,7 +1458,7 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Це ваша інвентарна сторінка з усіма придбаними елементами персоналізації: аватарами, фонами, анімаціями, значками та предметами Orion Drive. Саме тут можна швидко перевірити, що вже куплено і що зараз екіпіровано.</p>
+              <p>Це ваша інвентарна сторінка з усіма придбаними елементами персоналізації: аватарами, фонами, анімаціями, значками та предметами Nymo Drive. Саме тут можна швидко перевірити, що вже куплено і що зараз екіпіровано.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1515,19 +1515,19 @@ export const settingsTemplates = {
       <section class="faq-block" data-faq-anchor="shop">
         <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
           <span class="faq-block-head-copy">
-            <span class="faq-block-label">Магазин і Orion Value</span>
-            <span class="faq-block-text">Покупки, витрати і контент для профілю та Orion Drive.</span>
+            <span class="faq-block-label">Магазин і Nymo Value</span>
+            <span class="faq-block-text">Покупки, витрати і контент для профілю та Nymo Drive.</span>
           </span>
           <span class="faq-chevron" aria-hidden="true"></span>
         </button>
         <div class="faq-block-body">
           <article class="faq-card is-open">
             <button type="button" class="faq-card-toggle" aria-expanded="true">
-              <span class="faq-card-title">Що таке Orion Value?</span>
+              <span class="faq-card-title">Що таке Nymo Value?</span>
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Orion Value це внутрішня валюта сайту. Вона використовується для покупки візуальних предметів, кастомізацій профілю та контенту для Orion Drive. Баланс видно в магазині й у гаманці.</p>
+              <p>Nymo Value це внутрішня валюта сайту. Вона використовується для покупки візуальних предметів, кастомізацій профілю та контенту для Nymo Drive. Баланс видно в магазині й у гаманці.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1536,7 +1536,7 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>У магазині доступні рамки й аватари, фони, анімації, значки, автомобілі Orion Drive та кольори диму. Фільтр дозволяє швидко відсіяти категорії, а список “Мої предмети” показує вже придбані позиції.</p>
+              <p>У магазині доступні рамки й аватари, фони, анімації, значки, автомобілі Nymo Drive та кольори диму. Фільтр дозволяє швидко відсіяти категорії, а список “Мої предмети” показує вже придбані позиції.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1566,7 +1566,7 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Для цього є окремий гаманець. У ньому відображається поточний баланс, кількість транзакцій і журнал усіх списань або нарахувань Orion Value.</p>
+              <p>Для цього є окремий гаманець. У ньому відображається поточний баланс, кількість транзакцій і журнал усіх списань або нарахувань Nymo Value.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1594,7 +1594,7 @@ export const settingsTemplates = {
         <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
           <span class="faq-block-head-copy">
             <span class="faq-block-label">Персоналізація</span>
-            <span class="faq-block-text">Аватари, фони, анімації, бейджі та Orion Drive cosmetics.</span>
+            <span class="faq-block-text">Аватари, фони, анімації, бейджі та Nymo Drive cosmetics.</span>
           </span>
           <span class="faq-chevron" aria-hidden="true"></span>
         </button>
@@ -1605,7 +1605,7 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Куплені елементи зберігаються у “Моїх предметах”. Саме там можна переглянути інвентар і зрозуміти, що вже придбано для профілю або Orion Drive.</p>
+              <p>Куплені елементи зберігаються у “Моїх предметах”. Саме там можна переглянути інвентар і зрозуміти, що вже придбано для профілю або Nymo Drive.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1619,11 +1619,11 @@ export const settingsTemplates = {
           </article>
           <article class="faq-card">
             <button type="button" class="faq-card-toggle" aria-expanded="false">
-              <span class="faq-card-title">Чи пов'язані покупки з Orion Drive гаражем?</span>
+              <span class="faq-card-title">Чи пов'язані покупки з Nymo Drive гаражем?</span>
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Так. Автомобілі та дим для Orion Drive теж ідуть через магазин і пов'язані з інвентарем. Тому користувач бачить єдину екосистему покупок без окремого інтерфейсу для кожної гри.</p>
+              <p>Так. Автомобілі та дим для Nymo Drive теж ідуть через магазин і пов'язані з інвентарем. Тому користувач бачить єдину екосистему покупок без окремого інтерфейсу для кожної гри.</p>
             </div>
           </article>
         </div>
@@ -1640,11 +1640,11 @@ export const settingsTemplates = {
         <div class="faq-block-body">
           <article class="faq-card is-open">
             <button type="button" class="faq-card-toggle" aria-expanded="true">
-              <span class="faq-card-title">Які налаштування доступні в Orion?</span>
+              <span class="faq-card-title">Які налаштування доступні в Nymo?</span>
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Orion має блоки для сповіщень, конфіденційності, поведінки повідомлень, теми інтерфейсу, мови та окремі профільні налаштування. На desktop ці підрозділи зручно відкривати через secondary menu.</p>
+              <p>Nymo має блоки для сповіщень, конфіденційності, поведінки повідомлень, теми інтерфейсу, мови та окремі профільні налаштування. На desktop ці підрозділи зручно відкривати через secondary menu.</p>
             </div>
           </article>
           <article class="faq-card">
@@ -1671,8 +1671,8 @@ export const settingsTemplates = {
       <section class="faq-block" data-faq-anchor="games">
         <button type="button" class="faq-block-head faq-block-toggle" aria-expanded="false">
           <span class="faq-block-head-copy">
-            <span class="faq-block-label">Ігри та Orion Drive</span>
-            <span class="faq-block-text">Мініігри, Orion Drive і пов'язані предмети.</span>
+            <span class="faq-block-label">Ігри та Nymo Drive</span>
+            <span class="faq-block-text">Мініігри, Nymo Drive і пов'язані предмети.</span>
           </span>
           <span class="faq-chevron" aria-hidden="true"></span>
         </button>
@@ -1683,12 +1683,12 @@ export const settingsTemplates = {
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
-              <p>Ігровий центр зараз включає клікер, Orion 2048, Flappy Orion і Orion Drive. У desktop версії для цих розділів є окреме secondary menu, щоб швидко перемикатися між режимами.</p>
+              <p>Ігровий центр зараз включає клікер, Nymo 2048, Flappy Nymo і Nymo Drive. У desktop версії для цих розділів є окреме secondary menu, щоб швидко перемикатися між режимами.</p>
             </div>
           </article>
           <article class="faq-card">
             <button type="button" class="faq-card-toggle" aria-expanded="false">
-              <span class="faq-card-title">Як працює Orion Drive гараж?</span>
+              <span class="faq-card-title">Як працює Nymo Drive гараж?</span>
               <span class="faq-chevron" aria-hidden="true"></span>
             </button>
             <div class="faq-card-body">
@@ -1778,7 +1778,7 @@ export const settingsTemplates = {
               <div class="faq-list">
                 <p><strong>Профіль:</strong> для даних акаунта, аватара та ваших предметів.</p>
                 <p><strong>Налаштування:</strong> для теми, мови, сповіщень і приватності.</p>
-                <p><strong>Магазин:</strong> для покупки персоналізації та Orion Drive контенту.</p>
+                <p><strong>Магазин:</strong> для покупки персоналізації та Nymo Drive контенту.</p>
                 <p><strong>FAQ:</strong> для швидкого пошуку довідкової інформації по всьому сайту.</p>
               </div>
             </div>
@@ -1803,7 +1803,7 @@ export const settingsTemplates = {
 
   <div class="settings-content wallet-content">
     <section class="shop-balance-card wallet-balance-card">
-      <span class="shop-kicker">ORION VALUE</span>
+      <span class="shop-kicker">NYMO VALUE</span>
       <div class="shop-balance-meta">
         <div>
           <div class="shop-balance-label">Поточний баланс</div>

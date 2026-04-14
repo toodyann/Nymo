@@ -133,7 +133,7 @@ export function syncLegacyUserProfile(user = {}) {
   ).trim();
   const profile = {
     id: String(user?.id || user?.userId || user?._id || '').trim(),
-    name: displayName || 'Користувач Orion',
+    name: displayName || 'Користувач Nymo',
     nickname: String(user?.nickname || '').trim(),
     email: user?.email || 'user@example.com',
     status: user?.status || 'online',

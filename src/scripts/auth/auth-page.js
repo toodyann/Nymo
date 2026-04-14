@@ -7,6 +7,7 @@ import {
   syncLegacyUserProfile
 } from '../shared/auth/auth-session.js';
 import { buildApiUrl } from '../shared/api/api-url.js';
+import { applyThemeBranding } from '../shared/helpers/theme-branding.js';
 
 const PHONE_UA_RE = /^\+380\d{9}$/;
 const SIGNUP_NICKNAME_CACHE_PREFIX = 'orion_signup_nickname:';
@@ -15,8 +16,8 @@ const DEFAULT_OFFLINE_USER = {
   id: 'offline-demo-user',
   phone: '+380000000000',
   password: 'orion123',
-  nickname: 'Demo Orion',
-  name: 'Demo Orion',
+  nickname: 'Demo Nymo',
+  name: 'Demo Nymo',
   avatarColor: '#4f6b8a'
 };
 
@@ -29,15 +30,15 @@ function normalizeOfflineUser(raw) {
   const id = safeTrim(raw.id);
   const phone = normalizePhone(raw.phone || raw.mobile || '');
   const password = safeTrim(raw.password);
-  const nickname = safeTrim(raw.nickname || raw.name || 'Користувач Orion');
-  const name = safeTrim(raw.name || raw.nickname || nickname || 'Користувач Orion');
+  const nickname = safeTrim(raw.nickname || raw.name || 'Користувач Nymo');
+  const name = safeTrim(raw.name || raw.nickname || nickname || 'Користувач Nymo');
   if (!id || !PHONE_UA_RE.test(phone) || !password) return null;
   return {
     id,
     phone,
     password,
-    nickname: nickname || 'Користувач Orion',
-    name: name || nickname || 'Користувач Orion',
+    nickname: nickname || 'Користувач Nymo',
+    name: name || nickname || 'Користувач Nymo',
     avatarColor: safeTrim(raw.avatarColor || '')
   };
 }
@@ -266,6 +267,7 @@ function clearCachedSignupNickname(phone) {
 
 function setTheme(isDark) {
   document.documentElement.classList.toggle('dark-theme', isDark);
+  applyThemeBranding();
   try {
     localStorage.setItem('orion_theme', isDark ? 'dark' : 'light');
   } catch {

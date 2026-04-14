@@ -127,7 +127,7 @@ export class ChatAppMessagingMethods {
   }
 
   showDesktopBrowserNotification({
-    title = 'Orion',
+    title = 'Nymo',
     body = '',
     icon = '',
     tag = '',
@@ -154,7 +154,7 @@ export class ChatAppMessagingMethods {
       this.desktopNotificationSeenKeys.set(safeNotificationKey, Date.now());
     }
 
-    const safeTitle = String(title || '').trim() || 'Orion';
+    const safeTitle = String(title || '').trim() || 'Nymo';
     const safeBody = String(body || '').trim();
     const safeIcon = this.getAvatarImage(icon);
     const safeTag = String(tag || safeNotificationKey || '').trim();
@@ -214,7 +214,7 @@ export class ChatAppMessagingMethods {
     if (String(message.from || '').trim() === 'own') return false;
 
     const notificationKey = this.getDesktopNotificationMessageKey(chat, message);
-    const title = String(chat.name || message.senderName || 'Orion').trim() || 'Orion';
+    const title = String(chat.name || message.senderName || 'Nymo').trim() || 'Nymo';
     const body = this.getDesktopNotificationBody(chat, message);
     const icon = this.getAvatarImage(
       chat.avatarImage

@@ -323,8 +323,8 @@ export class ChatAppInteractionMethods {
               { label: 'Фон', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'image', shopCategory: 'aura' },
               { label: 'Анімація', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'sparkles', shopCategory: 'motion' },
               { label: 'Значки', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'badge', shopCategory: 'badge' },
-              { label: 'Авто Orion Drive', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'drift', shopCategory: 'car' },
-              { label: 'Дим Orion Drive', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'smoke', shopCategory: 'smoke' }
+              { label: 'Авто Nymo Drive', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'drift', shopCategory: 'car' },
+              { label: 'Дим Nymo Drive', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'smoke', shopCategory: 'smoke' }
             ]
           },
           {
@@ -383,7 +383,7 @@ export class ChatAppInteractionMethods {
               { label: 'Навігація', section: 'faq-settings', parentSection: 'settings-home', icon: 'globe', faqSection: 'navigation' },
               { label: 'Профіль і акаунт', section: 'faq-settings', parentSection: 'settings-home', icon: 'user', faqSection: 'profile' },
               { label: 'Чати і дзвінки', section: 'faq-settings', parentSection: 'settings-home', icon: 'chat', faqSection: 'chats' },
-              { label: 'Магазин і Orion Value', section: 'faq-settings', parentSection: 'settings-home', icon: 'store', faqSection: 'shop' },
+              { label: 'Магазин і Nymo Value', section: 'faq-settings', parentSection: 'settings-home', icon: 'store', faqSection: 'shop' },
               { label: 'Гаманець', section: 'faq-settings', parentSection: 'settings-home', icon: 'wallet', faqSection: 'wallet' }
             ]
           },
@@ -392,7 +392,7 @@ export class ChatAppInteractionMethods {
             items: [
               { label: 'Персоналізація', section: 'faq-settings', parentSection: 'settings-home', icon: 'paint', faqSection: 'customization' },
               { label: 'Налаштування', section: 'faq-settings', parentSection: 'settings-home', icon: 'gear', faqSection: 'settings' },
-              { label: 'Ігри та Orion Drive', section: 'faq-settings', parentSection: 'settings-home', icon: 'drift', faqSection: 'games' },
+              { label: 'Ігри та Nymo Drive', section: 'faq-settings', parentSection: 'settings-home', icon: 'drift', faqSection: 'games' },
               { label: 'Mobile версія', section: 'faq-settings', parentSection: 'settings-home', icon: 'sliders', faqSection: 'mobile' },
               { label: 'Якщо щось не так', section: 'faq-settings', parentSection: 'settings-home', icon: 'warning', faqSection: 'troubleshooting' }
             ]
@@ -406,9 +406,9 @@ export class ChatAppInteractionMethods {
             title: 'ІГРОВИЙ ЦЕНТР',
             items: [
               { label: 'Клікер', section: 'mini-games', icon: 'clicker', miniGameView: 'tapper' },
-              { label: 'Orion 2048', section: 'mini-games', icon: 'grid2048', miniGameView: 'grid2048' },
-              { label: 'Flappy Orion', section: 'mini-games', icon: 'flappy', miniGameView: 'flappy' },
-              { label: 'Orion Drive', section: 'mini-games', icon: 'drift', miniGameView: 'drift' }
+              { label: 'Nymo 2048', section: 'mini-games', icon: 'grid2048', miniGameView: 'grid2048' },
+              { label: 'Flappy Nymo', section: 'mini-games', icon: 'flappy', miniGameView: 'flappy' },
+              { label: 'Nymo Drive', section: 'mini-games', icon: 'drift', miniGameView: 'drift' }
             ]
           },
           {
@@ -3667,16 +3667,16 @@ export class ChatAppInteractionMethods {
       .replace(/[^a-z0-9а-яіїєґ]+/gi, '.')
       .replace(/\.+/g, '.')
       .replace(/^\.|\.$/g, '');
-    return `@${normalized || 'orion.user'}`;
+    return `@${normalized || 'nymo.user'}`;
   }
 
   getProfileQrSnapshot() {
-    const name = String(this.user?.name || 'Користувач Orion').trim() || 'Користувач Orion';
+    const name = String(this.user?.name || 'Користувач Nymo').trim() || 'Користувач Nymo';
     const handle = this.buildProfileQrHandle(name);
     const userId = String(this.user?.id || '').trim();
     const profileUrl = this.buildProfileQrLink(userId, handle);
     const payload = {
-      app: 'Orion',
+      app: 'Nymo',
       type: 'profile',
       version: 1,
       userId,

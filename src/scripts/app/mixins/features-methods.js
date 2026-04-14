@@ -12,7 +12,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const flappyCoinSoundUrl = new URL('../../../Sounds/coin-sound.mp3', import.meta.url).href;
 const flappyWingSoundUrl = new URL('../../../Sounds/sfx-wing.mp3', import.meta.url).href;
 const flappyDieSoundUrl = new URL('../../../Sounds/sfx-die.mp3', import.meta.url).href;
-const orionDriveCarColormapUrl = new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/Textures/colormap.png', import.meta.url).href;
+const orionDriveCarColormapUrl = new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/Textures/colormap.png', import.meta.url).href;
 
 function createOrionDriveGltfLoader() {
   const manager = new THREE.LoadingManager();
@@ -35,8 +35,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Taxi Sprint',
     description: 'Класичне таксі з кращою видимістю у щільному трафіку.',
     price: 820,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/taxi.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/taxi.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/taxi.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/taxi.png', import.meta.url).href
   },
   {
     id: 'car_sedan_sports',
@@ -45,8 +45,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Sedan Sports',
     description: 'Легка спортивна седан-платформа для маневрених заїздів.',
     price: 980,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/sedan-sports.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/sedan-sports.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/sedan-sports.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/sedan-sports.png', import.meta.url).href
   },
   {
     id: 'car_suv_luxury',
@@ -55,8 +55,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'SUV Luxury',
     description: 'Преміум SUV для стабільної їзди та важкого стилю.',
     price: 1260,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/suv-luxury.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/suv-luxury.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/suv-luxury.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/suv-luxury.png', import.meta.url).href
   },
   {
     id: 'car_police',
@@ -65,18 +65,18 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Interceptor',
     description: 'Поліцейський перехоплювач із агресивним силуетом.',
     price: 1490,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/police.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/police.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/police.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/police.png', import.meta.url).href
   },
   {
     id: 'car_race_future',
     type: 'car',
     effect: 'race-future',
     title: 'Race Future',
-    description: 'Футуристичний болід для Orion Drive.',
+    description: 'Футуристичний болід для Nymo Drive.',
     price: 1740,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/race-future.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/race-future.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/race-future.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/race-future.png', import.meta.url).href
   },
   {
     id: 'car_firetruck',
@@ -85,8 +85,8 @@ const ORION_DRIVE_SHOP_CARS = [
     title: 'Firetruck XL',
     description: 'Пожежний важковаговик для нестандартного драйву.',
     price: 1980,
-    assetSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Models/GLB format/firetruck.glb', import.meta.url).href,
-    previewSrc: new URL('../../../Assets/OrionDrive/Сar-kit/Previews/firetruck.png', import.meta.url).href
+    assetSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Models/GLB format/firetruck.glb', import.meta.url).href,
+    previewSrc: new URL('../../../Assets/NymoDrive/Сar-kit/Previews/firetruck.png', import.meta.url).href
   }
 ];
 
@@ -155,7 +155,7 @@ const ORION_DRIVE_SMOKE_DEFAULT = {
   type: 'smoke',
   effect: '',
   title: 'Stock Smoke',
-  description: 'Базовий сірий дим Orion Drive.',
+  description: 'Базовий сірий дим Nymo Drive.',
   price: 0,
   wheelColorHex: 0xaeb7c4,
   exhaustColorHex: 0xc5ccd8,
@@ -1035,7 +1035,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'frame') {
         return `
           <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
-            <span>${this.getInitials(this.user?.name || 'Користувач Orion')}</span>
+            <span>${this.getInitials(this.user?.name || 'Користувач Nymo')}</span>
           </div>
         `;
       }
@@ -1043,7 +1043,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'badge') {
         return `
           <div class="shop-item-preview-badges">
-            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Orion')}</span>
+            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Nymo')}</span>
             ${this.getProfileBadgeMarkup(item.effect, 'shop-item-preview-badge-chip')}
           </div>
         `;
@@ -1103,8 +1103,8 @@ export class ChatAppFeaturesMethods {
       if (type === 'aura') return 'Фон';
       if (type === 'motion') return 'Анімація';
       if (type === 'badge') return 'Значок';
-      if (type === 'car') return 'Авто Orion Drive';
-      if (type === 'smoke') return 'Дим Orion Drive';
+      if (type === 'car') return 'Авто Nymo Drive';
+      if (type === 'smoke') return 'Дим Nymo Drive';
       return 'Предмет';
     };
 
@@ -1114,8 +1114,8 @@ export class ChatAppFeaturesMethods {
       if (filterState.category === 'aura') parts.push('Профіль');
       if (filterState.category === 'motion') parts.push('Анімація');
       if (filterState.category === 'badge') parts.push('Значки');
-      if (filterState.category === 'car') parts.push('Авто Orion Drive');
-      if (filterState.category === 'smoke') parts.push('Дим Orion Drive');
+      if (filterState.category === 'car') parts.push('Авто Nymo Drive');
+      if (filterState.category === 'smoke') parts.push('Дим Nymo Drive');
       if (filterState.ownership === 'owned') parts.push('Куплені');
       if (filterState.ownership === 'unowned') parts.push('Не куплені');
       if (filterState.availability === 'equipped') parts.push('Встановлені');
@@ -1824,7 +1824,7 @@ export class ChatAppFeaturesMethods {
       if (grid2048State.rewardLogged || grid2048State.earnedCents <= 0) return;
       this.addCoinTransaction({
         amountCents: grid2048State.earnedCents,
-        title: 'Гра: Orion 2048',
+        title: 'Гра: Nymo 2048',
         category: 'games'
       });
       grid2048State.rewardLogged = true;
@@ -1834,7 +1834,7 @@ export class ChatAppFeaturesMethods {
       if (flappyState.rewardLogged || flappyState.earnedCents <= 0) return;
       this.addCoinTransaction({
         amountCents: flappyState.earnedCents,
-        title: 'Гра: Flappy Orion',
+        title: 'Гра: Flappy Nymo',
         category: 'games'
       });
       flappyState.rewardLogged = true;
@@ -1906,7 +1906,7 @@ export class ChatAppFeaturesMethods {
       flappyState.earnedCents += safeAmount;
       this.setTapBalanceCents(this.getTapBalanceCents() + safeAmount, {
         transactionMeta: {
-          title: 'Гра: Flappy Orion',
+          title: 'Гра: Flappy Nymo',
           category: 'games',
           amountCents: safeAmount
         }
@@ -2599,7 +2599,7 @@ export class ChatAppFeaturesMethods {
       if (driftState.rewardLogged || driftState.earnedCents <= 0) return;
       this.addCoinTransaction({
         amountCents: driftState.earnedCents,
-        title: 'Гра: Orion Drive',
+        title: 'Гра: Nymo Drive',
         category: 'games'
       });
       driftState.rewardLogged = true;
@@ -2611,7 +2611,7 @@ export class ChatAppFeaturesMethods {
       driftState.earnedCents += safeAmount;
       this.setTapBalanceCents(this.getTapBalanceCents() + safeAmount, {
         transactionMeta: {
-          title: 'Гра: Orion Drive',
+          title: 'Гра: Nymo Drive',
           category: 'games',
           amountCents: safeAmount
         }
@@ -3727,7 +3727,7 @@ export class ChatAppFeaturesMethods {
       if (driftStartBtn) driftStartBtn.textContent = 'Старт';
 
       if (reason === 'switch') {
-        setDriftStatus('Режим призупинено. Повернись в Orion Drive, щоб продовжити поїздку.');
+        setDriftStatus('Режим призупинено. Повернись в Nymo Drive, щоб продовжити поїздку.');
       } else if (reason !== 'restart') {
         setDriftStatus(`Сесію завершено. Очки: ${Math.floor(driftState.score)}. Орби: ${driftState.orbs}. Зароблено: ${this.formatCoinBalance(driftState.earnedCents)}.`);
       }
@@ -4382,7 +4382,7 @@ export class ChatAppFeaturesMethods {
         grid2048State.earnedCents += rewardCents;
         this.setTapBalanceCents(this.getTapBalanceCents() + rewardCents, {
           transactionMeta: {
-            title: 'Гра: Orion 2048',
+            title: 'Гра: Nymo 2048',
             category: 'games',
             amountCents: rewardCents
           }
@@ -4919,8 +4919,8 @@ export class ChatAppFeaturesMethods {
       if (type === 'aura') return 'Фон';
       if (type === 'motion') return 'Анімація';
       if (type === 'badge') return 'Бейдж';
-      if (type === 'car') return 'Авто Orion Drive';
-      if (type === 'smoke') return 'Дим Orion Drive';
+      if (type === 'car') return 'Авто Nymo Drive';
+      if (type === 'smoke') return 'Дим Nymo Drive';
       return 'Предмет';
     };
 
@@ -4930,7 +4930,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'frame') {
         return `
           <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
-            <span>${this.getInitials(this.user?.name || 'Користувач Orion')}</span>
+            <span>${this.getInitials(this.user?.name || 'Користувач Nymo')}</span>
           </div>
         `;
       }
@@ -4938,7 +4938,7 @@ export class ChatAppFeaturesMethods {
       if (item.type === 'badge') {
         return `
           <div class="shop-item-preview-badges">
-            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Orion')}</span>
+            <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Nymo')}</span>
             ${this.getProfileBadgeMarkup(item.effect, 'shop-item-preview-badge-chip')}
           </div>
         `;
@@ -5031,7 +5031,7 @@ export class ChatAppFeaturesMethods {
         gridEl.innerHTML = `
           <div class="profile-items-empty">
             <strong>${scope === 'games' ? 'Ігрових предметів поки немає' : 'Інвентар порожній'}</strong>
-            <span>${scope === 'games' ? 'Купи предмети Orion Drive у магазині, щоб керувати ними тут.' : 'Купи предмети в магазині, щоб керувати ними тут.'}</span>
+            <span>${scope === 'games' ? 'Купи предмети Nymo Drive у магазині, щоб керувати ними тут.' : 'Купи предмети в магазині, щоб керувати ними тут.'}</span>
           </div>
         `;
         return;
@@ -5368,7 +5368,7 @@ export class ChatAppFeaturesMethods {
 
     if (Notification.permission === 'granted') {
       this.showDesktopBrowserNotification({
-        title: 'Orion',
+        title: 'Nymo',
         body: 'Тестове сповіщення працює.',
         notificationKey: `system:test:${Date.now()}`,
         requireEnabledSetting: false,
@@ -5425,7 +5425,7 @@ export class ChatAppFeaturesMethods {
       installBtn.textContent = 'Встановлено';
       installBtn.disabled = true;
     } else if (deferredPrompt) {
-      installStateEl.textContent = 'Можна встановити Orion як застосунок';
+      installStateEl.textContent = 'Можна встановити Nymo як застосунок';
       installBtn.textContent = 'Встановити';
       installBtn.disabled = false;
     } else if (isSupported) {
@@ -5439,7 +5439,7 @@ export class ChatAppFeaturesMethods {
     }
 
     if (hasUpdate) {
-      updateStateEl.textContent = 'Є нова версія Orion';
+      updateStateEl.textContent = 'Є нова версія Nymo';
       updateBtn.textContent = 'Оновити';
       updateBtn.disabled = false;
     } else {

@@ -16,7 +16,7 @@ body {
 }
 
 .auth-page {
-  --auth-orion-tone: #111111;
+  --auth-nymo-tone: #111111;
   position: relative;
   min-height: 100dvh;
   display: flex;
@@ -31,11 +31,11 @@ body {
 }
 
 html.dark-theme .auth-page {
-  --auth-orion-tone: #ffffff;
+  --auth-nymo-tone: #ffffff;
 }
 
 .auth-page::before {
-  content: "ORION";
+  content: "NYMO";
   position: absolute;
   left: 50%;
   top: 25%;
@@ -45,7 +45,7 @@ html.dark-theme .auth-page {
   font-weight: 400;
   letter-spacing: 0;
   line-height: 0.96;
-  color: var(--auth-orion-tone);
+  color: var(--auth-nymo-tone);
   opacity: 1;
   pointer-events: none;
   user-select: none;
@@ -54,7 +54,7 @@ html.dark-theme .auth-page {
 }
 
 html.dark-theme .auth-page::before {
-  color: var(--auth-orion-tone);
+  color: var(--auth-nymo-tone);
   opacity: 0.9;
   text-shadow: 0 0 18px rgba(255, 255, 255, 0.34);
 }
@@ -336,8 +336,8 @@ html:not(.dark-theme) .auth-theme-icon--sun {
   margin-top: 4px;
   height: 47px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--auth-orion-tone) 72%, #9ca3af);
-  background: var(--auth-orion-tone);
+  border: 1px solid color-mix(in srgb, var(--auth-nymo-tone) 72%, #9ca3af);
+  background: var(--auth-nymo-tone);
   color: #fff;
   font-weight: 700;
   cursor: pointer;

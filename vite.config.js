@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 
-const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'Orion';
+const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'Nymo';
 const pagesBase = `/${repositoryName}/`;
 
 export default defineConfig(({ command }) => ({

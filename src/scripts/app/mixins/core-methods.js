@@ -1,6 +1,7 @@
 import { setupMobileSwipeBack } from '../../shared/gestures/swipe-handlers.js';
 import { getContactColor } from '../../shared/helpers/ui-helpers.js';
 import { buildApiUrl } from '../../shared/api/api-url.js';
+import { applyThemeBranding } from '../../shared/helpers/theme-branding.js';
 
 export class ChatAppCoreMethods {
   readJsonStorage(key, fallback) {
@@ -23,7 +24,7 @@ export class ChatAppCoreMethods {
       const userId = String(data.id || data.userId || data._id || '').trim();
       return {
         id: userId,
-        name: data.name || 'Користувач Orion',
+        name: data.name || 'Користувач Nymo',
         email: data.email || 'user@example.com',
         status: data.status || 'online',
         bio: data.bio || 'Вітаю!',
@@ -42,7 +43,7 @@ export class ChatAppCoreMethods {
     }
     return {
       id: '',
-      name: 'Користувач Orion',
+      name: 'Користувач Nymo',
       email: 'user@example.com',
       status: 'online',
       bio: 'Вітаю!',
@@ -345,9 +346,9 @@ export class ChatAppCoreMethods {
       if (!clean) return '';
       const key = clean.toLowerCase();
 
-      if (/flappy/.test(key)) return 'Гра: Flappy Orion';
-      if (/2048/.test(key)) return 'Гра: Orion 2048';
-      if (/orion\s*drive|drift|race/.test(key)) return 'Гра: Orion Drive';
+      if (/flappy/.test(key)) return 'Гра: Flappy Nymo';
+      if (/2048/.test(key)) return 'Гра: Nymo 2048';
+      if (/orion\s*drive|nymo\s*drive|drift|race/.test(key)) return 'Гра: Nymo Drive';
       if (/clicker|tapper|tap|клікер/.test(key)) return 'Гра: Клікер';
       if (/shop|store|purchase|buy|catalog/.test(key)) return 'Магазин';
       if (/sell|sale/.test(key)) return 'Продаж предмета';
@@ -1352,7 +1353,7 @@ export class ChatAppCoreMethods {
         type: 'badge',
         effect: 'comet',
         title: 'Comet Tag',
-        description: 'Мініатюрна комета праворуч від ніка в стилі Orion.',
+        description: 'Мініатюрна комета праворуч від ніка в стилі Nymo.',
         price: 430
       },
       {
@@ -1484,7 +1485,7 @@ export class ChatAppCoreMethods {
     const avatarEl = navProfile?.querySelector('.nav-avatar');
     const railAvatarEl = document.getElementById('desktopRailAccountAvatar');
 
-    const name = this.user?.name || 'Користувач Orion';
+    const name = this.user?.name || 'Користувач Nymo';
 
     this.applyUserAvatarToElement(avatarEl, name);
     this.applyUserAvatarToElement(railAvatarEl, name);
@@ -1574,7 +1575,7 @@ export class ChatAppCoreMethods {
 
   applyUserAvatarToElement(avatarEl, name = '') {
     if (!avatarEl) return;
-    const displayName = name || this.user?.name || 'Користувач Orion';
+    const displayName = name || this.user?.name || 'Користувач Nymo';
     const userAvatarImage = this.getAvatarImage(this.user?.avatarImage || this.user?.avatarUrl);
     if (userAvatarImage) {
       this.user.avatarImage = userAvatarImage;
@@ -1600,7 +1601,7 @@ export class ChatAppCoreMethods {
       const safeUrl = this.escapeAttr(userAvatarImage);
       return `<div class="message-avatar is-image" style="background-image: url(&quot;${safeUrl}&quot;);"></div>`;
     }
-    const displayName = this.user?.name || 'Користувач Orion';
+    const displayName = this.user?.name || 'Користувач Nymo';
     const initials = this.getInitials(displayName);
     const fallbackAvatarColor = this.getContactColor(displayName);
     this.user.avatarColor = fallbackAvatarColor;
@@ -1609,7 +1610,7 @@ export class ChatAppCoreMethods {
 
   renderProfileAvatar(avatarEl) {
     if (!avatarEl) return;
-    const name = this.user?.name || 'Користувач Orion';
+    const name = this.user?.name || 'Користувач Nymo';
     const imageEl = avatarEl.querySelector('.profile-avatar-image');
     const initialsEl = avatarEl.querySelector('.profile-avatar-initials');
 
@@ -1653,13 +1654,13 @@ export class ChatAppCoreMethods {
     const profileStatCompletion = profileSection.querySelector('#profileStatCompletion');
     const profileStatMemberSince = profileSection.querySelector('#profileStatMemberSince');
     const avatarDiv = profileSection.querySelector('.profile-avatar-large');
-    const handleValue = `@${String(this.user?.name || 'orion.user')
+    const handleValue = `@${String(this.user?.name || 'nymo.user')
       .trim()
       .toLowerCase()
       .replace(/['`’]/g, '')
       .replace(/[^a-z0-9а-яіїєґ]+/gi, '.')
       .replace(/\.+/g, '.')
-      .replace(/^\.|\.$/g, '') || 'orion.user'}`;
+      .replace(/^\.|\.$/g, '') || 'nymo.user'}`;
     const statusLabelMap = {
       online: 'Онлайн',
       away: 'Не на місці',
@@ -1788,6 +1789,7 @@ export class ChatAppCoreMethods {
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : false;
     document.documentElement.classList.toggle('dark-theme', prefersDark);
+    applyThemeBranding();
     this.syncThemeToggleCheckboxes();
   }
 
@@ -1832,6 +1834,7 @@ export class ChatAppCoreMethods {
       localStorage.setItem('orion_settings', JSON.stringify(this.settings));
       this.applySystemTheme();
     }
+    applyThemeBranding();
     this.bindSystemThemeListener();
   }
 
@@ -1840,6 +1843,7 @@ export class ChatAppCoreMethods {
     localStorage.setItem('orion_theme', isDark ? 'dark' : 'light');
     this.settings = { ...(this.settings || {}), theme: isDark ? 'dark' : 'light' };
     localStorage.setItem('orion_settings', JSON.stringify(this.settings));
+    applyThemeBranding();
     this.syncThemeToggleCheckboxes();
     if (!this.currentChat && window.innerWidth > 768) {
       this.restoreBottomNavToHome({ animate: false });

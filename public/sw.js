@@ -1,12 +1,14 @@
-const SHELL_CACHE = 'orion-shell-v2';
-const RUNTIME_CACHE = 'orion-runtime-v2';
+const SHELL_CACHE = 'nymo-shell-v5';
+const RUNTIME_CACHE = 'nymo-runtime-v5';
 const APP_SHELL_FILES = [
   './',
   './index.html',
   './auth/index.html',
   './manifest.webmanifest',
-  './pwa/icon-base.svg',
-  './pwa/orion-mark.png'
+  './pwa/icon-192.png',
+  './pwa/icon-512.png',
+  './pwa/favicon-dark.png',
+  './pwa/favicon-light.png'
 ];
 
 self.addEventListener('message', (event) => {

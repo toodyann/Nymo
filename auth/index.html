@@ -10,16 +10,23 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Orion</title>
-    <link rel="icon" type="image/svg+xml" href="../pwa/icon-base.svg" />
+    <title>Nymo</title>
+    <link id="authFavicon" rel="icon" type="image/png" href="../pwa/favicon-dark.png?v=1" />
+    <link id="authFaviconShort" rel="shortcut icon" type="image/png" href="../pwa/favicon-dark.png?v=1" />
     <link rel="manifest" href="../manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="../pwa/icon-base.svg" />
+    <link id="authAppleTouchIcon" rel="apple-touch-icon" href="../pwa/favicon-dark.png?v=1" />
     <script>
       try {
         const savedTheme = localStorage.getItem('orion_theme');
-        if (savedTheme === 'dark' || !savedTheme) {
-          document.documentElement.classList.add('dark-theme');
-        }
+        const prefersDark = window.matchMedia
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : true;
+        const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
+        document.documentElement.classList.toggle('dark-theme', isDark);
+        const nextIconHref = isDark ? '../pwa/favicon-dark.png?v=1' : '../pwa/favicon-light.png?v=1';
+        document.getElementById('authFavicon')?.setAttribute('href', nextIconHref);
+        document.getElementById('authFaviconShort')?.setAttribute('href', nextIconHref);
+        document.getElementById('authAppleTouchIcon')?.setAttribute('href', nextIconHref);
       } catch {}
     </script>
     <link rel="stylesheet" href="../src/styles/auth-main.css" />
