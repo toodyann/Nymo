@@ -1814,13 +1814,115 @@ export const settingsTemplates = {
       <p class="shop-balance-note">Тут відображається історія витрат і поповнень монет.</p>
     </section>
 
-    <section class="wallet-history-card">
-      <div class="wallet-history-head">
-        <h3>Історія транзакцій</h3>
-        <span class="wallet-history-count" id="walletTransactionsCount">0</span>
-      </div>
-      <div class="wallet-history-list" id="walletTransactionsList"></div>
+    <section class="wallet-subsection-switch" aria-label="Підрозділи гаманця">
+      <button type="button" class="wallet-subsection-btn is-active" data-wallet-view="ledger">Транзакції</button>
+      <button type="button" class="wallet-subsection-btn" data-wallet-view="analytics">Аналітика</button>
     </section>
+
+    <div class="wallet-panel is-active" data-wallet-panel="ledger">
+      <section class="wallet-history-card">
+        <div class="wallet-history-head">
+          <h3>Історія транзакцій</h3>
+          <span class="wallet-history-count" id="walletTransactionsCount">0</span>
+        </div>
+        <div class="wallet-history-list" id="walletTransactionsList"></div>
+      </section>
+    </div>
+
+    <div class="wallet-panel" data-wallet-panel="analytics" hidden>
+      <section class="wallet-analytics-card wallet-analytics-card--hero">
+        <div class="wallet-history-head wallet-analytics-head">
+          <h3>Загальна аналітика</h3>
+        </div>
+        <div class="wallet-analytics-hero-layout">
+          <article class="wallet-analytics-net-card">
+            <span>Чистий результат</span>
+            <strong id="walletAnalyticsNet">+0,00</strong>
+          </article>
+          <div class="wallet-analytics-side-metrics">
+            <article class="wallet-analytics-stat is-income">
+              <span>Дохід</span>
+              <strong id="walletAnalyticsIncome">+0,00</strong>
+            </article>
+            <article class="wallet-analytics-stat is-expense">
+              <span>Витрати</span>
+              <strong id="walletAnalyticsExpense">-0,00</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="wallet-analytics-card wallet-analytics-card--controls">
+        <div class="wallet-analytics-toolbar">
+          <div class="wallet-analytics-toolbar-group">
+            <span class="wallet-analytics-toolbar-label">Період</span>
+            <div class="wallet-analytics-toggle" id="walletAnalyticsRange" data-analytics-range-control role="tablist" aria-label="Період аналітики">
+              <button type="button" class="wallet-analytics-toggle-btn is-active" data-analytics-range="7">7д</button>
+              <button type="button" class="wallet-analytics-toggle-btn" data-analytics-range="14">14д</button>
+              <button type="button" class="wallet-analytics-toggle-btn" data-analytics-range="30">30д</button>
+            </div>
+          </div>
+          <div class="wallet-analytics-toolbar-group">
+            <span class="wallet-analytics-toolbar-label">Метрика</span>
+            <div class="wallet-analytics-toggle" id="walletAnalyticsMode" role="tablist" aria-label="Тип даних">
+              <button type="button" class="wallet-analytics-toggle-btn is-active" data-analytics-mode="net">Чистий</button>
+              <button type="button" class="wallet-analytics-toggle-btn" data-analytics-mode="income">Дохід</button>
+              <button type="button" class="wallet-analytics-toggle-btn" data-analytics-mode="expense">Витрати</button>
+            </div>
+          </div>
+          <div class="wallet-analytics-focus" id="walletAnalyticsFocus">
+            <span class="wallet-analytics-focus-label" id="walletAnalyticsFocusLabel">Фокус</span>
+            <strong class="wallet-analytics-focus-value" id="walletAnalyticsFocusValue">Увесь період</strong>
+            <span class="wallet-analytics-focus-meta" id="walletAnalyticsFocusMeta">Наведи на рядок, точку графіка або джерело.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="wallet-analytics-card">
+        <div class="wallet-history-head wallet-analytics-head">
+          <h3 id="walletAnalyticsBarsTitle">Рух за період</h3>
+        </div>
+        <div class="wallet-analytics-bars" id="walletAnalyticsBars"></div>
+      </section>
+
+      <section class="wallet-analytics-card">
+        <div class="wallet-history-head wallet-analytics-head">
+          <h3 id="walletAnalyticsLineTitle">Динаміка за період</h3>
+        </div>
+        <div class="wallet-analytics-line-wrap" id="walletAnalyticsLineWrap">
+          <svg class="wallet-analytics-line-chart" id="walletAnalyticsLineChart" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
+            <path id="walletAnalyticsArea" class="wallet-analytics-area" d=""></path>
+            <line id="walletAnalyticsZeroLine" class="wallet-analytics-zero-line" x1="0" y1="60" x2="300" y2="60"></line>
+            <path id="walletAnalyticsLine" class="wallet-analytics-line" d=""></path>
+            <g id="walletAnalyticsPoints"></g>
+          </svg>
+          <div class="wallet-analytics-line-tooltip" id="walletAnalyticsLineTooltip" hidden></div>
+          <div class="wallet-analytics-line-axis" aria-hidden="true">
+            <span id="walletAnalyticsLineStartDay">-</span>
+            <span id="walletAnalyticsLineEndDay">Сьогодні</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="wallet-analytics-card">
+        <div class="wallet-history-head wallet-analytics-head">
+          <h3>Джерела транзакцій</h3>
+        </div>
+        <div class="wallet-analytics-sources">
+          <div class="wallet-analytics-donut" id="walletAnalyticsDonut">
+            <svg class="wallet-analytics-donut-svg" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="wallet-analytics-donut-track" cx="50" cy="50" r="39"></circle>
+              <g id="walletAnalyticsDonutSegments"></g>
+            </svg>
+            <div class="wallet-analytics-donut-center">
+              <span class="wallet-analytics-donut-center-label" id="walletAnalyticsDonutCenterLabel">Усі джерела</span>
+              <strong class="wallet-analytics-donut-center-value" id="walletAnalyticsDonutCenterValue">100%</strong>
+            </div>
+          </div>
+          <div class="wallet-analytics-source-list" id="walletAnalyticsSourceList"></div>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
   `.trim(),

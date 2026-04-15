@@ -154,6 +154,9 @@
   #coinTapBalance,
   #shopBalanceValue,
   #walletBalanceValue,
+  #walletAnalyticsNet,
+  #walletAnalyticsIncome,
+  #walletAnalyticsExpense,
   #profileItemsBalance,
   #shopIslandBalance,
   #shopPriceMinValue,
@@ -162,6 +165,8 @@
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
+  .wallet-analytics-bar-value,
+  .wallet-analytics-line-tooltip,
   .wallet-history-item-amount,
   .currency-value-inline
 )::after {
@@ -188,6 +193,9 @@
 :is(
   #shopBalanceValue,
   #walletBalanceValue,
+  #walletAnalyticsNet,
+  #walletAnalyticsIncome,
+  #walletAnalyticsExpense,
   #profileItemsBalance,
   #shopIslandBalance,
   #coinTapBalance,
@@ -197,6 +205,8 @@
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
+  .wallet-analytics-bar-value,
+  .wallet-analytics-line-tooltip,
   .wallet-history-item-amount,
   .currency-value-inline
 ) {
@@ -208,6 +218,9 @@
 :is(
   #shopBalanceValue,
   #walletBalanceValue,
+  #walletAnalyticsNet,
+  #walletAnalyticsIncome,
+  #walletAnalyticsExpense,
   #profileItemsBalance,
   #shopIslandBalance,
   #coinTapBalance,
@@ -217,6 +230,8 @@
   #grid2048Earned,
   #orionDriftOrbs,
   .shop-item-price,
+  .wallet-analytics-bar-value,
+  .wallet-analytics-line-tooltip,
   .wallet-history-item-amount,
   .currency-value-inline
 )::after {

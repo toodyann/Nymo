@@ -31,6 +31,8 @@ export class ChatApp {
     this.messageMenuState = { id: null, from: null, text: '' };
     this.chatListMenuState = { id: null, name: '' };
     this.addToGroupTarget = null;
+    this.pendingWalletView = null;
+    this.walletActiveView = 'ledger';
     this.bottomNavHidden = false;
     this.navRevealTimeout = null;
     this.lastSendTriggerAt = 0;

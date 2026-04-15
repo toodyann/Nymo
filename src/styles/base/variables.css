@@ -6,6 +6,7 @@
   --danger-color: #ff3b30;
   --success-color: #34c759;
   --warning-color: #6b7280;
+  --wallet-income-color: #1f8f54;
 
   --text-primary: #0f1320;
   --text-secondary: rgba(15, 19, 32, 0.6);
@@ -48,6 +49,7 @@
   --glow: rgba(160, 160, 160, 0.22);
   --message-user: #141414;
   --message-other: #090909;
+  --wallet-income-color: #63e6be;
 }
 
 @keyframes bounce {

@@ -5130,12 +5130,484 @@ export class ChatAppFeaturesMethods {
     });
   }
 
-  initWalletLedger(settingsContainer) {
+  initWalletLedger(settingsContainer, options = {}) {
+    const safeOptions = options && typeof options === 'object' ? options : {};
     const balanceEl = settingsContainer.querySelector('#walletBalanceValue');
     const badgeEl = settingsContainer.querySelector('#walletBalanceBadge');
     const countEl = settingsContainer.querySelector('#walletTransactionsCount');
     const listEl = settingsContainer.querySelector('#walletTransactionsList');
+    const walletViewButtons = [...settingsContainer.querySelectorAll('[data-wallet-view]')];
+    const walletPanels = [...settingsContainer.querySelectorAll('[data-wallet-panel]')];
+    const analyticsIncomeEl = settingsContainer.querySelector('#walletAnalyticsIncome');
+    const analyticsExpenseEl = settingsContainer.querySelector('#walletAnalyticsExpense');
+    const analyticsNetEl = settingsContainer.querySelector('#walletAnalyticsNet');
+    const analyticsBarsTitleEl = settingsContainer.querySelector('#walletAnalyticsBarsTitle');
+    const analyticsLineTitleEl = settingsContainer.querySelector('#walletAnalyticsLineTitle');
+    const analyticsBarsEl = settingsContainer.querySelector('#walletAnalyticsBars');
+    const analyticsAreaEl = settingsContainer.querySelector('#walletAnalyticsArea');
+    const analyticsLineChartEl = settingsContainer.querySelector('#walletAnalyticsLineChart');
+    const analyticsLineEl = settingsContainer.querySelector('#walletAnalyticsLine');
+    const analyticsZeroLineEl = settingsContainer.querySelector('#walletAnalyticsZeroLine');
+    const analyticsPointsEl = settingsContainer.querySelector('#walletAnalyticsPoints');
+    const analyticsLineWrapEl = settingsContainer.querySelector('#walletAnalyticsLineWrap');
+    const analyticsLineTooltipEl = settingsContainer.querySelector('#walletAnalyticsLineTooltip');
+    const analyticsLineStartDayEl = settingsContainer.querySelector('#walletAnalyticsLineStartDay');
+    const analyticsLineEndDayEl = settingsContainer.querySelector('#walletAnalyticsLineEndDay');
+    const analyticsDonutEl = settingsContainer.querySelector('#walletAnalyticsDonut');
+    const analyticsDonutSegmentsEl = settingsContainer.querySelector('#walletAnalyticsDonutSegments');
+    const analyticsDonutCenterLabelEl = settingsContainer.querySelector('#walletAnalyticsDonutCenterLabel');
+    const analyticsDonutCenterValueEl = settingsContainer.querySelector('#walletAnalyticsDonutCenterValue');
+    const analyticsSourcesEl = settingsContainer.querySelector('#walletAnalyticsSourceList');
+    const analyticsRangeControlEls = [
+      ...settingsContainer.querySelectorAll('[data-analytics-range-control]')
+    ];
+    const analyticsModeControlEl = settingsContainer.querySelector('#walletAnalyticsMode');
+    const analyticsFocusLabelEl = settingsContainer.querySelector('#walletAnalyticsFocusLabel');
+    const analyticsFocusValueEl = settingsContainer.querySelector('#walletAnalyticsFocusValue');
+    const analyticsFocusMetaEl = settingsContainer.querySelector('#walletAnalyticsFocusMeta');
+    const donutPalette = ['#64e6bf', '#63beff', '#f7cb67', '#b89aff', '#ff94b8'];
+    const donutMutedPalette = [
+      'rgba(100, 230, 191, 0.3)',
+      'rgba(99, 190, 255, 0.3)',
+      'rgba(247, 203, 103, 0.3)',
+      'rgba(184, 154, 255, 0.3)',
+      'rgba(255, 148, 184, 0.3)'
+    ];
+    const analyticsSourceColorMap = {
+      'ігри': { color: '#58b8ff', mutedColor: 'rgba(88, 184, 255, 0.28)' },
+      'списання': { color: '#ff6b8a', mutedColor: 'rgba(255, 107, 138, 0.28)' },
+      'магазин': { color: '#f7b84f', mutedColor: 'rgba(247, 184, 79, 0.28)' },
+      'перекази': { color: '#a58bff', mutedColor: 'rgba(165, 139, 255, 0.28)' },
+      'бонуси': { color: '#5fd8d0', mutedColor: 'rgba(95, 216, 208, 0.28)' },
+      'інше': { color: '#9db0c9', mutedColor: 'rgba(157, 176, 201, 0.26)' }
+    };
+    const readCssVarColor = (name, fallback) => {
+      try {
+        const resolved = window.getComputedStyle(document.documentElement)
+          .getPropertyValue(name)
+          .trim();
+        return resolved || fallback;
+      } catch {
+        return fallback;
+      }
+    };
+    const getWalletIncomeColor = () => readCssVarColor('--wallet-income-color', '#3ed08b');
+    const getWalletIncomeMutedColor = () => `color-mix(in srgb, ${getWalletIncomeColor()} 28%, transparent)`;
+    const analyticsModeLabels = {
+      net: 'Чистий результат',
+      income: 'Дохід',
+      expense: 'Витрати'
+    };
+    let analyticsDonutSegments = [];
+    let analyticsActiveSourceIndex = null;
+    let analyticsDailySeries = [];
+    let analyticsLinePoints = [];
+    let analyticsLineViewportWidth = 300;
+    let analyticsLineViewportHeight = 120;
+    let analyticsMode = 'net';
+    let analyticsRangeDays = 14;
+    let analyticsPeriodIncome = 0;
+    let analyticsPeriodExpense = 0;
+    let analyticsPeriodNet = 0;
+    let analyticsPeriodTransactions = 0;
+    let analyticsActiveDayKey = '';
     if (!balanceEl || !listEl) return;
+
+    const formatPercentLabel = (value) => {
+      const safeValue = Number.isFinite(value) ? value : 0;
+      if (safeValue >= 99.95) return '100%';
+      return `${safeValue.toFixed(1).replace('.', ',')}%`;
+    };
+
+    const setAnalyticsDonutCenter = (segment = null) => {
+      if (!analyticsDonutCenterLabelEl || !analyticsDonutCenterValueEl) return;
+
+      if (!segment) {
+        if (analyticsDonutSegments.length) {
+          analyticsDonutCenterLabelEl.textContent = 'Усі джерела';
+          analyticsDonutCenterValueEl.textContent = '100%';
+        } else {
+          analyticsDonutCenterLabelEl.textContent = 'Немає даних';
+          analyticsDonutCenterValueEl.textContent = '0%';
+        }
+        analyticsDonutCenterValueEl.removeAttribute('title');
+        return;
+      }
+
+      analyticsDonutCenterLabelEl.textContent = segment.label;
+      analyticsDonutCenterValueEl.textContent = formatPercentLabel(segment.percent);
+      analyticsDonutCenterValueEl.title = this.formatCoinBalance(segment.amount);
+    };
+
+    const setAnalyticsFocus = ({ label, value, meta, tone = 'neutral' }) => {
+      if (!analyticsFocusLabelEl || !analyticsFocusValueEl || !analyticsFocusMetaEl) return;
+      analyticsFocusLabelEl.textContent = label || 'Фокус';
+      analyticsFocusValueEl.textContent = value || 'Увесь період';
+      analyticsFocusMetaEl.textContent = meta || 'Наведи на рядок, точку графіка або джерело.';
+      const focusRoot = analyticsFocusLabelEl.closest('.wallet-analytics-focus');
+      if (focusRoot) focusRoot.dataset.tone = tone;
+    };
+
+    const setIdleAnalyticsFocus = () => {
+      const periodLabel = `${analyticsRangeDays} днів`;
+      const modeLabel = analyticsModeLabels[analyticsMode] || analyticsModeLabels.net;
+      const modeValue = analyticsMode === 'income'
+        ? analyticsPeriodIncome
+        : analyticsMode === 'expense'
+          ? -analyticsPeriodExpense
+          : analyticsPeriodNet;
+      setAnalyticsFocus({
+        label: `${modeLabel} · ${periodLabel}`,
+        value: formatSignedCoins(modeValue),
+        meta: `Транзакцій у періоді: ${analyticsPeriodTransactions}`,
+        tone: modeValue >= 0 ? 'positive' : 'negative'
+      });
+    };
+
+    const setAnalyticsControlState = () => {
+      analyticsRangeControlEls.forEach((controlEl) => {
+        controlEl.querySelectorAll('[data-analytics-range]').forEach((button) => {
+          if (!(button instanceof HTMLButtonElement)) return;
+          const buttonRange = Number(button.getAttribute('data-analytics-range'));
+          const isActive = buttonRange === analyticsRangeDays;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      });
+
+      if (analyticsModeControlEl) {
+        analyticsModeControlEl.querySelectorAll('[data-analytics-mode]').forEach((button) => {
+          if (!(button instanceof HTMLButtonElement)) return;
+          const buttonMode = String(button.getAttribute('data-analytics-mode') || '').trim().toLowerCase();
+          const isActive = buttonMode === analyticsMode;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+    };
+
+    const hideAnalyticsLineTooltip = () => {
+      if (!analyticsLineTooltipEl) return;
+      analyticsLineTooltipEl.hidden = true;
+      analyticsLineTooltipEl.style.removeProperty('left');
+      analyticsLineTooltipEl.style.removeProperty('top');
+    };
+
+    const updateAnalyticsChartViewport = () => {
+      const fallbackWidth = analyticsLineViewportWidth > 0 ? analyticsLineViewportWidth : 300;
+      const fallbackHeight = analyticsLineViewportHeight > 0 ? analyticsLineViewportHeight : 120;
+      if (!(analyticsLineChartEl instanceof SVGElement)) {
+        analyticsLineViewportWidth = fallbackWidth;
+        analyticsLineViewportHeight = fallbackHeight;
+        return { width: fallbackWidth, height: fallbackHeight };
+      }
+
+      const rect = analyticsLineChartEl.getBoundingClientRect();
+      const measuredWidth = Math.max(120, Math.round(rect.width || fallbackWidth));
+      const measuredHeight = Math.max(80, Math.round(rect.height || fallbackHeight));
+      analyticsLineViewportWidth = measuredWidth;
+      analyticsLineViewportHeight = measuredHeight;
+      analyticsLineChartEl.setAttribute('viewBox', `0 0 ${measuredWidth} ${measuredHeight}`);
+      return { width: measuredWidth, height: measuredHeight };
+    };
+
+    const setActiveAnalyticsDay = (dayKey = '') => {
+      analyticsActiveDayKey = String(dayKey || '').trim();
+
+      if (analyticsBarsEl) {
+        analyticsBarsEl.querySelectorAll('.wallet-analytics-bar-row[data-day-key]').forEach((rowEl) => {
+          const rowKey = String(rowEl.getAttribute('data-day-key') || '');
+          rowEl.classList.toggle('is-active', Boolean(analyticsActiveDayKey) && rowKey === analyticsActiveDayKey);
+        });
+      }
+
+      if (analyticsPointsEl) {
+        analyticsPointsEl.querySelectorAll('.wallet-analytics-point').forEach((pointEl) => {
+          const pointKey = String(pointEl.getAttribute('data-day-key') || '');
+          pointEl.classList.toggle('is-active', Boolean(analyticsActiveDayKey) && pointKey === analyticsActiveDayKey);
+        });
+      }
+    };
+
+    const focusAnalyticsPoint = (dayKey = '') => {
+      const normalizedKey = String(dayKey || '').trim();
+      if (!normalizedKey) {
+        setActiveAnalyticsDay('');
+        hideAnalyticsLineTooltip();
+        setIdleAnalyticsFocus();
+        return;
+      }
+
+      const point = analyticsLinePoints.find((item) => item.key === normalizedKey);
+      if (!point) {
+        setActiveAnalyticsDay('');
+        hideAnalyticsLineTooltip();
+        setIdleAnalyticsFocus();
+        return;
+      }
+
+      setActiveAnalyticsDay(point.key);
+      if (analyticsLineTooltipEl && analyticsLineWrapEl) {
+        const wrapRect = analyticsLineWrapEl.getBoundingClientRect();
+        const chartRect = analyticsLineChartEl instanceof SVGElement
+          ? analyticsLineChartEl.getBoundingClientRect()
+          : wrapRect;
+        const offsetLeft = chartRect.left - wrapRect.left;
+        const offsetTop = chartRect.top - wrapRect.top;
+        const rawLeft = offsetLeft + ((point.x / analyticsLineViewportWidth) * chartRect.width);
+        const rawTop = offsetTop + ((point.y / analyticsLineViewportHeight) * chartRect.height);
+        analyticsLineTooltipEl.hidden = false;
+        analyticsLineTooltipEl.textContent = `${point.label} · ${formatSignedCoins(point.value)}`;
+        const tooltipRect = analyticsLineTooltipEl.getBoundingClientRect();
+        const halfWidth = Math.max(0, tooltipRect.width / 2);
+        const minLeft = offsetLeft + halfWidth + 6;
+        const maxLeft = offsetLeft + chartRect.width - halfWidth - 6;
+        const clampedLeft = Math.max(minLeft, Math.min(maxLeft, rawLeft));
+        analyticsLineTooltipEl.style.left = `${clampedLeft}px`;
+        analyticsLineTooltipEl.style.top = `${rawTop}px`;
+      }
+
+      const tone = point.value >= 0 ? 'positive' : 'negative';
+      setAnalyticsFocus({
+        label: `День · ${point.label}`,
+        value: formatSignedCoins(point.value),
+        meta: `Режим: ${analyticsModeLabels[analyticsMode] || analyticsModeLabels.net}`,
+        tone
+      });
+    };
+
+    const focusLatestAnalyticsPoint = () => {
+      const latestPoint = analyticsLinePoints[analyticsLinePoints.length - 1];
+      if (!latestPoint) {
+        focusAnalyticsPoint('');
+        return;
+      }
+      focusAnalyticsPoint(latestPoint.key);
+    };
+
+    const renderAnalyticsDonut = (activeIndex = null) => {
+      if (!analyticsDonutEl) return;
+
+      if (!analyticsDonutSegments.length) {
+        if (analyticsDonutSegmentsEl) analyticsDonutSegmentsEl.innerHTML = '';
+        analyticsDonutEl.classList.remove('is-interactive-active');
+        return;
+      }
+
+      const totalRaw = analyticsDonutSegments.reduce((sum, segment) => {
+        return sum + Math.max(0, Number(segment.percent) || 0);
+      }, 0) || 1;
+      const normalizedSegments = analyticsDonutSegments.map((segment) => ({
+        ...segment,
+        normalizedPercent: (Math.max(0, Number(segment.percent) || 0) / totalRaw) * 100
+      }));
+      let cursor = 0;
+      const visualSegments = normalizedSegments.map((segment, index) => {
+        const start = cursor;
+        if (index === normalizedSegments.length - 1) {
+          cursor = 100;
+        } else {
+          cursor += segment.normalizedPercent;
+        }
+        return {
+          ...segment,
+          start,
+          end: cursor,
+          visualPercent: Math.max(0, cursor - start)
+        };
+      });
+
+      if (analyticsDonutSegmentsEl) {
+        analyticsDonutSegmentsEl.innerHTML = visualSegments.map((segment, index) => {
+          const color = activeIndex === null || activeIndex === index
+            ? segment.color
+            : segment.mutedColor;
+          const opacity = activeIndex === null || activeIndex === index ? 1 : 0.65;
+          const dash = Math.max(0, segment.visualPercent);
+          const gap = Math.max(0, 100 - dash);
+          return `
+            <circle
+              class="wallet-analytics-donut-segment"
+              cx="50"
+              cy="50"
+              r="39"
+              fill="none"
+              stroke="${color}"
+              stroke-width="22"
+              pathLength="100"
+              stroke-dasharray="${dash} ${gap}"
+              stroke-dashoffset="${-segment.start}"
+              style="opacity:${opacity};"
+            ></circle>
+          `;
+        }).join('');
+      } else {
+        const stops = visualSegments.map((segment, index) => {
+          const color = activeIndex === null || activeIndex === index
+            ? segment.color
+            : segment.mutedColor;
+          return `${color} ${segment.start}% ${segment.end}%`;
+        });
+        analyticsDonutEl.style.background = `conic-gradient(from -90deg, ${stops.join(', ')})`;
+      }
+
+      analyticsDonutEl.classList.toggle('is-interactive-active', activeIndex !== null);
+    };
+
+    const setActiveAnalyticsSource = (index = null) => {
+      const normalizedIndex = Number.isInteger(index)
+        && index >= 0
+        && index < analyticsDonutSegments.length
+        ? index
+        : null;
+
+      if (analyticsActiveSourceIndex === normalizedIndex) return;
+      analyticsActiveSourceIndex = normalizedIndex;
+
+      if (analyticsSourcesEl) {
+        analyticsSourcesEl.querySelectorAll('.wallet-analytics-source-item').forEach((itemEl) => {
+          const itemIndex = Number(itemEl.getAttribute('data-source-index'));
+          itemEl.classList.toggle('is-active', normalizedIndex !== null && itemIndex === normalizedIndex);
+        });
+      }
+
+      const activeSegment = normalizedIndex === null ? null : analyticsDonutSegments[normalizedIndex] || null;
+      setAnalyticsDonutCenter(activeSegment);
+      renderAnalyticsDonut(normalizedIndex);
+
+      if (activeSegment) {
+        hideAnalyticsLineTooltip();
+        setActiveAnalyticsDay('');
+        setAnalyticsFocus({
+          label: `Джерело · ${activeSegment.label}`,
+          value: formatPercentLabel(activeSegment.percent),
+          meta: this.formatCoinBalance(activeSegment.amount),
+          tone: 'neutral'
+        });
+      } else {
+        setIdleAnalyticsFocus();
+      }
+    };
+
+    if (analyticsSourcesEl && analyticsSourcesEl.dataset.analyticsInteractiveBound !== 'true') {
+      analyticsSourcesEl.dataset.analyticsInteractiveBound = 'true';
+
+      analyticsSourcesEl.addEventListener('pointerover', (event) => {
+        const sourceEl = event.target.closest('.wallet-analytics-source-item[data-source-index]');
+        if (!sourceEl || !analyticsSourcesEl.contains(sourceEl)) return;
+        setActiveAnalyticsSource(Number(sourceEl.getAttribute('data-source-index')));
+      });
+
+      analyticsSourcesEl.addEventListener('pointerleave', () => {
+        setActiveAnalyticsSource(null);
+      });
+
+      analyticsSourcesEl.addEventListener('focusin', (event) => {
+        const sourceEl = event.target.closest('.wallet-analytics-source-item[data-source-index]');
+        if (!sourceEl || !analyticsSourcesEl.contains(sourceEl)) return;
+        setActiveAnalyticsSource(Number(sourceEl.getAttribute('data-source-index')));
+      });
+
+      analyticsSourcesEl.addEventListener('focusout', (event) => {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && analyticsSourcesEl.contains(nextTarget)) return;
+        setActiveAnalyticsSource(null);
+      });
+    }
+
+    analyticsRangeControlEls.forEach((controlEl, index) => {
+      const boundKey = `analyticsRangeBound${index}`;
+      if (controlEl.dataset[boundKey] === 'true') return;
+      controlEl.dataset[boundKey] = 'true';
+      controlEl.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-analytics-range]');
+        if (!(button instanceof HTMLButtonElement) || !controlEl.contains(button)) return;
+        const nextRange = Number(button.getAttribute('data-analytics-range'));
+        if (!Number.isFinite(nextRange) || nextRange < 2) return;
+        analyticsRangeDays = Math.trunc(nextRange);
+        render();
+      });
+    });
+
+    if (analyticsModeControlEl && analyticsModeControlEl.dataset.analyticsModeBound !== 'true') {
+      analyticsModeControlEl.dataset.analyticsModeBound = 'true';
+      analyticsModeControlEl.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-analytics-mode]');
+        if (!(button instanceof HTMLButtonElement) || !analyticsModeControlEl.contains(button)) return;
+        const nextMode = String(button.getAttribute('data-analytics-mode') || '').trim().toLowerCase();
+        if (!['net', 'income', 'expense'].includes(nextMode)) return;
+        analyticsMode = nextMode;
+        render();
+      });
+    }
+
+    if (analyticsBarsEl && analyticsBarsEl.dataset.analyticsBarsBound !== 'true') {
+      analyticsBarsEl.dataset.analyticsBarsBound = 'true';
+
+      analyticsBarsEl.addEventListener('pointerover', (event) => {
+        const rowEl = event.target.closest('.wallet-analytics-bar-row[data-day-key]');
+        if (!rowEl || !analyticsBarsEl.contains(rowEl)) return;
+        focusAnalyticsPoint(String(rowEl.getAttribute('data-day-key') || ''));
+      });
+
+      analyticsBarsEl.addEventListener('focusin', (event) => {
+        const rowEl = event.target.closest('.wallet-analytics-bar-row[data-day-key]');
+        if (!rowEl || !analyticsBarsEl.contains(rowEl)) return;
+        focusAnalyticsPoint(String(rowEl.getAttribute('data-day-key') || ''));
+      });
+
+      analyticsBarsEl.addEventListener('pointerleave', () => {
+        focusLatestAnalyticsPoint();
+      });
+
+      analyticsBarsEl.addEventListener('focusout', (event) => {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && analyticsBarsEl.contains(nextTarget)) return;
+        focusLatestAnalyticsPoint();
+      });
+    }
+
+    if (analyticsLineWrapEl && analyticsLineWrapEl.dataset.analyticsLineBound !== 'true') {
+      analyticsLineWrapEl.dataset.analyticsLineBound = 'true';
+
+      analyticsLineWrapEl.addEventListener('pointermove', (event) => {
+        if (!analyticsLinePoints.length) return;
+        const rect = analyticsLineChartEl instanceof SVGElement
+          ? analyticsLineChartEl.getBoundingClientRect()
+          : analyticsLineWrapEl.getBoundingClientRect();
+        if (!rect.width) return;
+        const localX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+        const rawX = (localX / rect.width) * analyticsLineViewportWidth;
+        let nearestPoint = analyticsLinePoints[0];
+        for (let index = 1; index < analyticsLinePoints.length; index += 1) {
+          const point = analyticsLinePoints[index];
+          if (Math.abs(point.x - rawX) < Math.abs(nearestPoint.x - rawX)) nearestPoint = point;
+        }
+        focusAnalyticsPoint(nearestPoint.key);
+      });
+
+      analyticsLineWrapEl.addEventListener('pointerleave', () => {
+        focusLatestAnalyticsPoint();
+      });
+
+      analyticsLineWrapEl.addEventListener('click', (event) => {
+        const pointEl = event.target.closest('.wallet-analytics-point[data-day-key]');
+        if (!pointEl || !analyticsLineWrapEl.contains(pointEl)) return;
+        focusAnalyticsPoint(String(pointEl.getAttribute('data-day-key') || ''));
+      });
+
+      analyticsLineWrapEl.addEventListener('focusin', (event) => {
+        const pointEl = event.target.closest('.wallet-analytics-point[data-day-key]');
+        if (!pointEl || !analyticsLineWrapEl.contains(pointEl)) return;
+        focusAnalyticsPoint(String(pointEl.getAttribute('data-day-key') || ''));
+      });
+
+      analyticsLineWrapEl.addEventListener('focusout', (event) => {
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && analyticsLineWrapEl.contains(nextTarget)) return;
+        focusLatestAnalyticsPoint();
+      });
+    }
 
     const formatDate = (value) => {
       const parsedDate = new Date(value);
@@ -5148,6 +5620,387 @@ export class ChatAppFeaturesMethods {
         minute: '2-digit'
       });
     };
+
+    const formatSignedCoins = (amountCents) => {
+      const safeAmount = Number.isFinite(amountCents) ? Math.trunc(amountCents) : 0;
+      const sign = safeAmount >= 0 ? '+' : '-';
+      return `${sign}${this.formatCoinBalance(Math.abs(safeAmount))}`;
+    };
+
+    const startOfDay = (dateInput) => {
+      const date = new Date(dateInput);
+      if (Number.isNaN(date.getTime())) return null;
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
+
+    const dayKey = (dateInput) => {
+      const date = startOfDay(dateInput);
+      if (!date) return '';
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    const dayLabel = (dateInput) => {
+      const date = startOfDay(dateInput);
+      if (!date) return '';
+      return date.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+    };
+
+    const resolveSourceLabel = (entry) => {
+      if (!entry || typeof entry !== 'object') return 'Інше';
+      const category = String(entry.category || '').trim().toLowerCase();
+      const title = String(entry.title || '').trim().toLowerCase();
+      const source = `${category} ${title}`;
+
+      if (/flappy|2048|клікер|clicker|tapper|drive|drift|race|гра/.test(source)) return 'Ігри';
+      if (/shop|store|магазин|purchase|buy|sell|продаж/.test(source)) return 'Магазин';
+      if (/transfer|переказ/.test(source)) return 'Перекази';
+      if (/bonus|reward|referral|бонус/.test(source)) return 'Бонуси';
+      if (/deposit|topup|поповнення|income|credit|earn/.test(source)) return 'Поповнення';
+      if (/withdraw|expense|debit|списання/.test(source)) return 'Списання';
+      return 'Інше';
+    };
+
+    const resolveAnalyticsSourceColors = (label, index = 0) => {
+      const normalizedLabel = String(label || '').trim().toLowerCase();
+      if (normalizedLabel === 'поповнення') {
+        return {
+          color: getWalletIncomeColor(),
+          mutedColor: getWalletIncomeMutedColor()
+        };
+      }
+      const mapped = analyticsSourceColorMap[normalizedLabel];
+      if (mapped) return mapped;
+      return {
+        color: donutPalette[index % donutPalette.length],
+        mutedColor: donutMutedPalette[index % donutMutedPalette.length]
+      };
+    };
+
+    const buildSmoothLinePath = (points, tension = 0.5) => {
+      if (!Array.isArray(points) || !points.length) return 'M 8,60 L 292,60';
+      if (points.length === 1) {
+        return `M ${points[0].x},${points[0].y} L ${points[0].x},${points[0].y}`;
+      }
+      if (points.length === 2) {
+        return `M ${points[0].x},${points[0].y} L ${points[1].x},${points[1].y}`;
+      }
+
+      let path = `M ${points[0].x},${points[0].y}`;
+      for (let index = 0; index < points.length - 1; index += 1) {
+        const p0 = points[index - 1] || points[index];
+        const p1 = points[index];
+        const p2 = points[index + 1];
+        const p3 = points[index + 2] || p2;
+        const cp1x = p1.x + ((p2.x - p0.x) / 6) * tension;
+        const cp1y = p1.y + ((p2.y - p0.y) / 6) * tension;
+        const cp2x = p2.x - ((p3.x - p1.x) / 6) * tension;
+        const cp2y = p2.y - ((p3.y - p1.y) / 6) * tension;
+        path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+      }
+      return path;
+    };
+
+    const buildDailySeries = (history, days, mode = analyticsMode) => {
+      const safeDays = Number.isFinite(days) ? Math.max(1, Math.trunc(days)) : 7;
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const points = [];
+      const sumByDay = new Map();
+
+      history.forEach((entry) => {
+        const key = dayKey(entry.createdAt);
+        if (!key) return;
+        const amount = Number(entry.amountCents) || 0;
+        const normalizedMode = String(mode || 'net').toLowerCase();
+        const modeAmount = normalizedMode === 'income'
+          ? (amount > 0 ? amount : 0)
+          : normalizedMode === 'expense'
+            ? (amount < 0 ? amount : 0)
+            : amount;
+        if (!modeAmount) return;
+        const current = sumByDay.get(key) || 0;
+        const next = current + modeAmount;
+        sumByDay.set(key, next);
+      });
+
+      for (let index = safeDays - 1; index >= 0; index -= 1) {
+        const day = new Date(now);
+        day.setDate(now.getDate() - index);
+        const key = dayKey(day);
+        points.push({
+          key,
+          label: dayLabel(day),
+          value: Number(sumByDay.get(key) || 0)
+        });
+      }
+
+      return points;
+    };
+
+    const renderAnalytics = (history) => {
+      setAnalyticsControlState();
+      if (analyticsBarsTitleEl) {
+        analyticsBarsTitleEl.textContent = `Рух за ${Math.min(10, analyticsRangeDays)} з ${analyticsRangeDays} днів`;
+      }
+      if (analyticsLineTitleEl) {
+        analyticsLineTitleEl.textContent = `Динаміка за ${analyticsRangeDays} днів`;
+      }
+
+      if (!Array.isArray(history) || !history.length) {
+        if (analyticsIncomeEl) analyticsIncomeEl.textContent = '+0,00';
+        if (analyticsExpenseEl) analyticsExpenseEl.textContent = '-0,00';
+        if (analyticsNetEl) analyticsNetEl.textContent = '+0,00';
+        analyticsPeriodIncome = 0;
+        analyticsPeriodExpense = 0;
+        analyticsPeriodNet = 0;
+        analyticsPeriodTransactions = 0;
+        analyticsDailySeries = [];
+        analyticsLinePoints = [];
+        analyticsActiveDayKey = '';
+        if (analyticsBarsEl) {
+          analyticsBarsEl.innerHTML = '<div class="wallet-analytics-empty">Недостатньо даних для графіка.</div>';
+        }
+        if (analyticsLineEl) {
+          const { width: baseWidth, height: baseHeight } = updateAnalyticsChartViewport();
+          const centerY = Math.round(baseHeight / 2);
+          analyticsLineEl.setAttribute('d', `M 8,${centerY} L ${Math.max(8, baseWidth - 8)},${centerY}`);
+        }
+        if (analyticsAreaEl) {
+          analyticsAreaEl.setAttribute('d', '');
+        }
+        if (analyticsZeroLineEl) {
+          const centerY = Math.round(analyticsLineViewportHeight / 2);
+          analyticsZeroLineEl.setAttribute('x1', '0');
+          analyticsZeroLineEl.setAttribute('x2', String(analyticsLineViewportWidth));
+          analyticsZeroLineEl.setAttribute('y1', String(centerY));
+          analyticsZeroLineEl.setAttribute('y2', String(centerY));
+        }
+        if (analyticsPointsEl) {
+          analyticsPointsEl.innerHTML = '';
+        }
+        if (analyticsLineStartDayEl) analyticsLineStartDayEl.textContent = '-';
+        if (analyticsLineEndDayEl) analyticsLineEndDayEl.textContent = 'Сьогодні';
+        hideAnalyticsLineTooltip();
+        analyticsDonutSegments = [];
+        renderAnalyticsDonut(null);
+        setAnalyticsDonutCenter(null);
+        if (analyticsSourcesEl) {
+          analyticsSourcesEl.innerHTML = '<div class="wallet-analytics-empty">Транзакції ще не накопичились.</div>';
+        }
+        analyticsActiveSourceIndex = null;
+        setIdleAnalyticsFocus();
+        return;
+      }
+
+      const periodSeriesNet = buildDailySeries(history, analyticsRangeDays, 'net');
+      const periodKeys = new Set(periodSeriesNet.map((item) => item.key));
+      const periodHistory = history.filter((entry) => periodKeys.has(dayKey(entry.createdAt)));
+      analyticsPeriodTransactions = periodHistory.length;
+
+      analyticsPeriodIncome = periodHistory
+        .filter((entry) => Number(entry.amountCents) > 0)
+        .reduce((sum, entry) => sum + (Number(entry.amountCents) || 0), 0);
+      analyticsPeriodExpense = periodHistory
+        .filter((entry) => Number(entry.amountCents) < 0)
+        .reduce((sum, entry) => sum + Math.abs(Number(entry.amountCents) || 0), 0);
+      analyticsPeriodNet = analyticsPeriodIncome - analyticsPeriodExpense;
+
+      if (analyticsIncomeEl) analyticsIncomeEl.textContent = `+${this.formatCoinBalance(analyticsPeriodIncome)}`;
+      if (analyticsExpenseEl) analyticsExpenseEl.textContent = `-${this.formatCoinBalance(analyticsPeriodExpense)}`;
+      if (analyticsNetEl) analyticsNetEl.textContent = formatSignedCoins(analyticsPeriodNet);
+      const netCardEl = analyticsNetEl ? analyticsNetEl.closest('.wallet-analytics-net-card') : null;
+      if (netCardEl) {
+        netCardEl.classList.toggle('is-positive', analyticsPeriodNet >= 0);
+        netCardEl.classList.toggle('is-negative', analyticsPeriodNet < 0);
+      }
+
+      analyticsDailySeries = buildDailySeries(history, analyticsRangeDays, analyticsMode);
+      const barsWindow = analyticsDailySeries.slice(-Math.min(10, analyticsDailySeries.length));
+      if (analyticsBarsEl) {
+        const peak = barsWindow.reduce((max, item) => Math.max(max, Math.abs(item.value)), 0) || 1;
+        const incomeBarColor = getWalletIncomeColor();
+        analyticsBarsEl.innerHTML = barsWindow.map((item) => {
+          const absoluteValue = Math.abs(item.value);
+          const ratio = absoluteValue > 0
+            ? Math.max(4, Math.round((absoluteValue / peak) * 100))
+            : 0;
+          const fillColor = item.value > 0
+            ? incomeBarColor
+            : item.value < 0
+              ? '#ff6b8a'
+              : 'transparent';
+          const tone = analyticsMode === 'income'
+            ? 'is-income'
+            : analyticsMode === 'expense'
+              ? 'is-expense'
+              : item.value >= 0 ? 'is-income' : 'is-expense';
+          return `
+            <button type="button" class="wallet-analytics-bar-row ${tone}" data-day-key="${escapeHtml(item.key)}" title="${escapeHtml(`${item.label}: ${formatSignedCoins(item.value)}`)}">
+              <span class="wallet-analytics-bar-label">${escapeHtml(item.label)}</span>
+              <div class="wallet-analytics-bar-track">
+                <span class="wallet-analytics-bar-fill" style="width:${ratio}%; background:${fillColor};"></span>
+              </div>
+              <strong class="wallet-analytics-bar-value">${escapeHtml(formatSignedCoins(item.value))}</strong>
+            </button>
+          `;
+        }).join('');
+      }
+
+      if (analyticsLineEl) {
+        const timeline = analyticsDailySeries;
+        const viewport = updateAnalyticsChartViewport();
+        const width = viewport.width;
+        const height = viewport.height;
+        const xPadding = 8;
+        const usableWidth = Math.max(1, width - (xPadding * 2));
+        const yPadding = 14;
+        const values = timeline.map((item) => Number(item.value) || 0);
+        let min = Math.min(...values, 0);
+        let max = Math.max(...values, 0);
+        if (!Number.isFinite(min)) min = 0;
+        if (!Number.isFinite(max)) max = 0;
+        if (min === max) {
+          const delta = min === 0 ? 1 : Math.max(1, Math.abs(min) * 0.15);
+          min -= delta;
+          max += delta;
+        }
+        const chartHeight = Math.max(1, height - (yPadding * 2));
+        const range = Math.max(0.0001, max - min);
+        const projectY = (plotValue) => {
+          const ratio = (plotValue - min) / range;
+          return Math.round((height - yPadding) - (ratio * chartHeight));
+        };
+        const zeroY = Math.max(yPadding, Math.min(height - yPadding, projectY(0)));
+        analyticsLinePoints = timeline.map((item, index) => {
+          const x = timeline.length <= 1
+            ? Math.round(width / 2)
+            : Math.round(xPadding + ((index / (timeline.length - 1)) * usableWidth));
+          const y = projectY(Number(item.value) || 0);
+          return {
+            ...item,
+            x,
+            y
+          };
+        });
+        const linePath = buildSmoothLinePath(analyticsLinePoints, 0.48);
+        analyticsLineEl.setAttribute('d', linePath);
+        if (analyticsAreaEl) {
+          if (!analyticsLinePoints.length) {
+            analyticsAreaEl.setAttribute('d', '');
+          } else {
+            const bottomY = height - yPadding;
+            const start = analyticsLinePoints[0];
+            const end = analyticsLinePoints[analyticsLinePoints.length - 1];
+            analyticsAreaEl.setAttribute('d', `${linePath} L ${end.x},${bottomY} L ${start.x},${bottomY} Z`);
+          }
+        }
+        if (analyticsZeroLineEl) {
+          analyticsZeroLineEl.setAttribute('x1', '0');
+          analyticsZeroLineEl.setAttribute('x2', String(width));
+          analyticsZeroLineEl.setAttribute('y1', String(zeroY));
+          analyticsZeroLineEl.setAttribute('y2', String(zeroY));
+        }
+        if (analyticsLineStartDayEl) {
+          analyticsLineStartDayEl.textContent = analyticsLinePoints[0]?.label || '-';
+        }
+        if (analyticsLineEndDayEl) {
+          const endLabel = analyticsLinePoints[analyticsLinePoints.length - 1]?.label || '-';
+          analyticsLineEndDayEl.textContent = analyticsLinePoints.length ? `${endLabel} · Сьогодні` : '-';
+        }
+        if (analyticsPointsEl) {
+          analyticsPointsEl.innerHTML = analyticsLinePoints.map((point) => {
+            const isToday = analyticsLinePoints[analyticsLinePoints.length - 1]?.key === point.key;
+            return `
+              <circle class="wallet-analytics-point ${isToday ? 'is-today' : ''}" data-day-key="${escapeHtml(point.key)}" cx="${point.x}" cy="${point.y}" r="${isToday ? '3.8' : '3.1'}" tabindex="0" focusable="true"></circle>
+            `;
+          }).join('');
+        }
+      }
+
+      const sourceTotals = new Map();
+      periodHistory.forEach((entry) => {
+        const label = resolveSourceLabel(entry);
+        const next = (sourceTotals.get(label) || 0) + Math.abs(Number(entry.amountCents) || 0);
+        sourceTotals.set(label, next);
+      });
+      const sourceEntries = [...sourceTotals.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      const total = sourceEntries.reduce((sum, [, amount]) => sum + amount, 0) || 1;
+      analyticsDonutSegments = sourceEntries.map(([label, amount], index) => {
+        const tones = resolveAnalyticsSourceColors(label, index);
+        return {
+          label,
+          amount,
+          percent: (amount / total) * 100,
+          color: tones.color,
+          mutedColor: tones.mutedColor
+        };
+      });
+      renderAnalyticsDonut(null);
+      setAnalyticsDonutCenter(null);
+
+      if (analyticsSourcesEl) {
+        if (!sourceEntries.length) {
+          analyticsSourcesEl.innerHTML = '<div class="wallet-analytics-empty">Немає даних.</div>';
+        } else {
+          analyticsSourcesEl.innerHTML = analyticsDonutSegments.map((segment, index) => {
+            return `
+              <button class="wallet-analytics-source-item" type="button" data-source-index="${index}" title="${escapeHtml(`${segment.label}: ${this.formatCoinBalance(segment.amount)}`)}">
+                <span class="wallet-analytics-source-dot" style="background:${segment.color}"></span>
+                <span class="wallet-analytics-source-label">${escapeHtml(segment.label)}</span>
+                <strong class="wallet-analytics-source-value">${escapeHtml(formatPercentLabel(segment.percent))}</strong>
+              </button>
+            `;
+          }).join('');
+        }
+      }
+
+      analyticsActiveSourceIndex = null;
+      if (analyticsActiveDayKey && analyticsLinePoints.some((item) => item.key === analyticsActiveDayKey)) {
+        focusAnalyticsPoint(analyticsActiveDayKey);
+      } else {
+        focusLatestAnalyticsPoint();
+      }
+    };
+
+    const setWalletView = (view, { persist = true } = {}) => {
+      const normalizedView = view === 'analytics' ? 'analytics' : 'ledger';
+      if (persist) this.walletActiveView = normalizedView;
+      walletViewButtons.forEach((button) => {
+        const isActive = button.getAttribute('data-wallet-view') === normalizedView;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+      walletPanels.forEach((panel) => {
+        const isActive = panel.getAttribute('data-wallet-panel') === normalizedView;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+      if (normalizedView !== 'analytics') {
+        hideAnalyticsLineTooltip();
+        setActiveAnalyticsDay('');
+      } else {
+        setIdleAnalyticsFocus();
+        window.requestAnimationFrame(() => {
+          render();
+        });
+      }
+    };
+
+    walletViewButtons.forEach((button) => {
+      if (!(button instanceof HTMLButtonElement)) return;
+      if (button.dataset.walletViewBound === 'true') return;
+      button.dataset.walletViewBound = 'true';
+      button.addEventListener('click', () => {
+        const nextView = String(button.getAttribute('data-wallet-view') || '').trim().toLowerCase();
+        setWalletView(nextView || 'ledger');
+      });
+    });
 
     const render = () => {
       const balance = this.getTapBalanceCents();
@@ -5164,6 +6017,7 @@ export class ChatAppFeaturesMethods {
             <span>Купуйте предмети в магазині або заробляйте монети в іграх.</span>
           </div>
         `;
+        renderAnalytics([]);
         return;
       }
 
@@ -5185,9 +6039,15 @@ export class ChatAppFeaturesMethods {
           </article>
         `;
       }).join('');
+
+      renderAnalytics(history);
     };
 
     render();
+    setWalletView(
+      String(safeOptions.view || this.walletActiveView || 'ledger').trim().toLowerCase(),
+      { persist: true }
+    );
     this.refreshCoinWalletFromBackend({ includeTransactions: true, silent: true })
       .then(() => {
         render();
@@ -5807,7 +6667,11 @@ export class ChatAppFeaturesMethods {
 
       if (sectionName === 'wallet') {
         this.settingsParentSection = 'wallet';
-        this.initWalletLedger(settingsContainer);
+        const requestedWalletView = String(this.pendingWalletView || '').trim().toLowerCase();
+        this.pendingWalletView = null;
+        this.initWalletLedger(settingsContainer, {
+          view: requestedWalletView === 'analytics' ? 'analytics' : 'ledger'
+        });
       }
 
       if (sectionName === 'group-create') {
