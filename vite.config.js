@@ -1,7 +1,17 @@
 import { defineConfig } from 'vite';
 
-const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'Nymo';
-const pagesBase = `/${repositoryName}/`;
+function normalizeBasePath(value = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw === '/') return '/';
+
+  const withLeadingSlash = raw.startsWith('/') ? raw : `/${raw}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+
+const DEFAULT_PAGES_BASE = '/Nymo/';
+const configuredPagesBase = normalizeBasePath(process.env.VITE_BASE_PATH);
+const pagesBase = configuredPagesBase || DEFAULT_PAGES_BASE;
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? pagesBase : '/',

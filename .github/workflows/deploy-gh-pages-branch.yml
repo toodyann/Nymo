@@ -23,6 +23,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_BASE_PATH: /Nymo/
         run: npm run build
 
       - name: Publish to gh-pages

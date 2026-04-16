@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'nymo-shell-v5';
-const RUNTIME_CACHE = 'nymo-runtime-v5';
+const SHELL_CACHE = 'nymo-shell-v6';
+const RUNTIME_CACHE = 'nymo-runtime-v6';
 const APP_SHELL_FILES = [
   './',
   './index.html',
@@ -49,31 +49,28 @@ self.addEventListener('activate', (event) => {
 
 async function handleNavigationRequest(request) {
   const runtimeCache = await caches.open(RUNTIME_CACHE);
-  const cachedResponse = await runtimeCache.match(request);
-  const appShellResponse = await caches.match(resolveScopeUrl('./index.html'))
-    || await caches.match(resolveScopeUrl('./'));
-
-  const networkPromise = fetch(request)
-    .then(async (response) => {
-      if (response && response.ok) {
-        await runtimeCache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  if (cachedResponse || appShellResponse) {
-    void networkPromise;
-    return cachedResponse || appShellResponse;
-  }
 
   try {
-    const response = await networkPromise;
-    if (response) return response;
-    return appShellResponse;
+    const networkResponse = await fetch(request);
+    if (networkResponse && networkResponse.ok) {
+      await runtimeCache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
   } catch (_) {
+  }
+
+  const cachedResponse = await runtimeCache.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const appShellResponse = await caches.match(resolveScopeUrl('./index.html'))
+    || await caches.match(resolveScopeUrl('./'));
+  if (appShellResponse) {
     return appShellResponse;
   }
+
+  return Response.error();
 }
 
 async function handleStaticRequest(request) {
