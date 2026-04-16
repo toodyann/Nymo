@@ -145,7 +145,6 @@ export function mountAppShell() {
     </nav>
 
     <aside class="desktop-secondary-menu" id="desktopSecondaryMenu" aria-label="Додаткове меню">
-      <canvas class="desktop-secondary-rain-canvas" id="desktopSecondaryRainCanvas" aria-hidden="true"></canvas>
       <div class="desktop-secondary-menu-header">
         <div class="desktop-secondary-menu-header-left">
           <button class="desktop-secondary-menu-header-btn" id="desktopSecondaryMenuBack" type="button" aria-label="Назад до меню">
