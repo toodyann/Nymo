@@ -102,7 +102,8 @@ export class ChatAppCoreMethods {
           id: String(entry.id || `${createdAt}-${Math.random().toString(16).slice(2, 10)}`).trim(),
           amountCents: Math.trunc(amountCents),
           title,
-          createdAt
+          createdAt,
+          subtitle: String(entry.subtitle || '').trim()
         };
       })
       .filter(Boolean)
@@ -119,7 +120,12 @@ export class ChatAppCoreMethods {
     return safeEntries;
   }
 
-  addWalletTransactionTitleHint({ amountCents = 0, title = '', createdAt = '' } = {}) {
+  addWalletTransactionTitleHint({
+    amountCents = 0,
+    title = '',
+    subtitle = '',
+    createdAt = ''
+  } = {}) {
     const safeAmount = Number.isFinite(amountCents) ? Math.trunc(amountCents) : 0;
     const safeTitle = String(title || '').trim();
     const safeCreatedAt = String(createdAt || new Date().toISOString()).trim();
@@ -128,6 +134,7 @@ export class ChatAppCoreMethods {
       id: `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
       amountCents: safeAmount,
       title: safeTitle,
+      subtitle: String(subtitle || '').trim(),
       createdAt: safeCreatedAt
     };
     const history = this.getWalletTransactionTitleHints();
@@ -236,25 +243,66 @@ export class ChatAppCoreMethods {
 
   normalizeWalletTransactionsPayload(payload) {
     const root = payload && typeof payload === 'object' ? payload : {};
-    const sources = [
-      root,
+    const pickTransactionArray = (source) => {
+      if (!source) return null;
+      if (Array.isArray(source)) return source;
+      if (typeof source !== 'object') return null;
+
+      const directCandidates = [
+        source.transactions,
+        source.items,
+        source.history,
+        source.results,
+        source.data,
+        source.rows,
+        source.records,
+        source.entries,
+        source.docs,
+        source.list
+      ];
+      for (const candidate of directCandidates) {
+        if (Array.isArray(candidate)) return candidate;
+      }
+
+      const nestedCandidates = [
+        source.data,
+        source.result,
+        source.wallet,
+        source.payload
+      ];
+      for (const nested of nestedCandidates) {
+        if (!nested || typeof nested !== 'object') continue;
+        const nestedList = [
+          nested.transactions,
+          nested.items,
+          nested.history,
+          nested.results,
+          nested.data,
+          nested.rows,
+          nested.records,
+          nested.entries,
+          nested.docs,
+          nested.list
+        ].find(Array.isArray);
+        if (Array.isArray(nestedList)) return nestedList;
+      }
+
+      return null;
+    };
+
+    const preferredSources = [
       root?.data,
       root?.result,
       root?.wallet,
-      root?.wallet?.history
+      root?.wallet?.history,
+      root
     ];
 
     let rawList = null;
-    for (const source of sources) {
-      if (!source) continue;
-      if (Array.isArray(source)) {
-        rawList = source;
-        break;
-      }
-      if (typeof source !== 'object') continue;
-      const candidate = source.transactions || source.items || source.history || source.results;
-      if (Array.isArray(candidate)) {
-        rawList = candidate;
+    for (const source of preferredSources) {
+      const picked = pickTransactionArray(source);
+      if (Array.isArray(picked)) {
+        rawList = picked;
         break;
       }
     }
@@ -320,6 +368,8 @@ export class ChatAppCoreMethods {
       /^[0-9]+$/,
       /^[0-9a-f]{24,64}$/i,
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      /^[0-9a-f]{8}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{12}$/i,
+      /^[0-9a-f]{6,}(?:\s+[0-9a-f]{4,}){2,}$/i,
       /^https?:\/\//i,
       /^\d{4}-\d{2}-\d{2}t\d{2}:\d{2}/i,
       /^\+?\d{8,}$/,
@@ -372,6 +422,99 @@ export class ChatAppCoreMethods {
       } catch {
         return null;
       }
+    };
+
+    const readNestedValue = (source, path) => {
+      if (!source || typeof source !== 'object') return undefined;
+      if (!path) return undefined;
+      const chunks = Array.isArray(path)
+        ? path.filter(Boolean)
+        : String(path).split('.').map((item) => item.trim()).filter(Boolean);
+      if (!chunks.length) return undefined;
+      let cursor = source;
+      for (const chunk of chunks) {
+        if (!cursor || typeof cursor !== 'object') return undefined;
+        cursor = cursor[chunk];
+      }
+      return cursor;
+    };
+
+    const toMeaningfulLabel = (value, { allowGeneric = false, allowNoise = false } = {}) => {
+      const normalized = normalizeLabel(value);
+      if (!normalized) return '';
+      const token = normalizeToken(normalized);
+      if (!token) return '';
+      if (!allowNoise && isNoiseToken(token)) return '';
+      if (!allowGeneric && isGenericToken(token)) return '';
+      return normalized;
+    };
+
+    const pickMeaningfulLabel = (sources = [], paths = [], { allowGeneric = false, allowNoise = false } = {}) => {
+      const safeSources = Array.isArray(sources) ? sources : [];
+      const safePaths = Array.isArray(paths) ? paths : [];
+      for (const source of safeSources) {
+        if (!source || typeof source !== 'object') continue;
+        for (const path of safePaths) {
+          const raw = readNestedValue(source, path);
+          if (raw && typeof raw === 'object') {
+            const candidate = toMeaningfulLabel(
+              raw.name
+              || raw.nickname
+              || raw.displayName
+              || raw.username
+              || raw.tag
+              || raw.title
+              || raw.label
+              || raw.mobile
+              || raw.phone
+              || '',
+              { allowGeneric, allowNoise }
+            );
+            if (candidate) return candidate;
+            continue;
+          }
+          const candidate = toMeaningfulLabel(raw, { allowGeneric, allowNoise });
+          if (candidate) return candidate;
+        }
+      }
+      return '';
+    };
+
+    const extractEntityReference = (sources = [], {
+      entityPaths = [],
+      namePaths = [],
+      idPaths = []
+    } = {}) => {
+      const safeSources = Array.isArray(sources) ? sources : [];
+      const displayName = pickMeaningfulLabel(safeSources, [
+        ...entityPaths,
+        ...namePaths
+      ]);
+      const identifier = pickMeaningfulLabel(safeSources, [
+        ...idPaths,
+        ...entityPaths.map((path) => `${path}.id`),
+        ...entityPaths.map((path) => `${path}.userId`),
+        ...entityPaths.map((path) => `${path}._id`),
+        ...entityPaths.map((path) => `${path}.uuid`),
+        ...entityPaths.map((path) => `${path}.uid`)
+      ], { allowGeneric: true, allowNoise: true });
+      if (!displayName && !identifier) return '';
+      if (displayName) return displayName;
+      if (identifier.length <= 18) return `ID ${identifier}`;
+      return `ID ${identifier.slice(0, 7)}...${identifier.slice(-4)}`;
+    };
+
+    const toGameLabel = (value) => {
+      const clean = normalizeLabel(value).replace(/^гра:\s*/i, '');
+      if (!clean) return '';
+      const token = normalizeToken(clean);
+      if (!token) return '';
+      if (/flappy/.test(token)) return 'Flappy Nymo';
+      if (/2048/.test(token)) return 'Nymo 2048';
+      if (/orion\s*drive|nymo\s*drive|drift|race/.test(token)) return 'Nymo Drive';
+      if (/clicker|tapper|tap|клікер/.test(token)) return 'Клікер';
+      if (/game|гра/.test(token)) return clean;
+      return '';
     };
 
     const collectObjectTitleCandidates = (source, depth = 0, seen = new WeakSet()) => {
@@ -444,9 +587,14 @@ export class ChatAppCoreMethods {
       });
 
       Object.keys(source).forEach((key) => {
+        const keyToken = String(key || '').trim().toLowerCase();
         const value = source[key];
+        const shouldIgnoreIdLikeValue = /(^|[_-])(id|uuid|txid|transactionid|userid|chatid|messageid)$/.test(keyToken);
         if (typeof value === 'string' || typeof value === 'number') {
           const asString = String(value);
+          if (shouldIgnoreIdLikeValue && isNoiseToken(normalizeToken(asString))) {
+            return;
+          }
           candidates.push(asString);
           const parsed = maybeParseJsonString(asString);
           if (parsed && typeof parsed === 'object') {
@@ -522,6 +670,20 @@ export class ChatAppCoreMethods {
         const titleFromNote = noteRaw && !isNoiseToken(noteToken) && !isGenericToken(noteToken)
           ? toReadableTransactionTitle(noteRaw)
           : '';
+        const scopedSources = [
+          entry,
+          entry.source,
+          entry.origin,
+          entry.context,
+          entry.meta,
+          entry.metadata,
+          entry.details,
+          entry.payload,
+          entry.data,
+          entry.reference,
+          entry.event,
+          entry.transaction
+        ].filter((source) => source && typeof source === 'object');
         const directCandidates = [
           entry.title,
           entry.description,
@@ -542,19 +704,7 @@ export class ChatAppCoreMethods {
           entry.transactionType,
           entry.kindLabel
         ];
-        const nestedCandidates = [
-          ...collectObjectTitleCandidates(entry.source),
-          ...collectObjectTitleCandidates(entry.origin),
-          ...collectObjectTitleCandidates(entry.context),
-          ...collectObjectTitleCandidates(entry.meta),
-          ...collectObjectTitleCandidates(entry.metadata),
-          ...collectObjectTitleCandidates(entry.details),
-          ...collectObjectTitleCandidates(entry.payload),
-          ...collectObjectTitleCandidates(entry.data),
-          ...collectObjectTitleCandidates(entry.reference),
-          ...collectObjectTitleCandidates(entry.event),
-          ...collectObjectTitleCandidates(entry.transaction)
-        ];
+        const nestedCandidates = scopedSources.flatMap((source) => collectObjectTitleCandidates(source));
         const allCandidates = [...directCandidates, ...nestedCandidates]
           .map((value) => toReadableTransactionTitle(value))
           .map((value) => normalizeLabel(value))
@@ -568,12 +718,205 @@ export class ChatAppCoreMethods {
         }) || '';
         const fallbackByType = String(typeTitleMap[typeRaw] || '').trim();
         const fallbackByDirection = signedAmount > 0 ? 'Поповнення балансу' : 'Списання балансу';
-        const title = titleFromNote
+        const fallbackResolvedTitle = titleFromNote
           || titleFromPayload
           || fallbackByType
           || (!isGenericToken(normalizeToken(fallbackTitle)) ? toReadableTransactionTitle(fallbackTitle) : '')
           || fallbackByDirection
           || 'Транзакція';
+        const gameLabel = toGameLabel(
+          pickMeaningfulLabel(scopedSources, [
+            'game',
+            'gameName',
+            'miniGame',
+            'gameTitle',
+            'sourceGame',
+            'meta.game',
+            'meta.gameName',
+            'metadata.game',
+            'metadata.gameName',
+            'details.game',
+            'details.gameName',
+            'payload.game',
+            'payload.gameName',
+            'source.game',
+            'source.gameName'
+          ], { allowGeneric: true })
+          || titleFromPayload
+          || titleFromNote
+          || typeRaw
+        );
+        const itemLabel = pickMeaningfulLabel(scopedSources, [
+          'itemName',
+          'itemTitle',
+          'productName',
+          'productTitle',
+          'product.name',
+          'product.title',
+          'item.name',
+          'item.title',
+          'meta.itemName',
+          'meta.productName',
+          'metadata.itemName',
+          'metadata.productName',
+          'details.itemName',
+          'details.productName',
+          'payload.itemName',
+          'payload.productName',
+          'source.itemName',
+          'source.productName'
+        ]);
+        const fromRef = extractEntityReference(scopedSources, {
+          entityPaths: [
+            'sender',
+            'from',
+            'fromUser',
+            'sourceUser',
+            'payer',
+            'initiator',
+            'meta.fromUser',
+            'metadata.fromUser',
+            'details.fromUser',
+            'payload.fromUser',
+            'source.fromUser'
+          ],
+          namePaths: [
+            'senderName',
+            'fromName',
+            'fromUserName',
+            'senderNickname',
+            'fromNickname',
+            'senderTag',
+            'fromTag',
+            'meta.senderName',
+            'meta.fromName',
+            'metadata.senderName',
+            'metadata.fromName',
+            'details.senderName',
+            'details.fromName',
+            'payload.senderName',
+            'payload.fromName'
+          ],
+          idPaths: [
+            'senderId',
+            'fromId',
+            'fromUserId',
+            'sourceUserId',
+            'payerId',
+            'initiatorId'
+          ]
+        });
+        const toRef = extractEntityReference(scopedSources, {
+          entityPaths: [
+            'receiver',
+            'to',
+            'toUser',
+            'targetUser',
+            'recipient',
+            'beneficiary',
+            'meta.toUser',
+            'metadata.toUser',
+            'details.toUser',
+            'payload.toUser',
+            'source.toUser'
+          ],
+          namePaths: [
+            'receiverName',
+            'toName',
+            'toUserName',
+            'recipientName',
+            'receiverNickname',
+            'toNickname',
+            'receiverTag',
+            'toTag',
+            'meta.receiverName',
+            'meta.toName',
+            'metadata.receiverName',
+            'metadata.toName',
+            'details.receiverName',
+            'details.toName',
+            'payload.receiverName',
+            'payload.toName'
+          ],
+          idPaths: [
+            'receiverId',
+            'toId',
+            'toUserId',
+            'targetUserId',
+            'recipientId',
+            'beneficiaryId'
+          ]
+        });
+        const detailLabel = pickMeaningfulLabel(scopedSources, [
+          'description',
+          'reason',
+          'note',
+          'memo',
+          'message',
+          'purpose',
+          'meta.reason',
+          'meta.note',
+          'metadata.reason',
+          'metadata.note',
+          'details.reason',
+          'details.note',
+          'payload.reason',
+          'payload.note'
+        ]);
+        const semanticHaystack = normalizeToken([
+          typeRaw,
+          entry.type,
+          entry.kind,
+          entry.category,
+          entry.transactionType,
+          entry.operationType,
+          entry.action,
+          titleFromPayload,
+          titleFromNote,
+          detailLabel,
+          gameLabel,
+          itemLabel
+        ].join(' '));
+        const isTransfer = /(transfer|переказ|перевод|send|receive|p2p)/.test(semanticHaystack);
+        const isPurchase = /(purchase|buy|shop|store|checkout|order|catalog|покуп|придбан)/.test(semanticHaystack);
+        const isSale = /(sale|sell|sold|resale|продаж)/.test(semanticHaystack);
+        const isGame = Boolean(gameLabel) || /(clicker|tapper|flappy|2048|drive|drift|game|гра|reward|bonus|quest)/.test(semanticHaystack);
+
+        let title = fallbackResolvedTitle;
+        let subtitle = '';
+        if (isTransfer) {
+          if (signedAmount > 0) {
+            title = fromRef ? `Переказ від ${fromRef}` : 'Вхідний переказ';
+            if (toRef) subtitle = `Отримувач: ${toRef}`;
+          } else {
+            title = toRef ? `Переказ для ${toRef}` : 'Вихідний переказ';
+            if (fromRef) subtitle = `Відправник: ${fromRef}`;
+          }
+        } else if (isPurchase || (signedAmount < 0 && itemLabel && /(shop|store|catalog|item|product|куп)/.test(semanticHaystack))) {
+          title = itemLabel ? `Покупка: ${itemLabel}` : 'Покупка';
+          if (gameLabel) subtitle = `Розділ: ${gameLabel}`;
+        } else if (isSale || (signedAmount > 0 && itemLabel && /(sale|sell|прод)/.test(semanticHaystack))) {
+          title = itemLabel ? `Продаж: ${itemLabel}` : 'Продаж';
+          if (toRef) subtitle = `Покупець: ${toRef}`;
+        } else if (isGame) {
+          title = gameLabel ? `Гра: ${gameLabel}` : (signedAmount > 0 ? 'Ігрова нагорода' : 'Ігрова витрата');
+          if (itemLabel && normalizeToken(itemLabel) !== normalizeToken(gameLabel)) {
+            subtitle = `Подія: ${itemLabel}`;
+          }
+        }
+        if (!subtitle && detailLabel) {
+          const detailToken = normalizeToken(detailLabel);
+          const titleToken = normalizeToken(title);
+          if (detailToken && detailToken !== titleToken) {
+            subtitle = detailLabel;
+          }
+        }
+        if (!subtitle && !isTransfer && fromRef && signedAmount > 0) {
+          subtitle = `Від: ${fromRef}`;
+        }
+        if (!subtitle && !isTransfer && toRef && signedAmount < 0) {
+          subtitle = `Кому: ${toRef}`;
+        }
         const category = String(typeRaw || entry.category || 'general').trim() || 'general';
         const id = String(entry.id || entry.txId || entry.transactionId || `${createdAt}-${index}`).trim();
 
@@ -582,7 +925,20 @@ export class ChatAppCoreMethods {
           amountCents: Math.trunc(signedAmount),
           createdAt,
           title,
-          category
+          subtitle,
+          category,
+          type: typeRaw,
+          direction: signedAmount > 0 ? 'credit' : 'debit',
+          game: gameLabel,
+          item: itemLabel,
+          from: fromRef,
+          to: toRef,
+          source: normalizeLabel(
+            entry.sourceName
+            || entry.sourceTitle
+            || (typeof entry.source === 'string' || typeof entry.source === 'number' ? entry.source : '')
+          ),
+          details: detailLabel
         };
       })
       .filter(Boolean)
@@ -765,7 +1121,8 @@ export class ChatAppCoreMethods {
             consumedHintIds.add(bestHint.id);
             return {
               ...entry,
-              title: bestHint.title
+              title: bestHint.title,
+              subtitle: entry.subtitle || bestHint.subtitle || ''
             };
           });
           this.saveCoinTransactionHistory(titlePatched);
@@ -1146,7 +1503,12 @@ export class ChatAppCoreMethods {
     const normalizeHistoryTitle = (title, amountCents) => {
       const clean = String(title || '').trim();
       const token = clean.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+      const looksLikeUuid = (
+        /^[0-9a-f]{8}[-\s][0-9a-f]{4}[-\s][0-9a-f]{4}[-\s][0-9a-f]{4}[-\s][0-9a-f]{12}$/i.test(clean)
+        || /^[0-9a-f]{8}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{12}$/i.test(token)
+      );
       if (!clean) return amountCents > 0 ? 'Поповнення балансу' : 'Списання балансу';
+      if (looksLikeUuid) return amountCents > 0 ? 'Поповнення балансу' : 'Списання балансу';
       if (
         token === 'adjustment'
         || token === 'transaction'
@@ -1175,12 +1537,30 @@ export class ChatAppCoreMethods {
         const id = typeof entry.id === 'string' && entry.id
           ? entry.id
           : `${createdAt}-${Math.random().toString(16).slice(2, 10)}`;
+        const subtitle = typeof entry.subtitle === 'string' ? entry.subtitle.trim() : '';
+        const details = typeof entry.details === 'string' ? entry.details.trim() : '';
+        const type = typeof entry.type === 'string' ? entry.type.trim() : '';
+        const direction = typeof entry.direction === 'string' ? entry.direction.trim() : '';
+        const game = typeof entry.game === 'string' ? entry.game.trim() : '';
+        const item = typeof entry.item === 'string' ? entry.item.trim() : '';
+        const from = typeof entry.from === 'string' ? entry.from.trim() : '';
+        const to = typeof entry.to === 'string' ? entry.to.trim() : '';
+        const source = typeof entry.source === 'string' ? entry.source.trim() : '';
         return {
           id,
           amountCents,
           createdAt,
           title,
-          category
+          subtitle,
+          category,
+          details,
+          type,
+          direction,
+          game,
+          item,
+          from,
+          to,
+          source
         };
       })
       .filter(Boolean)
@@ -1197,7 +1577,20 @@ export class ChatAppCoreMethods {
     return safeEntries;
   }
 
-  addCoinTransaction({ amountCents = 0, title = 'Транзакція', category = 'general' } = {}) {
+  addCoinTransaction({
+    amountCents = 0,
+    title = 'Транзакція',
+    subtitle = '',
+    category = 'general',
+    details = '',
+    type = '',
+    direction = '',
+    game = '',
+    item = '',
+    from = '',
+    to = '',
+    source = ''
+  } = {}) {
     const safeAmount = Number.isFinite(amountCents) ? Math.trunc(amountCents) : 0;
     if (!safeAmount) return null;
 
@@ -1206,7 +1599,16 @@ export class ChatAppCoreMethods {
       amountCents: safeAmount,
       createdAt: new Date().toISOString(),
       title: typeof title === 'string' && title.trim() ? title.trim() : 'Транзакція',
-      category: typeof category === 'string' && category.trim() ? category.trim() : 'general'
+      subtitle: typeof subtitle === 'string' ? subtitle.trim() : '',
+      category: typeof category === 'string' && category.trim() ? category.trim() : 'general',
+      details: typeof details === 'string' ? details.trim() : '',
+      type: typeof type === 'string' ? type.trim() : '',
+      direction: typeof direction === 'string' ? direction.trim() : '',
+      game: typeof game === 'string' ? game.trim() : '',
+      item: typeof item === 'string' ? item.trim() : '',
+      from: typeof from === 'string' ? from.trim() : '',
+      to: typeof to === 'string' ? to.trim() : '',
+      source: typeof source === 'string' ? source.trim() : ''
     };
 
     const history = this.getCoinTransactionHistory();

@@ -77,32 +77,9 @@ export const settingsTemplates = {
       </div>
     </section>
 
-    <section class="profile-summary-grid" aria-label="Статистика профілю">
-      <article class="profile-summary-card">
-        <span class="profile-summary-kicker">Чати</span>
-        <h3 id="profileStatChats">0</h3>
-        <p>Загальна кількість активних діалогів у вашому акаунті.</p>
-      </article>
-      <article class="profile-summary-card">
-        <span class="profile-summary-kicker">Повідомлення</span>
-        <h3 id="profileStatMessages">0</h3>
-        <p>Усі повідомлення в особистих і групових розмовах.</p>
-      </article>
-      <article class="profile-summary-card">
-        <span class="profile-summary-kicker">Заповнення</span>
-        <h3 id="profileStatCompletion">0%</h3>
-        <p>Рівень заповнення профілю для кращої персоналізації.</p>
-      </article>
-      <article class="profile-summary-card">
-        <span class="profile-summary-kicker">У Nymo з</span>
-        <h3 id="profileStatMemberSince">цього місяця</h3>
-        <p>Дата першого входу та початку використання платформи.</p>
-      </article>
-    </section>
-
     <section class="profile-settings-card profile-settings-menu-card">
       <div class="profile-section-heading">
-        <h3>Швидкі розділи</h3>
+        <h3>Налаштування</h3>
         <p>Керування основними параметрами акаунта в один клік.</p>
       </div>
       <div class="settings-menu-list">
@@ -169,6 +146,17 @@ export const settingsTemplates = {
           </span>
           <span class="settings-menu-label">
             <span>Мова</span>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+        <button type="button" class="settings-menu-item" data-section="faq">
+          <span class="settings-menu-icon settings-icon-help">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+              <path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>FAQ та допомога</span>
           </span>
           <span class="settings-menu-arrow">›</span>
         </button>
@@ -493,6 +481,11 @@ export const settingsTemplates = {
         </div>
       </div>
       <p class="shop-balance-note">Прокачуйте профіль і Nymo Drive предметами, які купуються лише за монети.</p>
+      <div class="wallet-balance-actions">
+        <button type="button" class="wallet-balance-action-btn" data-wallet-open-action="send">Надіслати</button>
+        <button type="button" class="wallet-balance-action-btn" data-wallet-open-action="receive">Отримати</button>
+        <button type="button" class="wallet-balance-action-btn is-subtle" data-wallet-open-action="wallet">Гаманець</button>
+      </div>
     </div>
 
     <div class="shop-filter-toolbar">
@@ -1195,29 +1188,32 @@ export const settingsTemplates = {
           aria-controls="coinAutoMining"
         >
           <span class="coin-auto-mining-toggle-icon" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 256 256" fill="currentColor">
-              <path d="M32,96a8,8,0,0,1,8-8H136a8,8,0,0,1,0,16H40A8,8,0,0,1,32,96Zm184,56H120a8,8,0,0,0,0,16h96a8,8,0,0,0,0-16Zm8-88a8,8,0,0,0-8-8H200V40a8,8,0,0,0-16,0V56H168a8,8,0,0,0,0,16h16V88a8,8,0,0,0,16,0V72h16A8,8,0,0,0,224,64ZM56.44,208H40a8,8,0,0,1,0-16H56.44A72.08,72.08,0,0,1,128,128h16a8,8,0,0,1,0,16H128A56.06,56.06,0,0,0,72,200,8,8,0,0,1,56.44,208Z"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M229.66,114.34l-96-96a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,32,128H72v56a8,8,0,0,0,8,8h96a8,8,0,0,0,8-8V128h40a8,8,0,0,0,5.66-13.66ZM176,112a8,8,0,0,0-8,8v56H88V120a8,8,0,0,0-8-8H51.31L128,35.31,204.69,112Zm8,104a8,8,0,0,1-8,8H80a8,8,0,0,1,0-16h96A8,8,0,0,1,184,216Z"></path>
             </svg>
           </span>
           <span class="coin-auto-mining-toggle-meta">
-            <span class="coin-auto-mining-toggle-kicker">Командний штаб</span>
-            <span class="coin-auto-mining-toggle-label">Розгорнути центр</span>
-          </span>
-          <span class="coin-auto-mining-toggle-chevron" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 256 256" fill="currentColor">
-              <path d="M181.66,133.66l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,164.69l42.34-42.35a8,8,0,0,1,11.32,11.32Zm-96-40L128,136,170.34,93.66a8,8,0,0,0-11.32-11.32L128,113.37,96.98,82.34A8,8,0,0,0,85.66,93.66Z"></path>
-            </svg>
+            <span class="coin-auto-mining-toggle-kicker">Прокачка</span>
+            <span class="coin-auto-mining-toggle-label">Відкрити прокачку</span>
           </span>
         </button>
       </div>
 
-      <div class="coin-auto-mining" id="coinAutoMining" hidden>
+      <button
+        type="button"
+        class="coin-auto-mining-backdrop"
+        id="coinTapAutoBackdrop"
+        hidden
+        aria-label="Закрити меню прокачки"
+      ></button>
+
+      <div class="coin-auto-mining" id="coinAutoMining" hidden aria-hidden="true" role="dialog" aria-label="Меню прокачки">
         <div class="coin-auto-mining-head">
           <div class="coin-auto-mining-head-main">
             <span class="coin-auto-mining-title">Команда повідомлень</span>
             <span class="coin-auto-mining-subtitle" id="coinTapAutoStatusText">Режим x1 · тік 1с</span>
           </div>
-          <button type="button" class="coin-auto-mining-close" id="coinTapAutoMenuClose">Закрити</button>
+          <button type="button" class="coin-auto-mining-close" id="coinTapAutoMenuClose" aria-label="Закрити меню">✕</button>
         </div>
         <div class="coin-auto-mining-controls">
           <div class="coin-auto-mining-batch" role="group" aria-label="Кількість покупок">
@@ -1230,7 +1226,9 @@ export const settingsTemplates = {
               <span class="coin-auto-mining-pulse-fill" id="coinTapAutoPulseFill"></span>
             </span>
           </div>
-          <span class="coin-auto-mining-last-gain" id="coinTapAutoLastGain">+0,00</span>
+          <span class="coin-auto-mining-last-gain" id="coinTapAutoLastGain">
+            <span class="coin-auto-mining-last-gain-value currency-value-inline">+0,00</span>
+          </span>
         </div>
         <div class="coin-auto-miners" id="coinTapAutoMiners"></div>
       </div>
@@ -1861,6 +1859,12 @@ export const settingsTemplates = {
         <span class="shop-balance-badge" id="walletBalanceBadge">Транзакцій: 0</span>
       </div>
       <p class="shop-balance-note">Тут відображається історія витрат і поповнень монет.</p>
+      <p class="wallet-inline-notice" id="walletIncomingTransferNotice" hidden></p>
+      <div class="wallet-balance-actions">
+        <button type="button" class="wallet-balance-action-btn" data-wallet-quick-action="send">Надіслати</button>
+        <button type="button" class="wallet-balance-action-btn" data-wallet-quick-action="receive">Отримати</button>
+        <button type="button" class="wallet-balance-action-btn is-subtle" data-wallet-quick-action="refresh">Оновити</button>
+      </div>
     </section>
 
     <section class="wallet-subsection-switch" aria-label="Підрозділи гаманця">
@@ -1875,6 +1879,11 @@ export const settingsTemplates = {
           <span class="wallet-history-count" id="walletTransactionsCount">0</span>
         </div>
         <div class="wallet-history-list" id="walletTransactionsList"></div>
+        <div class="wallet-history-pagination" id="walletTransactionsPagination" hidden>
+          <button type="button" class="wallet-history-page-btn" id="walletTransactionsPrevPage" aria-label="Попередня сторінка">‹</button>
+          <div class="wallet-history-page-list" id="walletTransactionsPages" role="navigation" aria-label="Сторінки транзакцій"></div>
+          <button type="button" class="wallet-history-page-btn" id="walletTransactionsNextPage" aria-label="Наступна сторінка">›</button>
+        </div>
       </section>
     </div>
 
@@ -1970,6 +1979,64 @@ export const settingsTemplates = {
           </div>
           <div class="wallet-analytics-source-list" id="walletAnalyticsSourceList"></div>
         </div>
+      </section>
+    </div>
+
+    <div class="wallet-transfer-modal" id="walletTransferModal" hidden>
+      <button type="button" class="wallet-transfer-backdrop" data-wallet-modal-close aria-label="Закрити вікно"></button>
+      <section class="wallet-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="walletTransferTitle">
+        <header class="wallet-transfer-head">
+          <h3 id="walletTransferTitle">Надіслати монети</h3>
+          <button type="button" class="wallet-transfer-close" data-wallet-modal-close aria-label="Закрити">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66A8,8,0,0,1,50.34,194.34L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+            </svg>
+          </button>
+        </header>
+        <div class="wallet-transfer-body">
+          <label class="wallet-transfer-field">
+            <span>Отримувач (@tag або ID)</span>
+            <input type="text" id="walletTransferToUserId" placeholder="@nickname або UUID користувача" autocomplete="off" />
+          </label>
+          <div class="wallet-transfer-search" id="walletTransferRecipientSearch" hidden></div>
+          <div class="wallet-transfer-recipient" id="walletTransferRecipientPreview" hidden></div>
+          <label class="wallet-transfer-field">
+            <span>Сума (minor units)</span>
+            <input type="number" id="walletTransferAmount" placeholder="Напр. 100" min="1" step="1" />
+          </label>
+          <p class="wallet-transfer-hint">Введіть <code>@tag</code> або імʼя, далі оберіть отримувача зі списку. Переказ виконується через <code>/wallet/me/transfer</code>.</p>
+          <p class="wallet-transfer-status" id="walletTransferStatus" hidden></p>
+        </div>
+        <footer class="wallet-transfer-actions">
+          <button type="button" class="wallet-balance-action-btn is-subtle" data-wallet-modal-close>Скасувати</button>
+          <button type="button" class="wallet-balance-action-btn" id="walletTransferSubmit">Надіслати</button>
+        </footer>
+      </section>
+    </div>
+
+    <div class="wallet-transfer-modal" id="walletReceiveModal" hidden>
+      <button type="button" class="wallet-transfer-backdrop" data-wallet-receive-close aria-label="Закрити вікно"></button>
+      <section class="wallet-transfer-dialog wallet-transfer-dialog--compact" role="dialog" aria-modal="true" aria-labelledby="walletReceiveTitle">
+        <header class="wallet-transfer-head">
+          <h3 id="walletReceiveTitle">Отримати монети</h3>
+          <button type="button" class="wallet-transfer-close" data-wallet-receive-close aria-label="Закрити">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66A8,8,0,0,1,50.34,194.34L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+            </svg>
+          </button>
+        </header>
+        <div class="wallet-transfer-body">
+          <p class="wallet-transfer-hint">Надішліть цей ID користувачу, який має переказати вам монети.</p>
+          <label class="wallet-transfer-field">
+            <span>Ваш ID</span>
+            <input type="text" id="walletReceiveUserId" readonly />
+          </label>
+          <p class="wallet-transfer-status" id="walletReceiveStatus" hidden></p>
+        </div>
+        <footer class="wallet-transfer-actions">
+          <button type="button" class="wallet-balance-action-btn is-subtle" data-wallet-receive-close>Закрити</button>
+          <button type="button" class="wallet-balance-action-btn" id="walletReceiveCopyBtn">Скопіювати ID</button>
+        </footer>
       </section>
     </div>
   </div>

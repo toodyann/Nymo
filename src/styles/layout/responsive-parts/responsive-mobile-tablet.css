@@ -564,7 +564,7 @@
 
   #navExplore,
   #navWallet,
-  #navGames {
+  #navSettings {
     display: none !important;
   }
 
@@ -580,7 +580,7 @@
     order: 3;
   }
 
-  #navSettings {
+  #navGames {
     order: 4;
   }
 
@@ -1152,10 +1152,6 @@
     min-height: var(--mobile-touch-size);
     padding: 0 14px;
     border-radius: 12px;
-  }
-
-  #settingsContainerMobile #profile .profile-settings-menu-card {
-    display: none !important;
   }
 
   .desktop-nav-rail-account-menu.mobile-anchor {

@@ -11,12 +11,21 @@ import {
 } from './mixins/index.js';
 
 function attachMethods(targetClass, sourceClass) {
-  Object.getOwnPropertyNames(sourceClass.prototype).forEach((methodName) => {
-    if (methodName === 'constructor') return;
-    const descriptor = Object.getOwnPropertyDescriptor(sourceClass.prototype, methodName);
-    if (descriptor) {
-      Object.defineProperty(targetClass.prototype, methodName, descriptor);
-    }
+  const prototypes = [];
+  let currentPrototype = sourceClass.prototype;
+  while (currentPrototype && currentPrototype !== Object.prototype) {
+    prototypes.push(currentPrototype);
+    currentPrototype = Object.getPrototypeOf(currentPrototype);
+  }
+
+  prototypes.reverse().forEach((prototype) => {
+    Object.getOwnPropertyNames(prototype).forEach((methodName) => {
+      if (methodName === 'constructor') return;
+      const descriptor = Object.getOwnPropertyDescriptor(prototype, methodName);
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, methodName, descriptor);
+      }
+    });
   });
 }
 

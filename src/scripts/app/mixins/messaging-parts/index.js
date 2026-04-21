@@ -1,0 +1,4 @@
+export {
+  SELF_DELETED_CHATS_STORAGE_KEY,
+  SELF_DELETED_MESSAGES_STORAGE_KEY
+} from './storage-keys.js';
