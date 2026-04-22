@@ -168,7 +168,7 @@ export class ChatAppInteractionMessageFlowMethods extends ChatAppInteractionGrou
 
         if (isTyping) {
           if (contactTyping) {
-            contactTyping.textContent = 'друкує...';
+            contactTyping.textContent = this.translateUiText('друкує...');
             contactTyping.classList.add('active');
           }
         } else if (contactTyping) {
@@ -201,7 +201,7 @@ export class ChatAppInteractionMessageFlowMethods extends ChatAppInteractionGrou
         this.enforcePlainChatModalHeader();
       } else {
         this.closeContactProfileSection();
-        if (contactName) contactName.textContent = 'Виберіть контакт';
+        if (contactName) contactName.textContent = this.translateUiText('Виберіть контакт');
         if (contactStatus) {
           contactStatus.classList.remove('online', 'offline');
           contactStatus.classList.add('hidden');

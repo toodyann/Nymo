@@ -772,6 +772,7 @@ export class ChatAppFeaturesSettingsAvatarMethods extends ChatAppFeaturesProfile
     this.saveSettings(settings);
     this.applyFontSize(settings.fontSize || 'medium');
     this.applySettingsToUI();
+    const languageChanged = (settings.language || 'uk') !== (previousSettings.language || 'uk');
 
     if ((settings.theme || 'system') !== (previousSettings.theme || 'system')) {
       this.loadTheme();
@@ -779,6 +780,11 @@ export class ChatAppFeaturesSettingsAvatarMethods extends ChatAppFeaturesProfile
 
     if ((settings.hideBlockedChats ?? true) !== (previousSettings.hideBlockedChats ?? true)) {
       this.renderChatsList();
+    }
+
+    if (languageChanged) {
+      window.location.reload();
+      return;
     }
 
     if (!silent) {

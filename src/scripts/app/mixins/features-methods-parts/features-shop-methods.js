@@ -52,13 +52,14 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
     let currentCar = cars[currentCarIndex] || cars[0];
 
     const inventory = new Set(this.loadShopInventory());
+    const t = (value) => this.translateUiText(value);
     const carClassByEffect = {
-      taxi: 'Міський клас',
-      'sedan-sports': 'Спорт-седан',
-      'suv-luxury': 'Преміум SUV',
-      police: 'Перехоплювач',
-      'race-future': 'Футуристичний',
-      firetruck: 'Важкий клас'
+      taxi: t('Міський клас'),
+      'sedan-sports': t('Спорт-седан'),
+      'suv-luxury': t('Преміум SUV'),
+      police: t('Перехоплювач'),
+      'race-future': t('Футуристичний'),
+      firetruck: t('Важкий клас')
     };
     const allPhysics = cars.map((car) => this.getOrionDriveCarPhysics(car.effect));
 
@@ -102,17 +103,17 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
 
       const specs = [
         {
-          label: 'Макс. швидкість',
-          value: `${topSpeed} км/год`,
+          label: t('Макс. швидкість'),
+          value: `${topSpeed} ${t('км/год')}`,
           percent: normalizeToPercent(selectedPhysics.maxForward, ranges.maxForward)
         },
         {
-          label: 'Розгін',
+          label: t('Розгін'),
           value: `${accelRate}/100`,
           percent: normalizeToPercent(selectedPhysics.forwardAccel, ranges.forwardAccel)
         },
         {
-          label: 'Гальмування',
+          label: t('Гальмування'),
           value: `${brakingRate}/100`,
           percent: Math.round(
             (
@@ -122,7 +123,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
           )
         },
         {
-          label: 'Керованість',
+          label: t('Керованість'),
           value: `${controlRate}/100`,
           percent: Math.round(
             (
@@ -148,8 +149,8 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
 
     const renderCarInfo = () => {
       if (titleEl) titleEl.textContent = currentCar.title;
-      if (descriptionEl) descriptionEl.textContent = currentCar.description;
-      if (classEl) classEl.textContent = carClassByEffect[currentCar.effect] || 'Універсальний';
+      if (descriptionEl) descriptionEl.textContent = this.translateUiText(currentCar.description);
+      if (classEl) classEl.textContent = carClassByEffect[currentCar.effect] || t('Універсальний');
       if (priceEl) priceEl.textContent = this.formatCoinBalance(currentCar.price, 1);
       if (balanceEl) balanceEl.textContent = this.formatCoinBalance(this.getTapBalanceCents(), 1);
       renderSpecs();
@@ -159,20 +160,20 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       const { owned, equipped, canBuy } = getSelectedState();
       if (ownershipTagEl) {
         ownershipTagEl.textContent = owned
-          ? (equipped ? 'Встановлено' : 'Куплено')
-          : 'Не куплено';
+          ? (equipped ? t('Встановлено') : t('Куплено'))
+          : t('Не куплено');
       }
 
       actionBtn.className = 'shop-item-action orion-drive-garage-action';
       if (owned) {
         actionBtn.classList.add(equipped ? 'is-equipped' : 'is-owned');
-        actionBtn.innerHTML = equipped ? 'Встановлено' : 'Встановити';
+        actionBtn.innerHTML = equipped ? t('Встановлено') : t('Встановити');
         actionBtn.disabled = false;
         return;
       }
 
       actionBtn.classList.add(canBuy ? 'can-buy' : 'is-locked');
-      actionBtn.innerHTML = `Купити за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(currentCar.price, 1)}</span>`;
+      actionBtn.innerHTML = `${t('Купити за')}&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(currentCar.price, 1)}</span>`;
       actionBtn.disabled = !canBuy;
     };
 
@@ -182,14 +183,14 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         if (balance < currentCar.price) return;
         const spent = this.applyCoinTransaction(
           -currentCar.price,
-          `Купівля: ${currentCar.title}`,
+          `${t('Купівля')}: ${currentCar.title}`,
           {
             category: 'shop',
             type: 'purchase',
-            subtitle: 'Гра: Nymo Drive',
+            subtitle: `${t('Гра:')} Nymo Drive`,
             game: 'Nymo Drive',
             item: currentCar.title,
-            source: 'Магазин'
+            source: t('Магазин')
           }
         );
         if (!spent) return;
@@ -482,6 +483,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
     const walletOpenActionButtons = [...settingsContainer.querySelectorAll('[data-wallet-open-action]')];
     const gridEl = settingsContainer.querySelector('#shopGrid');
     if (!balanceEl || !gridEl || !shopContentEl) return;
+    const t = (value) => this.translateUiText(value);
 
     const [{ createOrionDriveGltfLoader }, THREE] = await Promise.all([
       loadDriveLoaderModule(),
@@ -685,7 +687,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (item.type === 'frame') {
         return `
           <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
-            <span>${this.getInitials(this.user?.name || 'Користувач Nymo')}</span>
+            <span>${this.getInitials(this.user?.name || t('Користувач Nymo'))}</span>
           </div>
         `;
       }
@@ -749,33 +751,33 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
     };
 
     const getItemTypeLabel = (type) => {
-      if (type === 'frame') return 'Аватар';
-      if (type === 'aura') return 'Фон';
-      if (type === 'motion') return 'Анімація';
-      if (type === 'badge') return 'Значок';
-      if (type === 'car') return 'Авто Nymo Drive';
-      if (type === 'smoke') return 'Дим Nymo Drive';
-      return 'Предмет';
+      if (type === 'frame') return t('Аватар');
+      if (type === 'aura') return t('Фон');
+      if (type === 'motion') return t('Анімація');
+      if (type === 'badge') return t('Значок');
+      if (type === 'car') return t('Авто Nymo Drive');
+      if (type === 'smoke') return t('Дим Nymo Drive');
+      return t('Предмет');
     };
 
     const getFilterSummary = () => {
       const parts = [];
-      if (filterState.category === 'frame') parts.push('Аватар');
-      if (filterState.category === 'aura') parts.push('Профіль');
-      if (filterState.category === 'motion') parts.push('Анімація');
-      if (filterState.category === 'badge') parts.push('Значки');
-      if (filterState.category === 'car') parts.push('Авто Nymo Drive');
-      if (filterState.category === 'smoke') parts.push('Дим Nymo Drive');
-      if (filterState.ownership === 'owned') parts.push('Куплені');
-      if (filterState.ownership === 'unowned') parts.push('Не куплені');
-      if (filterState.availability === 'equipped') parts.push('Встановлені');
-      if (filterState.availability === 'can-buy') parts.push('Можна купити');
+      if (filterState.category === 'frame') parts.push(t('Аватар'));
+      if (filterState.category === 'aura') parts.push(t('Фон'));
+      if (filterState.category === 'motion') parts.push(t('Анімація'));
+      if (filterState.category === 'badge') parts.push(t('Значки'));
+      if (filterState.category === 'car') parts.push(t('Авто Nymo Drive'));
+      if (filterState.category === 'smoke') parts.push(t('Дим Nymo Drive'));
+      if (filterState.ownership === 'owned') parts.push(t('Куплені'));
+      if (filterState.ownership === 'unowned') parts.push(t('Не куплені'));
+      if (filterState.availability === 'equipped') parts.push(t('Встановлені'));
+      if (filterState.availability === 'can-buy') parts.push(t('Можна купити'));
       if (filterState.minPrice > minCatalogPrice || filterState.maxPrice < maxCatalogPrice) {
-        parts.push(`Ціна ${this.formatCoinBalance(filterState.minPrice, 1)}-${this.formatCoinBalance(filterState.maxPrice, 1)}`);
+        parts.push(`${t('Ціна')} ${this.formatCoinBalance(filterState.minPrice, 1)}-${this.formatCoinBalance(filterState.maxPrice, 1)}`);
       }
-      if (filterState.sort === 'price-asc') parts.push('Дешеві спочатку');
-      if (filterState.sort === 'price-desc') parts.push('Дорогі спочатку');
-      return parts.length ? parts.join(' • ') : 'Усі товари';
+      if (filterState.sort === 'price-asc') parts.push(t('Дешеві спочатку'));
+      if (filterState.sort === 'price-desc') parts.push(t('Дорогі спочатку'));
+      return parts.length ? parts.join(' • ') : t('Усі товари');
     };
 
     const syncFilterControls = () => {
@@ -880,8 +882,8 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (!visibleItems.length) {
         gridEl.innerHTML = `
           <div class="shop-empty-state">
-            <strong>Нічого не знайдено</strong>
-            <span>Спробуйте інший фільтр або заробіть більше монет у грі.</span>
+            <strong>${t('Нічого не знайдено')}</strong>
+            <span>${t('Спробуйте інший фільтр або заробіть більше монет у грі.')}</span>
           </div>
         `;
         return;
@@ -892,8 +894,8 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         const equipped = isEquipped(item);
         const canAfford = activeBalance >= item.price;
         const stateLabel = owned
-          ? (equipped ? 'Встановлено' : 'Встановити')
-          : `Купити за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(item.price, 1)}</span>`;
+          ? (equipped ? t('Встановлено') : t('Встановити'))
+          : `${t('Купити за')}&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(item.price, 1)}</span>`;
         const stateClass = owned
           ? (equipped ? 'is-equipped' : 'is-owned')
           : (canAfford ? 'can-buy' : 'is-locked');
@@ -909,14 +911,14 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
               ${createPreview(item)}
             </div>
             <h3 class="shop-item-title">${item.title}</h3>
-            <p class="shop-item-description">${item.description}</p>
+            <p class="shop-item-description">${escapeHtml(this.translateUiText(item.description))}</p>
             ${isCarCard ? `
               <div class="shop-item-actions-stack">
                 <button
                   type="button"
                   class="shop-item-action shop-item-inspect-action"
                   data-shop-garage-open="${item.id}"
-                >Оглянути</button>
+                >${t('Оглянути')}</button>
                 <button
                   type="button"
                   class="shop-item-action ${stateClass}"
@@ -1079,14 +1081,14 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         const sourceGame = (item.type === 'car' || item.type === 'smoke') ? 'Nymo Drive' : '';
         const spent = this.applyCoinTransaction(
           -item.price,
-          `Купівля: ${item.title}`,
+          `${t('Купівля')}: ${item.title}`,
           {
             category: 'shop',
             type: 'purchase',
-            subtitle: sourceGame ? `Гра: ${sourceGame}` : 'Розділ: Магазин',
+            subtitle: sourceGame ? `${t('Гра:')} ${sourceGame}` : t('Розділ: Магазин'),
             game: sourceGame,
             item: item.title,
-            source: 'Магазин'
+            source: t('Магазин')
           }
         );
         if (!spent) return;

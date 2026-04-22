@@ -1,3 +1,5 @@
+import { normalizeUiLanguage, translateUiText } from '../../../shared/i18n/ui-localization.js';
+
 const DESKTOP_SECONDARY_MENU_CONFIG = 
 {
       navChats: {
@@ -164,7 +166,32 @@ const DESKTOP_SECONDARY_MENU_CONFIG =
     }
 ;
 
-export function getDesktopSecondaryMenuConfigByNav(targetNavId = '') {
+function localizeDesktopSecondarySection(sectionConfig, language = 'uk') {
+  if (!sectionConfig || typeof sectionConfig !== 'object') return sectionConfig;
+  if (normalizeUiLanguage(language) !== 'en') return sectionConfig;
+
+  const groups = Array.isArray(sectionConfig.groups)
+    ? sectionConfig.groups.map((group) => ({
+      ...group,
+      title: translateUiText(group?.title || '', language),
+      items: Array.isArray(group?.items)
+        ? group.items.map((item) => ({
+          ...item,
+          label: translateUiText(item?.label || '', language)
+        }))
+        : []
+    }))
+    : [];
+
+  return {
+    ...sectionConfig,
+    title: translateUiText(sectionConfig.title || '', language),
+    groups
+  };
+}
+
+export function getDesktopSecondaryMenuConfigByNav(targetNavId = '', language = 'uk') {
   const safeTarget = String(targetNavId || '').trim();
-  return DESKTOP_SECONDARY_MENU_CONFIG[safeTarget] || DESKTOP_SECONDARY_MENU_CONFIG.navSettings;
+  const section = DESKTOP_SECONDARY_MENU_CONFIG[safeTarget] || DESKTOP_SECONDARY_MENU_CONFIG.navSettings;
+  return localizeDesktopSecondarySection(section, language);
 }

@@ -1,3 +1,5 @@
+import { localizeUiMarkup, resolveUiLanguage } from '../../shared/i18n/ui-localization.js';
+
 function getAppBasePath() {
   const envBase = typeof import.meta.env?.BASE_URL === 'string'
     ? String(import.meta.env.BASE_URL || '').trim()
@@ -40,6 +42,7 @@ export function mountAppShell() {
   }
   if (appContainer.querySelector('.orion-app')) return;
 
+  const uiLanguage = resolveUiLanguage();
   const htmlContent = `<div class="orion-app">
   <header class="app-header">
     <div class="app-header-left">
@@ -944,5 +947,5 @@ export function mountAppShell() {
 </div>
 `;
 
-  appContainer.innerHTML = htmlContent + extraUi;
+  appContainer.innerHTML = localizeUiMarkup(htmlContent + extraUi, uiLanguage);
 }

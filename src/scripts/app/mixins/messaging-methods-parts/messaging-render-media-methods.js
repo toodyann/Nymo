@@ -1710,7 +1710,7 @@ export class ChatAppMessagingRenderMediaMethods extends ChatAppMessagingSendUplo
   // Метод-обгортка для імпортованої функції getSettingsTemplate
 
   getSettingsTemplate(sectionName) {
-    return getSettingsTemplate(sectionName);
+    return getSettingsTemplate(sectionName, this.settings?.language || 'uk');
   }
 
 

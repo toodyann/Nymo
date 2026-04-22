@@ -1,4 +1,5 @@
 // Шаблони налаштувань для Nymo
+import { localizeUiMarkup, resolveUiLanguage } from '../../shared/i18n/ui-localization.js';
 
 const orionValueAssetUrl = new URL('../../../Assets/Nymo_value.png', import.meta.url).href;
 const flappyOrionSpriteAssetUrl = new URL('../../../Assets/Flappy-Nymo-Sprite.png', import.meta.url).href;
@@ -2090,6 +2091,7 @@ export const settingsTemplates = {
   `.trim()
 };
 
-export function getSettingsTemplate(sectionName) {
-  return settingsTemplates[sectionName] || '';
+export function getSettingsTemplate(sectionName, language = '') {
+  const template = settingsTemplates[sectionName] || '';
+  return localizeUiMarkup(template, resolveUiLanguage(language));
 }

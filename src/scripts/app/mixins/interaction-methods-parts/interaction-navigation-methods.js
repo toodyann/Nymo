@@ -60,7 +60,7 @@ export class ChatAppInteractionNavigationMethods {
 
 
   getDesktopSecondaryMenuConfig(targetNavId) {
-    return getDesktopSecondaryMenuConfigByNav(targetNavId);
+    return getDesktopSecondaryMenuConfigByNav(targetNavId, this.settings?.language || 'uk');
   }
 
 
@@ -522,9 +522,11 @@ export class ChatAppInteractionNavigationMethods {
     } else {
       const emptyEl = document.createElement('div');
       emptyEl.className = 'desktop-secondary-search-state';
+      const emptySearchMessage = this.desktopSecondaryUserSearchError
+        || `${this.translateUiText('Немає користувачів за запитом')} "${query}".`;
       emptyEl.textContent = this.desktopSecondaryUserSearchLoading
-        ? 'Шукаємо користувачів...'
-        : (this.desktopSecondaryUserSearchError || `Немає користувачів за запитом "${query}".`);
+        ? this.translateUiText('Шукаємо користувачів...')
+        : emptySearchMessage;
       contentEl.appendChild(emptyEl);
     }
   }
@@ -562,7 +564,7 @@ export class ChatAppInteractionNavigationMethods {
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'desktop-secondary-chat-search-input';
-    input.placeholder = 'Пошук або новий чат';
+    input.placeholder = this.translateUiText('Пошук або новий чат');
     input.autocomplete = 'off';
     input.spellcheck = false;
     input.value = String(this.desktopSecondaryChatSearchQuery || '');
@@ -1088,7 +1090,7 @@ export class ChatAppInteractionNavigationMethods {
     const searchInput = document.getElementById('searchInput');
     if (searchBox) searchBox.classList.add('is-mobile-new-chat-mode');
     if (searchInput instanceof HTMLInputElement) {
-      searchInput.placeholder = 'Пошук або новий чат';
+      searchInput.placeholder = this.translateUiText('Пошук або новий чат');
       searchInput.value = String(this.desktopSecondaryChatSearchQuery || '');
     }
 
@@ -1123,7 +1125,7 @@ export class ChatAppInteractionNavigationMethods {
     if (searchBox) searchBox.classList.remove('is-mobile-new-chat-mode');
     if (searchInput instanceof HTMLInputElement) {
       searchInput.value = '';
-      searchInput.placeholder = 'Пошук чатів...';
+      searchInput.placeholder = this.translateUiText('Пошук чатів...');
     }
 
     if (render) {

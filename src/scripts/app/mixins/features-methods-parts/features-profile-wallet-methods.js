@@ -10,6 +10,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const viewButtons = settingsContainer.querySelectorAll('[data-profile-items-view]');
     if (!balanceEl || !itemsCountEl || !gridEl) return;
     const scope = options?.scope === 'games' ? 'games' : 'all';
+    const t = (value) => this.translateUiText(value);
 
     const inventory = new Set(this.loadShopInventory());
     const shopCatalog = [
@@ -48,13 +49,13 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const getSellPrice = (item) => Math.max(1, Math.floor(item.price * SELL_MULTIPLIER));
 
     const getTypeLabel = (type) => {
-      if (type === 'frame') return 'Рамка';
-      if (type === 'aura') return 'Фон';
-      if (type === 'motion') return 'Анімація';
-      if (type === 'badge') return 'Бейдж';
-      if (type === 'car') return 'Авто Nymo Drive';
-      if (type === 'smoke') return 'Дим Nymo Drive';
-      return 'Предмет';
+      if (type === 'frame') return t('Рамка');
+      if (type === 'aura') return t('Фон');
+      if (type === 'motion') return t('Анімація');
+      if (type === 'badge') return t('Бейдж');
+      if (type === 'car') return t('Авто Nymo Drive');
+      if (type === 'smoke') return t('Дим Nymo Drive');
+      return t('Предмет');
     };
 
     const isGameItem = (item) => item?.type === 'car' || item?.type === 'smoke';
@@ -63,7 +64,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (item.type === 'frame') {
         return `
           <div class="shop-item-preview-avatar" data-avatar-frame="${item.effect}">
-            <span>${this.getInitials(this.user?.name || 'Користувач Nymo')}</span>
+            <span>${this.getInitials(this.user?.name || t('Користувач Nymo'))}</span>
           </div>
         `;
       }
@@ -163,8 +164,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (!ownedItems.length) {
         gridEl.innerHTML = `
           <div class="profile-items-empty">
-            <strong>${scope === 'games' ? 'Ігрових предметів поки немає' : 'Інвентар порожній'}</strong>
-            <span>${scope === 'games' ? 'Купи предмети Nymo Drive у магазині, щоб керувати ними тут.' : 'Купи предмети в магазині, щоб керувати ними тут.'}</span>
+            <strong>${scope === 'games' ? t('Ігрових предметів поки немає') : t('Інвентар порожній')}</strong>
+            <span>${scope === 'games' ? t('Купи предмети Nymo Drive у магазині, щоб керувати ними тут.') : t('Купи предмети в магазині, щоб керувати ними тут.')}</span>
           </div>
         `;
         return;
@@ -183,20 +184,20 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
               ${createPreview(item)}
             </div>
             <h3 class="shop-item-title profile-item-title">${escapeHtml(item.title)}</h3>
-            <p class="shop-item-description profile-item-description">${escapeHtml(item.description)}</p>
+            <p class="shop-item-description profile-item-description">${escapeHtml(this.translateUiText(item.description))}</p>
             <div class="profile-item-actions">
               <button
                 type="button"
                 class="shop-item-action profile-item-action profile-item-action-equip ${equipped ? 'is-equipped' : 'is-owned'}"
                 data-profile-item-action="toggle-equip"
                 data-profile-item-id="${item.id}"
-              >${equipped ? 'Зняти з профілю' : 'Встановити в профіль'}</button>
+              >${equipped ? t('Зняти з профілю') : t('Встановити в профіль')}</button>
               <button
                 type="button"
                 class="shop-item-action profile-item-action profile-item-action-sell can-buy"
                 data-profile-item-action="sell"
                 data-profile-item-id="${item.id}"
-              >Продати за&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(sellPrice, 1)}</span></button>
+              >${t('Продати за')}&nbsp;<span class="currency-value-inline">${this.formatCoinBalance(sellPrice, 1)}</span></button>
             </div>
           </article>
         `;
@@ -239,9 +240,12 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       if (action === 'sell') {
         const sellPrice = getSellPrice(item);
+        const sellConfirmMessage = String(this.settings?.language || '').trim().toLowerCase() === 'en'
+          ? `Sell "${item.title}" for ${this.formatCoinBalance(sellPrice, 1)}?`
+          : `Продати "${item.title}" за ${this.formatCoinBalance(sellPrice, 1)}?`;
         const confirmed = await this.showConfirm(
-          `Продати "${item.title}" за ${this.formatCoinBalance(sellPrice, 1)}?`,
-          'Продаж предмета'
+          sellConfirmMessage,
+          t('Продаж предмета')
         );
         if (!confirmed) return;
 
@@ -255,14 +259,14 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
         this.applyCoinTransaction(
           sellPrice,
-          `Продаж: ${item.title}`,
+          `${t('Продаж')}: ${item.title}`,
           {
             category: 'shop',
             type: 'sale',
-            subtitle: isGameItem(item) ? 'Гра: Nymo Drive' : 'Розділ: Магазин',
+            subtitle: isGameItem(item) ? `${t('Гра:')} Nymo Drive` : t('Розділ: Магазин'),
             game: isGameItem(item) ? 'Nymo Drive' : '',
             item: item.title,
-            source: 'Магазин'
+            source: t('Магазин')
           }
         );
         renderInventory();
@@ -273,6 +277,9 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
   initWalletLedger(settingsContainer, options = {}) {
     const safeOptions = options && typeof options === 'object' ? options : {};
+    const t = (value) => this.translateUiText(value);
+    const uiLanguage = String(this.settings?.language || '').trim().toLowerCase();
+    const uiLocale = uiLanguage === 'en' ? 'en-US' : 'uk-UA';
     const balanceEl = settingsContainer.querySelector('#walletBalanceValue');
     const badgeEl = settingsContainer.querySelector('#walletBalanceBadge');
     const countEl = settingsContainer.querySelector('#walletTransactionsCount');
@@ -354,9 +361,9 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const getWalletIncomeColor = () => readCssVarColor('--wallet-income-color', '#3ed08b');
     const getWalletIncomeMutedColor = () => `color-mix(in srgb, ${getWalletIncomeColor()} 28%, transparent)`;
     const analyticsModeLabels = {
-      net: 'Чистий результат',
-      income: 'Дохід',
-      expense: 'Витрати'
+      net: t('Чистий результат'),
+      income: t('Дохід'),
+      expense: t('Витрати')
     };
     let analyticsDonutSegments = [];
     let analyticsActiveSourceIndex = null;
@@ -482,7 +489,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (!id) return null;
       const name = typeof this.getUserDisplayName === 'function'
         ? this.getUserDisplayName(source)
-        : (String(source.nickname || source.name || 'Користувач').trim() || 'Користувач');
+        : (String(source.nickname || source.name || t('Користувач')).trim() || t('Користувач'));
       const tag = typeof this.getUserTag === 'function'
         ? this.getUserTag(source)
         : String(source.tag || source.username || '').trim().replace(/^@+/, '');
@@ -514,7 +521,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         walletTransferRecipientPreviewEl.innerHTML = '';
         return;
       }
-      const displayName = String(recipient.name || 'Користувач').trim() || 'Користувач';
+      const displayName = String(recipient.name || t('Користувач')).trim() || t('Користувач');
       const shortId = recipient.id.length > 16
         ? `${recipient.id.slice(0, 7)}...${recipient.id.slice(-4)}`
         : recipient.id;
@@ -553,7 +560,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       }
 
       walletTransferRecipientSearchEl.innerHTML = safeItems.map((recipient) => {
-        const displayName = String(recipient.name || 'Користувач').trim() || 'Користувач';
+        const displayName = String(recipient.name || t('Користувач')).trim() || t('Користувач');
         const detail = recipient.tag
           ? `@${recipient.tag} · ${recipient.id.slice(0, 7)}...${recipient.id.slice(-4)}`
           : recipient.id;
@@ -673,8 +680,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       const amountText = `+${this.formatCoinBalance(safeAmountCents)}`;
       const message = safeCount > 1
-        ? `Надійшло ${safeCount} переказів на ${amountText}.`
-        : `Надійшов переказ на ${amountText}.`;
+        ? `${t('Надійшло')} ${safeCount} ${t('переказів')} ${t('на')} ${amountText}.`
+        : `${t('Надійшов')} ${t('переказ')} ${t('на')} ${amountText}.`;
 
       if (walletIncomingTransferNoticeEl instanceof HTMLElement) {
         walletIncomingTransferNoticeEl.textContent = message;
@@ -693,7 +700,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       if (typeof this.showDesktopBrowserNotification === 'function') {
         this.showDesktopBrowserNotification({
-          title: 'Nymo · Гаманець',
+          title: `Nymo · ${t('Гаманець')}`,
           body: message,
           requireEnabledSetting: false,
           closeAfterMs: 5200,
@@ -774,19 +781,19 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       if (trimmed.length < 2) {
         walletTransferSearchResults = [];
-        renderWalletTransferSearch({ items: [], message: 'Введіть мінімум 2 символи для пошуку.' });
+        renderWalletTransferSearch({ items: [], message: t('Введіть мінімум 2 символи для пошуку.') });
         clearWalletTransferSelectedRecipient();
         return;
       }
 
-      renderWalletTransferSearch({ items: [], message: 'Пошук користувачів...' });
+      renderWalletTransferSearch({ items: [], message: t('Пошук користувачів...') });
       const recipients = await getWalletTransferRecipientSearchResults(trimmed, { includeRemote });
       if (requestId !== walletTransferSearchRequestId) return;
 
       walletTransferSearchResults = recipients;
       if (!recipients.length) {
         clearWalletTransferSelectedRecipient();
-        renderWalletTransferSearch({ items: [], message: 'Користувачів не знайдено.' });
+        renderWalletTransferSearch({ items: [], message: t('Користувачів не знайдено.') });
         return;
       }
 
@@ -855,32 +862,32 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       if (!segment) {
         if (analyticsDonutSegments.length) {
-          analyticsDonutCenterLabelEl.textContent = 'Усі джерела';
+          analyticsDonutCenterLabelEl.textContent = t('Усі джерела');
           analyticsDonutCenterValueEl.textContent = '100%';
         } else {
-          analyticsDonutCenterLabelEl.textContent = 'Немає даних';
+          analyticsDonutCenterLabelEl.textContent = t('Немає даних');
           analyticsDonutCenterValueEl.textContent = '0%';
         }
         analyticsDonutCenterValueEl.removeAttribute('title');
         return;
       }
 
-      analyticsDonutCenterLabelEl.textContent = segment.label;
+      analyticsDonutCenterLabelEl.textContent = t(segment.label);
       analyticsDonutCenterValueEl.textContent = formatPercentLabel(segment.percent);
       analyticsDonutCenterValueEl.title = this.formatCoinBalance(segment.amount);
     };
 
     const setAnalyticsFocus = ({ label, value, meta, tone = 'neutral' }) => {
       if (!analyticsFocusLabelEl || !analyticsFocusValueEl || !analyticsFocusMetaEl) return;
-      analyticsFocusLabelEl.textContent = label || 'Фокус';
-      analyticsFocusValueEl.textContent = value || 'Увесь період';
-      analyticsFocusMetaEl.textContent = meta || 'Наведи на рядок, точку графіка або джерело.';
+      analyticsFocusLabelEl.textContent = label || t('Фокус');
+      analyticsFocusValueEl.textContent = value || t('Увесь період');
+      analyticsFocusMetaEl.textContent = meta || t('Наведи на рядок, точку графіка або джерело.');
       const focusRoot = analyticsFocusLabelEl.closest('.wallet-analytics-focus');
       if (focusRoot) focusRoot.dataset.tone = tone;
     };
 
     const setIdleAnalyticsFocus = () => {
-      const periodLabel = `${analyticsRangeDays} днів`;
+      const periodLabel = `${analyticsRangeDays} ${t('днів')}`;
       const modeLabel = analyticsModeLabels[analyticsMode] || analyticsModeLabels.net;
       const modeValue = analyticsMode === 'income'
         ? analyticsPeriodIncome
@@ -890,7 +897,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       setAnalyticsFocus({
         label: `${modeLabel} · ${periodLabel}`,
         value: formatSignedCoins(modeValue),
-        meta: `Транзакцій у періоді: ${analyticsPeriodTransactions}`,
+        meta: `${t('Транзакцій у періоді:')} ${analyticsPeriodTransactions}`,
         tone: modeValue >= 0 ? 'positive' : 'negative'
       });
     };
@@ -1000,9 +1007,9 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       const tone = point.value >= 0 ? 'positive' : 'negative';
       setAnalyticsFocus({
-        label: `День · ${point.label}`,
+        label: `${t('День')} · ${point.label}`,
         value: formatSignedCoins(point.value),
-        meta: `Режим: ${analyticsModeLabels[analyticsMode] || analyticsModeLabels.net}`,
+        meta: `${t('Режим:')} ${analyticsModeLabels[analyticsMode] || analyticsModeLabels.net}`,
         tone
       });
     };
@@ -1110,7 +1117,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         hideAnalyticsLineTooltip();
         setActiveAnalyticsDay('');
         setAnalyticsFocus({
-          label: `Джерело · ${activeSegment.label}`,
+          label: `${t('Джерело')} · ${t(activeSegment.label)}`,
           value: formatPercentLabel(activeSegment.percent),
           meta: this.formatCoinBalance(activeSegment.amount),
           tone: 'neutral'
@@ -1243,7 +1250,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const formatDate = (value) => {
       const parsedDate = new Date(value);
       if (Number.isNaN(parsedDate.getTime())) return '';
-      return parsedDate.toLocaleString('uk-UA', {
+      return parsedDate.toLocaleString(uiLocale, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -1277,7 +1284,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const dayLabel = (dateInput) => {
       const date = startOfDay(dateInput);
       if (!date) return '';
-      return date.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+      return date.toLocaleDateString(uiLocale, { day: '2-digit', month: '2-digit' });
     };
 
     const resolveSourceLabel = (entry) => {
@@ -1326,6 +1333,42 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       }
 
       return parts.join(' · ');
+    };
+
+    const resolveLedgerTitle = (entry) => {
+      const safeEntry = entry && typeof entry === 'object' ? entry : {};
+      const rawTitle = String(safeEntry.title || '').trim();
+      const currency = this.getWalletCurrencyCode();
+      const isGeneric = !rawTitle || (
+        typeof this.isWalletTransactionTitleGeneric === 'function'
+        && this.isWalletTransactionTitleGeneric(rawTitle, { currency })
+      );
+      if (!isGeneric) return rawTitle;
+
+      const typeToken = String(safeEntry.type || '').trim().toLowerCase();
+      const subtitleToken = String(safeEntry.subtitle || '').trim().toLowerCase();
+      const directionToken = String(safeEntry.direction || '').trim().toLowerCase();
+      const gameToken = String(safeEntry.game || '').trim();
+      const itemToken = String(safeEntry.item || '').trim();
+      const fromToken = String(safeEntry.from || '').trim();
+      const toToken = String(safeEntry.to || '').trim();
+      const amount = Number(safeEntry.amountCents) || 0;
+      const transferLike = (
+        /transfer|переказ/.test(typeToken)
+        || /операція:\s*переказ|operation:\s*transfer/.test(subtitleToken)
+      );
+
+      if (transferLike) {
+        if (amount >= 0) return fromToken ? `${t('Переказ від')} ${fromToken}` : t('Вхідний переказ');
+        return toToken ? `${t('Переказ для')} ${toToken}` : t('Вихідний переказ');
+      }
+      if (/sale|sell|продаж/.test(typeToken)) return itemToken ? `${t('Продаж')}: ${itemToken}` : t('Продаж');
+      if (/purchase|buy|куп|shop|store/.test(typeToken)) return itemToken ? `${t('Покупка')}: ${itemToken}` : t('Покупка');
+      if (/reward|bonus|earn/.test(typeToken)) return gameToken ? `${t('Гра:')} ${gameToken}` : t('Ігрова нагорода');
+      if (gameToken) return `${t('Гра:')} ${gameToken}`;
+      if (directionToken === 'credit' || amount >= 0) return t('Поповнення балансу');
+      if (directionToken === 'debit' || amount < 0) return t('Списання балансу');
+      return t('Транзакція');
     };
 
     const resolveAnalyticsSourceColors = (label, index = 0) => {
@@ -1408,10 +1451,10 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     const renderAnalytics = (history) => {
       setAnalyticsControlState();
       if (analyticsBarsTitleEl) {
-        analyticsBarsTitleEl.textContent = `Рух за ${Math.min(10, analyticsRangeDays)} з ${analyticsRangeDays} днів`;
+        analyticsBarsTitleEl.textContent = `${t('Рух за')} ${Math.min(10, analyticsRangeDays)} ${t('з')} ${analyticsRangeDays} ${t('днів')}`;
       }
       if (analyticsLineTitleEl) {
-        analyticsLineTitleEl.textContent = `Динаміка за ${analyticsRangeDays} днів`;
+        analyticsLineTitleEl.textContent = `${t('Динаміка за')} ${analyticsRangeDays} ${t('днів')}`;
       }
 
       if (!Array.isArray(history) || !history.length) {
@@ -1426,7 +1469,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         analyticsLinePoints = [];
         analyticsActiveDayKey = '';
         if (analyticsBarsEl) {
-          analyticsBarsEl.innerHTML = '<div class="wallet-analytics-empty">Недостатньо даних для графіка.</div>';
+          analyticsBarsEl.innerHTML = `<div class="wallet-analytics-empty">${escapeHtml(t('Недостатньо даних для графіка.'))}</div>`;
         }
         if (analyticsLineEl) {
           const { width: baseWidth, height: baseHeight } = updateAnalyticsChartViewport();
@@ -1447,13 +1490,13 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
           analyticsPointsEl.innerHTML = '';
         }
         if (analyticsLineStartDayEl) analyticsLineStartDayEl.textContent = '-';
-        if (analyticsLineEndDayEl) analyticsLineEndDayEl.textContent = 'Сьогодні';
+        if (analyticsLineEndDayEl) analyticsLineEndDayEl.textContent = t('Сьогодні');
         hideAnalyticsLineTooltip();
         analyticsDonutSegments = [];
         renderAnalyticsDonut(null);
         setAnalyticsDonutCenter(null);
         if (analyticsSourcesEl) {
-          analyticsSourcesEl.innerHTML = '<div class="wallet-analytics-empty">Транзакції ще не накопичились.</div>';
+          analyticsSourcesEl.innerHTML = `<div class="wallet-analytics-empty">${escapeHtml(t('Транзакції ще не накопичились.'))}</div>`;
         }
         analyticsActiveSourceIndex = null;
         setIdleAnalyticsFocus();
@@ -1573,7 +1616,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         }
         if (analyticsLineEndDayEl) {
           const endLabel = analyticsLinePoints[analyticsLinePoints.length - 1]?.label || '-';
-          analyticsLineEndDayEl.textContent = analyticsLinePoints.length ? `${endLabel} · Сьогодні` : '-';
+          analyticsLineEndDayEl.textContent = analyticsLinePoints.length ? `${endLabel} · ${t('Сьогодні')}` : '-';
         }
         if (analyticsPointsEl) {
           analyticsPointsEl.innerHTML = analyticsLinePoints.map((point) => {
@@ -1610,13 +1653,13 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       if (analyticsSourcesEl) {
         if (!sourceEntries.length) {
-          analyticsSourcesEl.innerHTML = '<div class="wallet-analytics-empty">Немає даних.</div>';
+          analyticsSourcesEl.innerHTML = `<div class="wallet-analytics-empty">${escapeHtml(t('Немає даних.'))}</div>`;
         } else {
           analyticsSourcesEl.innerHTML = analyticsDonutSegments.map((segment, index) => {
             return `
-              <button class="wallet-analytics-source-item" type="button" data-source-index="${index}" title="${escapeHtml(`${segment.label}: ${this.formatCoinBalance(segment.amount)}`)}">
+              <button class="wallet-analytics-source-item" type="button" data-source-index="${index}" title="${escapeHtml(`${t(segment.label)}: ${this.formatCoinBalance(segment.amount)}`)}">
                 <span class="wallet-analytics-source-dot" style="background:${segment.color}"></span>
-                <span class="wallet-analytics-source-label">${escapeHtml(segment.label)}</span>
+                <span class="wallet-analytics-source-label">${escapeHtml(t(segment.label))}</span>
                 <strong class="wallet-analytics-source-value">${escapeHtml(formatPercentLabel(segment.percent))}</strong>
               </button>
             `;
@@ -1845,8 +1888,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (walletTransactionsLoading && !walletTransactionsPageEntries.length) {
         listEl.innerHTML = `
           <div class="wallet-history-empty">
-            <strong>Завантаження транзакцій...</strong>
-            <span>Отримуємо сторінку ${walletTransactionsPage}.</span>
+            <strong>${t('Завантаження транзакцій...')}</strong>
+            <span>${t('Отримуємо сторінку')} ${walletTransactionsPage}.</span>
           </div>
         `;
         renderWalletTransactionsPagination();
@@ -1856,8 +1899,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (!walletTransactionsPageEntries.length) {
         listEl.innerHTML = `
           <div class="wallet-history-empty">
-            <strong>Транзакцій поки немає</strong>
-            <span>Купуйте предмети в магазині або заробляйте монети в іграх.</span>
+            <strong>${t('Транзакцій поки немає')}</strong>
+            <span>${t('Купуйте предмети в магазині або заробляйте монети в іграх.')}</span>
           </div>
         `;
         renderWalletTransactionsPagination();
@@ -1869,9 +1912,9 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         const isIncome = Number(entry.amountCents) > 0;
         const sign = isIncome ? '+' : '-';
         const amountText = `${sign}${this.formatCoinBalance(safeAmount)}`;
-        const title = escapeHtml(entry.title || 'Транзакція');
+        const title = escapeHtml(this.translateUiText(resolveLedgerTitle(entry)));
         const dateLabel = escapeHtml(formatDate(entry.createdAt));
-        const subtitle = escapeHtml(resolveLedgerSubtitle(entry));
+        const subtitle = escapeHtml(this.translateUiText(resolveLedgerSubtitle(entry)));
         const metaLine = subtitle
           ? `${subtitle} · ${dateLabel}`
           : dateLabel;
@@ -1990,17 +2033,17 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         : Number.NaN;
       const amount = Number.isFinite(amountRaw) ? Math.max(0, Math.trunc(amountRaw)) : 0;
       if (!recipientInput) {
-        setTransferStatus('Вкажіть отримувача (@tag або ID).', 'error');
+        setTransferStatus(t('Вкажіть отримувача (@tag або ID).'), 'error');
         return;
       }
       if (amount <= 0) {
-        setTransferStatus('Вкажіть коректну суму (ціле число > 0).', 'error');
+        setTransferStatus(t('Вкажіть коректну суму (ціле число > 0).'), 'error');
         return;
       }
 
       const headers = this.getWalletApiHeaders({ json: true });
       if (!String(headers?.['X-User-Id'] || '').trim()) {
-        setTransferStatus('Не вдалося визначити ваш User ID для запиту.', 'error');
+        setTransferStatus(t('Не вдалося визначити ваш User ID для запиту.'), 'error');
         return;
       }
 
@@ -2009,18 +2052,18 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (walletTransferSubmitEl instanceof HTMLButtonElement) {
         walletTransferSubmitEl.disabled = true;
       }
-      setTransferStatus('Виконуємо переказ...', 'neutral');
+      setTransferStatus(t('Виконуємо переказ...'), 'neutral');
 
       try {
         const selectedRecipient = walletTransferSelectedRecipient;
         const toUserId = String(selectedRecipient?.id || '').trim();
 
         if (!toUserId) {
-          setTransferStatus('Оберіть отримувача зі списку пошуку.', 'error');
+          setTransferStatus(t('Оберіть отримувача зі списку пошуку.'), 'error');
           return;
         }
         if (toUserId.toLowerCase() === resolveCurrentUserId().toLowerCase()) {
-          setTransferStatus('Не можна переказати монети самому собі.', 'error');
+          setTransferStatus(t('Не можна переказати монети самому собі.'), 'error');
           return;
         }
 
@@ -2037,13 +2080,13 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         if (!response.ok) {
           const reason = String(payload?.message || payload?.error || '').trim();
           setTransferStatus(
-            `Переказ не виконано${reason ? `: ${reason}` : '.'}`,
+            `${t('Переказ не виконано')}${reason ? `: ${reason}` : '.'}`,
             'error'
           );
           return;
         }
 
-        setTransferStatus('Переказ успішний.', 'success');
+        setTransferStatus(t('Переказ успішний.'), 'success');
         if (walletTransferToUserIdEl instanceof HTMLInputElement) {
           walletTransferToUserIdEl.value = '';
         }
@@ -2064,7 +2107,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
           closeTransferModal();
         }, 320);
       } catch (error) {
-        setTransferStatus('Помилка запиту. Спробуйте ще раз.', 'error');
+        setTransferStatus(t('Помилка запиту. Спробуйте ще раз.'), 'error');
       } finally {
         walletTransferSubmitting = false;
         if (walletTransferSubmitEl instanceof HTMLButtonElement) {
@@ -2160,7 +2203,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         walletTransferSearchTimer = window.setTimeout(() => {
           walletTransferSearchTimer = null;
           runWalletTransferSearch(rawValue, { includeRemote: true }).catch(() => {
-            renderWalletTransferSearch({ items: [], message: 'Не вдалося виконати пошук.' });
+            renderWalletTransferSearch({ items: [], message: t('Не вдалося виконати пошук.') });
           });
         }, 240);
       });
@@ -2176,7 +2219,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
           return;
         }
         runWalletTransferSearch(rawValue, { includeRemote: true }).catch(() => {
-          renderWalletTransferSearch({ items: [], message: 'Не вдалося виконати пошук.' });
+          renderWalletTransferSearch({ items: [], message: t('Не вдалося виконати пошук.') });
         });
       });
 
@@ -2205,7 +2248,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         renderWalletTransferRecipient(nextRecipient);
         renderWalletTransferSearch({ items: walletTransferSearchResults });
         walletTransferRecipientSearchEl.hidden = true;
-        setTransferStatus(`Отримувач: ${nextRecipient.name}`, 'success');
+        setTransferStatus(`${t('Отримувач')}: ${nextRecipient.name}`, 'success');
       });
     }
 
@@ -2230,7 +2273,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       walletReceiveCopyBtn.addEventListener('click', async () => {
         const value = String(walletReceiveUserIdEl?.value || '').trim();
         if (!value) {
-          setReceiveStatus('Не вдалося знайти ваш ID.', 'error');
+          setReceiveStatus(t('Не вдалося знайти ваш ID.'), 'error');
           return;
         }
         try {
@@ -2240,9 +2283,9 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
             walletReceiveUserIdEl.select();
             document.execCommand('copy');
           }
-          setReceiveStatus('ID скопійовано.', 'success');
+          setReceiveStatus(t('ID скопійовано.'), 'success');
         } catch {
-          setReceiveStatus('Не вдалося скопіювати ID.', 'error');
+          setReceiveStatus(t('Не вдалося скопіювати ID.'), 'error');
         }
       });
     }
@@ -2289,7 +2332,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
       balanceEl.textContent = this.formatCoinBalance(balance);
       if (countEl) countEl.textContent = String(transactionsCount);
-      if (badgeEl) badgeEl.textContent = `Транзакцій: ${transactionsCount}`;
+      if (badgeEl) badgeEl.textContent = `${t('Транзакцій:')} ${transactionsCount}`;
 
       renderWalletTransactionsList();
       renderAnalytics(history);
@@ -2343,20 +2386,21 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
 
   updateFontPreview(fontSize, displayElement, previewElement) {
+    const t = (value) => this.translateUiText(value);
     const fontSizeLabels = {
-      12: 'Малий',
-      13: 'Малий',
-      14: 'Малий',
-      15: 'Середній',
-      16: 'Середній',
-      17: 'Великий',
-      18: 'Великий',
-      19: 'Великий',
-      20: 'Великий'
+      12: t('Малий'),
+      13: t('Малий'),
+      14: t('Малий'),
+      15: t('Середній'),
+      16: t('Середній'),
+      17: t('Великий'),
+      18: t('Великий'),
+      19: t('Великий'),
+      20: t('Великий')
     };
     
     if (displayElement) {
-      displayElement.textContent = fontSizeLabels[fontSize] || 'Середній';
+      displayElement.textContent = fontSizeLabels[fontSize] || t('Середній');
     }
     
     if (previewElement) {

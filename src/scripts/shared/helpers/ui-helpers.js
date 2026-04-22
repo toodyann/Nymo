@@ -1,4 +1,5 @@
 // UI допоміжні функції
+import { resolveUiLanguage, translateUiText } from '../i18n/ui-localization.js';
 
 const ALERT_VARIANT_CLASSES = ['is-error', 'is-notice', 'is-warning'];
 
@@ -26,6 +27,12 @@ function clearAlertVariant(overlay) {
  * @returns {Promise<void>}
  */
 export function showAlert(message, title = 'Помилка', { okText = 'OK', variant = 'error' } = {}) {
+  const uiLanguage = resolveUiLanguage();
+  const localizedTitle = uiLanguage === 'en'
+    ? (String(title || '').trim() === 'Помилка' ? 'Error' : translateUiText(title, uiLanguage))
+    : title;
+  const localizedMessage = translateUiText(message, uiLanguage);
+  const localizedOkText = translateUiText(okText, uiLanguage);
   const overlay = document.getElementById('alertOverlay');
   const titleEl = document.getElementById('alertTitle');
   const messageEl = document.getElementById('alertMessage');
@@ -34,14 +41,14 @@ export function showAlert(message, title = 'Помилка', { okText = 'OK', va
   const closeBtn = document.getElementById('alertCloseBtn');
 
   if (!overlay || !titleEl || !messageEl || !okBtn || !cancelBtn || !closeBtn) {
-    alert(message);
+    alert(localizedMessage);
     return Promise.resolve();
   }
 
-  titleEl.textContent = title;
-  messageEl.textContent = message;
+  titleEl.textContent = localizedTitle;
+  messageEl.textContent = localizedMessage;
   const previousOkText = okBtn.textContent;
-  okBtn.textContent = String(okText || 'OK');
+  okBtn.textContent = String(localizedOkText || 'OK');
   cancelBtn.style.display = 'none';
   const safeVariant = variant === 'notice' || variant === 'warning' ? variant : 'error';
   setAlertVariant(overlay, safeVariant);
@@ -84,6 +91,11 @@ export function showAlert(message, title = 'Помилка', { okText = 'OK', va
  * @returns {Promise<void>}
  */
 export function showNotice(message, title = 'Повідомлення') {
+  const uiLanguage = resolveUiLanguage();
+  const localizedTitle = uiLanguage === 'en'
+    ? (String(title || '').trim() === 'Повідомлення' ? 'Notice' : translateUiText(title, uiLanguage))
+    : title;
+  const localizedMessage = translateUiText(message, uiLanguage);
   const overlay = document.getElementById('alertOverlay');
   const titleEl = document.getElementById('alertTitle');
   const messageEl = document.getElementById('alertMessage');
@@ -92,12 +104,12 @@ export function showNotice(message, title = 'Повідомлення') {
   const closeBtn = document.getElementById('alertCloseBtn');
 
   if (!overlay || !titleEl || !messageEl || !okBtn || !cancelBtn || !closeBtn) {
-    alert(message);
+    alert(localizedMessage);
     return Promise.resolve();
   }
 
-  titleEl.textContent = title;
-  messageEl.textContent = message;
+  titleEl.textContent = localizedTitle;
+  messageEl.textContent = localizedMessage;
   cancelBtn.style.display = 'none';
   setAlertVariant(overlay, 'notice');
 
@@ -138,6 +150,11 @@ export function showNotice(message, title = 'Повідомлення') {
  * @returns {Promise<boolean>}
  */
 export function showConfirm(message, title = 'Підтвердження') {
+  const uiLanguage = resolveUiLanguage();
+  const localizedTitle = uiLanguage === 'en'
+    ? (String(title || '').trim() === 'Підтвердження' ? 'Confirmation' : translateUiText(title, uiLanguage))
+    : title;
+  const localizedMessage = translateUiText(message, uiLanguage);
   const overlay = document.getElementById('alertOverlay');
   const titleEl = document.getElementById('alertTitle');
   const messageEl = document.getElementById('alertMessage');
@@ -146,11 +163,11 @@ export function showConfirm(message, title = 'Підтвердження') {
   const closeBtn = document.getElementById('alertCloseBtn');
 
   if (!overlay || !titleEl || !messageEl || !okBtn || !cancelBtn || !closeBtn) {
-    return Promise.resolve(confirm(message));
+    return Promise.resolve(confirm(localizedMessage));
   }
 
-  titleEl.textContent = title;
-  messageEl.textContent = message;
+  titleEl.textContent = localizedTitle;
+  messageEl.textContent = localizedMessage;
   cancelBtn.style.display = 'inline-flex';
   setAlertVariant(overlay, 'error');
 
@@ -211,6 +228,16 @@ export function showConfirmWithOption(
     cancelText = 'Скасувати'
   } = {}
 ) {
+  const uiLanguage = resolveUiLanguage();
+  const localizedTitle = uiLanguage === 'en'
+    ? (String(title || '').trim() === 'Підтвердження' ? 'Confirmation' : translateUiText(title, uiLanguage))
+    : title;
+  const localizedMessage = translateUiText(message, uiLanguage);
+  const localizedOptionLabel = translateUiText(optionLabel, uiLanguage);
+  const localizedConfirmText = translateUiText(confirmText, uiLanguage);
+  const localizedCancelText = uiLanguage === 'en'
+    ? (String(cancelText || '').trim() === 'Скасувати' ? 'Cancel' : translateUiText(cancelText, uiLanguage))
+    : cancelText;
   const overlay = document.getElementById('alertOverlay');
   const titleEl = document.getElementById('alertTitle');
   const messageEl = document.getElementById('alertMessage');
@@ -219,19 +246,19 @@ export function showConfirmWithOption(
   const closeBtn = document.getElementById('alertCloseBtn');
 
   if (!overlay || !titleEl || !messageEl || !okBtn || !cancelBtn || !closeBtn) {
-    const confirmed = confirm(message);
+    const confirmed = confirm(localizedMessage);
     return Promise.resolve({ confirmed, optionChecked: false });
   }
 
-  titleEl.textContent = title;
+  titleEl.textContent = localizedTitle;
   messageEl.textContent = '';
   const textEl = document.createElement('div');
   textEl.className = 'alert-message-text';
-  textEl.textContent = message;
+  textEl.textContent = localizedMessage;
   messageEl.appendChild(textEl);
 
   let optionInput = null;
-  const safeOptionLabel = String(optionLabel || '').trim();
+  const safeOptionLabel = String(localizedOptionLabel || '').trim();
   if (safeOptionLabel) {
     const optionId = `alertConfirmOption-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const optionEl = document.createElement('label');
@@ -255,8 +282,8 @@ export function showConfirmWithOption(
 
   const previousOkText = okBtn.textContent;
   const previousCancelText = cancelBtn.textContent;
-  okBtn.textContent = confirmText;
-  cancelBtn.textContent = cancelText;
+  okBtn.textContent = localizedConfirmText;
+  cancelBtn.textContent = localizedCancelText;
   cancelBtn.style.display = 'inline-flex';
   setAlertVariant(overlay, 'error');
 

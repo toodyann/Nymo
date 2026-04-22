@@ -7,6 +7,7 @@ import {
   syncLegacyUserProfile
 } from './shared/auth/auth-session.js';
 import { getApiBaseUrl } from './shared/api/api-url.js';
+import { translateUiText } from './shared/i18n/ui-localization.js';
 
 function isServiceWorkerEnabledByEnv() {
   const rawFlag = String(import.meta.env?.VITE_ENABLE_SW || '').trim().toLowerCase();
@@ -232,6 +233,7 @@ function ensureOrionNetworkStatusUi() {
   let root = document.getElementById('orionNetworkStatus');
   if (root) return root;
 
+  const t = (value) => translateUiText(value);
   root = document.createElement('div');
   root.id = 'orionNetworkStatus';
   root.className = 'orion-network-status-layer';
@@ -239,7 +241,7 @@ function ensureOrionNetworkStatusUi() {
   root.innerHTML = `
     <div class="orion-network-loading-pill" id="orionNetworkLoadingPill" role="status" aria-hidden="true">
       <span class="orion-network-spinner" aria-hidden="true"></span>
-      <span class="orion-network-loading-text">Очікування з'єднання...</span>
+      <span class="orion-network-loading-text">${t("Очікування з'єднання...")}</span>
     </div>
     <div class="orion-network-warning-banner" id="orionNetworkWarningBanner" role="status" aria-hidden="true"></div>
   `;
@@ -258,6 +260,7 @@ function installOrionNetworkResilience() {
       return '';
     }
   })();
+  const t = (value) => translateUiText(value);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => ensureOrionNetworkStatusUi(), { once: true });
@@ -324,11 +327,11 @@ function installOrionNetworkResilience() {
     const snapshot = getNetworkQualitySnapshot();
     if (!snapshot.isOnline) {
       wasOffline = true;
-      showWarning('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.');
+      showWarning(t('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.'));
       return;
     }
     if (snapshot.isPoor) {
-      showWarning('Погане зʼєднання. Оновлення даних може тривати довше.');
+      showWarning(t('Погане зʼєднання. Оновлення даних може тривати довше.'));
       return;
     }
     if (activeApiRequests === 0 && !slowWarningVisible) {
@@ -353,7 +356,7 @@ function installOrionNetworkResilience() {
         slowConnectionTimer = null;
         if (activeApiRequests > 0 && navigator.onLine !== false) {
           slowWarningVisible = true;
-          showWarning('Сервер відповідає повільно. Чекаємо зʼєднання...');
+          showWarning(t('Сервер відповідає повільно. Чекаємо зʼєднання...'));
         }
       }, 4200);
     }
@@ -399,15 +402,15 @@ function installOrionNetworkResilience() {
       try {
         const response = await nativeFetch(...args);
         if (trackedRequest && !response.ok && response.status >= 500) {
-          showWarning('Сервер тимчасово недоступний. Спробуйте ще раз.');
+          showWarning(t('Сервер тимчасово недоступний. Спробуйте ще раз.'));
         }
         return response;
       } catch (error) {
         if (trackedRequest) {
           if (navigator.onLine === false) {
-            showWarning('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.');
+            showWarning(t('Немає інтернету. Працюємо офлайн, дані синхронізуються після відновлення.'));
           } else {
-            showWarning('Погане зʼєднання з сервером. Очікуємо відновлення...');
+            showWarning(t('Погане зʼєднання з сервером. Очікуємо відновлення...'));
           }
         }
         throw error;
@@ -421,7 +424,7 @@ function installOrionNetworkResilience() {
     const snapshot = getNetworkQualitySnapshot();
     if (wasOffline && snapshot.isOnline && !snapshot.isPoor) {
       wasOffline = false;
-      showWarning('Зʼєднання відновлено. Синхронізуємо дані…', {
+      showWarning(t('Зʼєднання відновлено. Синхронізуємо дані…'), {
         variant: 'success',
         autoHideMs: 2600
       });

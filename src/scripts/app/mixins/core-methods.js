@@ -2,6 +2,11 @@ import { setupMobileSwipeBack } from '../../shared/gestures/swipe-handlers.js';
 import { getContactColor } from '../../shared/helpers/ui-helpers.js';
 import { buildApiUrl } from '../../shared/api/api-url.js';
 import { applyThemeBranding } from '../../shared/helpers/theme-branding.js';
+import {
+  normalizeUiLanguage,
+  translateUiText,
+  applyUiLocalizationToDocument
+} from '../../shared/i18n/ui-localization.js';
 
 export class ChatAppCoreMethods {
   readJsonStorage(key, fallback) {
@@ -2452,7 +2457,9 @@ export class ChatAppCoreMethods {
     if (!value) return '—';
     const dateObj = new Date(`${value}T00:00:00`);
     if (Number.isNaN(dateObj.getTime())) return '—';
-    return new Intl.DateTimeFormat('uk-UA', {
+    const language = normalizeUiLanguage(this.settings?.language || 'uk');
+    const locale = language === 'en' ? 'en-US' : 'uk-UA';
+    return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
@@ -2495,14 +2502,20 @@ export class ChatAppCoreMethods {
   applySettingsToUI() {
     const root = document.documentElement;
     const settings = this.settings || {};
+    const uiLanguage = normalizeUiLanguage(settings.language || 'uk');
     root.classList.toggle('no-animations', settings.animationsEnabled === false);
     root.classList.toggle('compact-mode', settings.compactMode === true);
     root.classList.toggle('no-message-preview', settings.messagePreview === false);
-    root.setAttribute('lang', settings.language === 'en' ? 'en' : 'uk');
+    root.setAttribute('lang', uiLanguage);
     if (typeof this.updateRealtimePrivacyState === 'function') {
       this.updateRealtimePrivacyState();
     }
     this.updateProfileDisplay();
+    applyUiLocalizationToDocument(uiLanguage);
+  }
+
+  translateUiText(value) {
+    return translateUiText(value, this.settings?.language || 'uk');
   }
 
   // Метод-обгортка для імпортованої функції
