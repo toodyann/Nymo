@@ -278,7 +278,14 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesMiniGame
         this.applyCoinTransaction(
           sellPrice,
           `Продаж: ${item.title}`,
-          { category: 'shop' }
+          {
+            category: 'shop',
+            type: 'sale',
+            subtitle: isGameItem(item) ? 'Гра: Nymo Drive' : 'Розділ: Магазин',
+            game: isGameItem(item) ? 'Nymo Drive' : '',
+            item: item.title,
+            source: 'Магазин'
+          }
         );
         renderInventory();
       }
@@ -1313,6 +1320,36 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesMiniGame
       return 'Інше';
     };
 
+    const resolveLedgerSubtitle = (entry) => {
+      const safeEntry = entry && typeof entry === 'object' ? entry : {};
+      const explicitSubtitle = String(safeEntry.subtitle || '').trim();
+      if (explicitSubtitle) return explicitSubtitle;
+
+      const typeToken = String(safeEntry.type || '').trim().toLowerCase();
+      const sourceToken = String(safeEntry.source || '').trim();
+      const gameToken = String(safeEntry.game || '').trim();
+      const itemToken = String(safeEntry.item || '').trim();
+      const directionToken = String(safeEntry.direction || '').trim().toLowerCase();
+      const parts = [];
+
+      if (/sale|sell|продаж/.test(typeToken)) parts.push('Операція: Продаж');
+      else if (/purchase|buy|куп|shop|store/.test(typeToken)) parts.push('Операція: Покупка');
+      else if (/transfer|переказ/.test(typeToken)) parts.push('Операція: Переказ');
+      else if (/reward|bonus|earn/.test(typeToken)) parts.push('Операція: Нагорода');
+      else if (directionToken === 'credit') parts.push('Операція: Поповнення');
+      else if (directionToken === 'debit') parts.push('Операція: Списання');
+
+      if (gameToken) parts.push(`Гра: ${gameToken}`);
+      if (itemToken && !String(safeEntry.title || '').includes(itemToken)) parts.push(`Предмет: ${itemToken}`);
+      if (sourceToken && sourceToken.toLowerCase() !== gameToken.toLowerCase()) parts.push(`Джерело: ${sourceToken}`);
+      if (typeof this.isWalletTransactionTitleGeneric === 'function' && this.isWalletTransactionTitleGeneric(safeEntry.title || '')) {
+        if (!parts.length && sourceToken) parts.push(`Джерело: ${sourceToken}`);
+        if (!parts.length && gameToken) parts.push(`Гра: ${gameToken}`);
+      }
+
+      return parts.join(' · ');
+    };
+
     const resolveAnalyticsSourceColors = (label, index = 0) => {
       const normalizedLabel = String(label || '').trim().toLowerCase();
       if (normalizedLabel === 'поповнення') {
@@ -1856,7 +1893,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesMiniGame
         const amountText = `${sign}${this.formatCoinBalance(safeAmount)}`;
         const title = escapeHtml(entry.title || 'Транзакція');
         const dateLabel = escapeHtml(formatDate(entry.createdAt));
-        const subtitle = escapeHtml(String(entry.subtitle || '').trim());
+        const subtitle = escapeHtml(resolveLedgerSubtitle(entry));
         const metaLine = subtitle
           ? `${subtitle} · ${dateLabel}`
           : dateLabel;

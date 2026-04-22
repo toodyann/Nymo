@@ -185,7 +185,14 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         const spent = this.applyCoinTransaction(
           -currentCar.price,
           `Купівля: ${currentCar.title}`,
-          { category: 'shop' }
+          {
+            category: 'shop',
+            type: 'purchase',
+            subtitle: 'Гра: Nymo Drive',
+            game: 'Nymo Drive',
+            item: currentCar.title,
+            source: 'Магазин'
+          }
         );
         if (!spent) return;
         inventory.add(currentCar.id);
@@ -1066,10 +1073,18 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (!inventory.has(item.id)) {
         const balance = this.getTapBalanceCents();
         if (balance < item.price) return;
+        const sourceGame = (item.type === 'car' || item.type === 'smoke') ? 'Nymo Drive' : '';
         const spent = this.applyCoinTransaction(
           -item.price,
           `Купівля: ${item.title}`,
-          { category: 'shop' }
+          {
+            category: 'shop',
+            type: 'purchase',
+            subtitle: sourceGame ? `Гра: ${sourceGame}` : 'Розділ: Магазин',
+            game: sourceGame,
+            item: item.title,
+            source: 'Магазин'
+          }
         );
         if (!spent) return;
         inventory.add(item.id);

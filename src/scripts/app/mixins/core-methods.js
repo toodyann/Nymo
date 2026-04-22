@@ -103,7 +103,14 @@ export class ChatAppCoreMethods {
           amountCents: Math.trunc(amountCents),
           title,
           createdAt,
-          subtitle: String(entry.subtitle || '').trim()
+          subtitle: String(entry.subtitle || '').trim(),
+          category: String(entry.category || '').trim(),
+          type: String(entry.type || '').trim(),
+          direction: String(entry.direction || '').trim(),
+          game: String(entry.game || '').trim(),
+          item: String(entry.item || '').trim(),
+          source: String(entry.source || '').trim(),
+          details: String(entry.details || '').trim()
         };
       })
       .filter(Boolean)
@@ -124,7 +131,14 @@ export class ChatAppCoreMethods {
     amountCents = 0,
     title = '',
     subtitle = '',
-    createdAt = ''
+    createdAt = '',
+    category = '',
+    type = '',
+    direction = '',
+    game = '',
+    item = '',
+    source = '',
+    details = ''
   } = {}) {
     const safeAmount = Number.isFinite(amountCents) ? Math.trunc(amountCents) : 0;
     const safeTitle = String(title || '').trim();
@@ -135,12 +149,119 @@ export class ChatAppCoreMethods {
       amountCents: safeAmount,
       title: safeTitle,
       subtitle: String(subtitle || '').trim(),
-      createdAt: safeCreatedAt
+      createdAt: safeCreatedAt,
+      category: String(category || '').trim(),
+      type: String(type || '').trim(),
+      direction: String(direction || '').trim(),
+      game: String(game || '').trim(),
+      item: String(item || '').trim(),
+      source: String(source || '').trim(),
+      details: String(details || '').trim()
     };
     const history = this.getWalletTransactionTitleHints();
     history.unshift(nextEntry);
     this.saveWalletTransactionTitleHints(history);
     return nextEntry;
+  }
+
+  isWalletTransactionTitleGeneric(value, { currency = '' } = {}) {
+    const raw = String(value || '').trim();
+    if (!raw) return true;
+    const token = raw.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+    const normalizedCurrency = String(currency || '').trim().toLowerCase();
+    if (normalizedCurrency && token === normalizedCurrency) return true;
+    const isDateLikeToken = /^\d{4}(?:[-/.:\s]\d{2}){2}(?:[t\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:z|[+-]\d{2}:?\d{2})?)?$/.test(token);
+    if (isDateLikeToken) return true;
+    const genericTokens = new Set([
+      'adjustment',
+      'transaction',
+      'transactions',
+      'general',
+      'wallet',
+      'поповнення балансу',
+      'списання балансу',
+      'транзакція',
+      'коригування',
+      'дохід',
+      'coin',
+      'coins',
+      'nymo value',
+      'value'
+    ]);
+    return genericTokens.has(token);
+  }
+
+  applyWalletTransactionTitleHints(entries = []) {
+    const safeEntries = Array.isArray(entries) ? entries : [];
+    if (!safeEntries.length) return [];
+
+    const hints = this.getWalletTransactionTitleHints();
+    if (!hints.length) return safeEntries;
+    const consumedHintIds = new Set();
+    const currency = this.getWalletCurrencyCode();
+    const parseTimeMs = (value) => {
+      const ts = new Date(value).getTime();
+      return Number.isFinite(ts) ? ts : 0;
+    };
+    const pickPatchValue = (current, hinted) => {
+      if (String(current || '').trim()) return current;
+      const next = String(hinted || '').trim();
+      return next || current;
+    };
+    const patchableFieldEntries = [
+      ['subtitle', 'subtitle'],
+      ['category', 'category'],
+      ['type', 'type'],
+      ['direction', 'direction'],
+      ['game', 'game'],
+      ['item', 'item'],
+      ['source', 'source'],
+      ['details', 'details']
+    ];
+
+    return safeEntries.map((entry) => {
+      if (!entry || typeof entry !== 'object') return entry;
+      const isGenericTitle = this.isWalletTransactionTitleGeneric(entry.title, { currency });
+      const canPatchMetadata = !String(entry.subtitle || '').trim()
+        || !String(entry.game || '').trim()
+        || !String(entry.item || '').trim()
+        || !String(entry.source || '').trim();
+      if (!isGenericTitle && !canPatchMetadata) return entry;
+
+      const entryAmount = Number(entry.amountCents) || 0;
+      if (!entryAmount) return entry;
+      const entryTime = parseTimeMs(entry.createdAt);
+      if (!entryTime) return entry;
+
+      let bestHint = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      hints.forEach((hint) => {
+        if (!hint || typeof hint !== 'object') return;
+        if (consumedHintIds.has(hint.id)) return;
+        const hintAmount = Number(hint.amountCents) || 0;
+        if (hintAmount !== entryAmount) return;
+        const hintTime = parseTimeMs(hint.createdAt);
+        if (!hintTime) return;
+        const distance = Math.abs(hintTime - entryTime);
+        if (distance > 5 * 60 * 1000) return;
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestHint = hint;
+        }
+      });
+
+      if (!bestHint) return entry;
+      consumedHintIds.add(bestHint.id);
+
+      const patchedEntry = {
+        ...entry,
+        title: isGenericTitle ? String(bestHint.title || '').trim() || entry.title : entry.title
+      };
+      patchableFieldEntries.forEach(([field, hintField]) => {
+        patchedEntry[field] = pickPatchValue(patchedEntry[field], bestHint[hintField]);
+      });
+      return patchedEntry;
+    });
   }
 
   getWalletCurrencyCode() {
@@ -349,6 +470,10 @@ export class ChatAppCoreMethods {
       'topup',
       'transfer',
       'payment',
+      'coin',
+      'coins',
+      'nymo value',
+      'value',
       'транзакція',
       'коригування',
       'зарахування',
@@ -371,7 +496,7 @@ export class ChatAppCoreMethods {
       /^[0-9a-f]{8}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{12}$/i,
       /^[0-9a-f]{6,}(?:\s+[0-9a-f]{4,}){2,}$/i,
       /^https?:\/\//i,
-      /^\d{4}-\d{2}-\d{2}t\d{2}:\d{2}/i,
+      /^\d{4}(?:[-/.:\s]\d{2}){2}(?:[t\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:z|[+-]\d{2}:?\d{2})?)?$/i,
       /^\+?\d{8,}$/,
       /^[a-z]{2,6}:[\w-]+$/i
     ];
@@ -392,7 +517,13 @@ export class ChatAppCoreMethods {
     };
 
     const toReadableTransactionTitle = (value) => {
-      const clean = normalizeLabel(value).replace(/[_-]+/g, ' ');
+      const rawLabel = normalizeLabel(value);
+      if (!rawLabel) return '';
+      const rawToken = rawLabel.toLowerCase().replace(/\s+/g, ' ');
+      if (/^\d{4}(?:[-/.:\s]\d{2}){2}(?:[t\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:z|[+-]\d{2}:?\d{2})?)?$/.test(rawToken)) {
+        return '';
+      }
+      const clean = rawLabel.replace(/[_-]+/g, ' ');
       if (!clean) return '';
       const key = clean.toLowerCase();
 
@@ -590,9 +721,14 @@ export class ChatAppCoreMethods {
         const keyToken = String(key || '').trim().toLowerCase();
         const value = source[key];
         const shouldIgnoreIdLikeValue = /(^|[_-])(id|uuid|txid|transactionid|userid|chatid|messageid)$/.test(keyToken);
+        const shouldIgnoreDateLikeValue = /(^|[_-])(createdat|updatedat|timestamp|datetime|date|time|issuedat|expiresat)$/.test(keyToken);
         if (typeof value === 'string' || typeof value === 'number') {
           const asString = String(value);
+          const valueToken = normalizeToken(asString);
           if (shouldIgnoreIdLikeValue && isNoiseToken(normalizeToken(asString))) {
+            return;
+          }
+          if (shouldIgnoreDateLikeValue && isNoiseToken(valueToken)) {
             return;
           }
           candidates.push(asString);
@@ -627,7 +763,199 @@ export class ChatAppCoreMethods {
       return candidates;
     };
 
-    return rawList
+    const normalizeComparableUserId = (value) => String(value || '').trim().toLowerCase();
+    const selfUserIdNormalized = normalizeComparableUserId(
+      (typeof this.getAuthUserId === 'function' ? this.getAuthUserId() : '')
+      || this.user?.id
+      || this.user?.userId
+      || this.user?._id
+      || ''
+    );
+    const knownUserNameById = new Map();
+    if (typeof this.collectKnownUsersForSearch === 'function') {
+      const knownUsers = this.collectKnownUsersForSearch();
+      if (Array.isArray(knownUsers)) {
+        knownUsers.forEach((user) => {
+          const id = normalizeComparableUserId(user?.id);
+          const name = String(user?.name || '').trim();
+          if (!id || !name || name === 'Користувач') return;
+          knownUserNameById.set(id, name);
+        });
+      }
+    }
+    const toShortIdLabel = (identifier) => {
+      const safeId = String(identifier || '').trim();
+      if (!safeId) return '';
+      if (safeId.length <= 18) return `ID ${safeId}`;
+      return `ID ${safeId.slice(0, 7)}...${safeId.slice(-4)}`;
+    };
+    const resolveTransferPartyById = (identifier) => {
+      const safeId = String(identifier || '').trim();
+      if (!safeId) return '';
+      const normalizedId = normalizeComparableUserId(safeId);
+      if (selfUserIdNormalized && normalizedId === selfUserIdNormalized) return 'Ви';
+      const knownName = knownUserNameById.get(normalizedId);
+      if (knownName) return knownName;
+      if (typeof this.getCachedUserName === 'function') {
+        const cachedName = String(this.getCachedUserName(safeId) || '').trim();
+        if (cachedName && cachedName !== 'Користувач') return cachedName;
+      }
+      return toShortIdLabel(safeId);
+    };
+    const fromEntityPaths = [
+      'sender',
+      'from',
+      'fromUser',
+      'sourceUser',
+      'payer',
+      'initiator',
+      'actor',
+      'author',
+      'owner',
+      'meta.fromUser',
+      'metadata.fromUser',
+      'details.fromUser',
+      'payload.fromUser',
+      'source.fromUser'
+    ];
+    const fromNamePaths = [
+      'senderName',
+      'fromName',
+      'fromUserName',
+      'senderNickname',
+      'fromNickname',
+      'senderTag',
+      'fromTag',
+      'actorName',
+      'authorName',
+      'ownerName',
+      'meta.senderName',
+      'meta.fromName',
+      'metadata.senderName',
+      'metadata.fromName',
+      'details.senderName',
+      'details.fromName',
+      'payload.senderName',
+      'payload.fromName'
+    ];
+    const fromIdPaths = [
+      'senderId',
+      'fromId',
+      'fromUserId',
+      'sourceUserId',
+      'payerId',
+      'initiatorId',
+      'actorId',
+      'authorId',
+      'ownerId',
+      'sender_id',
+      'from_id',
+      'from_user_id',
+      'source_user_id',
+      'payer_id',
+      'initiator_id',
+      'actor_id',
+      'author_id',
+      'owner_id',
+      'meta.senderId',
+      'meta.fromId',
+      'meta.fromUserId',
+      'metadata.senderId',
+      'metadata.fromId',
+      'metadata.fromUserId',
+      'details.senderId',
+      'details.fromId',
+      'details.fromUserId',
+      'payload.senderId',
+      'payload.fromId',
+      'payload.fromUserId',
+      'source.senderId',
+      'source.fromId',
+      'source.fromUserId',
+      'sender.id',
+      'sender.userId',
+      'from.id',
+      'from.userId',
+      'fromUser.id',
+      'fromUser.userId',
+      'initiator.id',
+      'initiator.userId'
+    ];
+    const toEntityPaths = [
+      'receiver',
+      'to',
+      'toUser',
+      'targetUser',
+      'recipient',
+      'beneficiary',
+      'destination',
+      'meta.toUser',
+      'metadata.toUser',
+      'details.toUser',
+      'payload.toUser',
+      'source.toUser'
+    ];
+    const toNamePaths = [
+      'receiverName',
+      'toName',
+      'toUserName',
+      'recipientName',
+      'receiverNickname',
+      'toNickname',
+      'receiverTag',
+      'toTag',
+      'beneficiaryName',
+      'destinationName',
+      'meta.receiverName',
+      'meta.toName',
+      'metadata.receiverName',
+      'metadata.toName',
+      'details.receiverName',
+      'details.toName',
+      'payload.receiverName',
+      'payload.toName'
+    ];
+    const toIdPaths = [
+      'receiverId',
+      'toId',
+      'toUserId',
+      'targetUserId',
+      'recipientId',
+      'beneficiaryId',
+      'destinationUserId',
+      'receiver_id',
+      'to_id',
+      'to_user_id',
+      'target_user_id',
+      'recipient_id',
+      'beneficiary_id',
+      'destination_user_id',
+      'meta.receiverId',
+      'meta.toId',
+      'meta.toUserId',
+      'metadata.receiverId',
+      'metadata.toId',
+      'metadata.toUserId',
+      'details.receiverId',
+      'details.toId',
+      'details.toUserId',
+      'payload.receiverId',
+      'payload.toId',
+      'payload.toUserId',
+      'source.receiverId',
+      'source.toId',
+      'source.toUserId',
+      'receiver.id',
+      'receiver.userId',
+      'to.id',
+      'to.userId',
+      'toUser.id',
+      'toUser.userId',
+      'recipient.id',
+      'recipient.userId'
+    ];
+
+    const normalizedEntries = rawList
       .map((entry, index) => {
         if (!entry || typeof entry !== 'object') return null;
         const amountRaw = this.getWalletAmountMinorUnits(
@@ -766,87 +1094,28 @@ export class ChatAppCoreMethods {
           'source.itemName',
           'source.productName'
         ]);
-        const fromRef = extractEntityReference(scopedSources, {
-          entityPaths: [
-            'sender',
-            'from',
-            'fromUser',
-            'sourceUser',
-            'payer',
-            'initiator',
-            'meta.fromUser',
-            'metadata.fromUser',
-            'details.fromUser',
-            'payload.fromUser',
-            'source.fromUser'
-          ],
-          namePaths: [
-            'senderName',
-            'fromName',
-            'fromUserName',
-            'senderNickname',
-            'fromNickname',
-            'senderTag',
-            'fromTag',
-            'meta.senderName',
-            'meta.fromName',
-            'metadata.senderName',
-            'metadata.fromName',
-            'details.senderName',
-            'details.fromName',
-            'payload.senderName',
-            'payload.fromName'
-          ],
-          idPaths: [
-            'senderId',
-            'fromId',
-            'fromUserId',
-            'sourceUserId',
-            'payerId',
-            'initiatorId'
-          ]
+        const fromIdRaw = pickMeaningfulLabel(scopedSources, fromIdPaths, { allowGeneric: true, allowNoise: true });
+        const toIdRaw = pickMeaningfulLabel(scopedSources, toIdPaths, { allowGeneric: true, allowNoise: true });
+        const fromRefFromEntity = extractEntityReference(scopedSources, {
+          entityPaths: fromEntityPaths,
+          namePaths: fromNamePaths,
+          idPaths: fromIdPaths
         });
-        const toRef = extractEntityReference(scopedSources, {
-          entityPaths: [
-            'receiver',
-            'to',
-            'toUser',
-            'targetUser',
-            'recipient',
-            'beneficiary',
-            'meta.toUser',
-            'metadata.toUser',
-            'details.toUser',
-            'payload.toUser',
-            'source.toUser'
-          ],
-          namePaths: [
-            'receiverName',
-            'toName',
-            'toUserName',
-            'recipientName',
-            'receiverNickname',
-            'toNickname',
-            'receiverTag',
-            'toTag',
-            'meta.receiverName',
-            'meta.toName',
-            'metadata.receiverName',
-            'metadata.toName',
-            'details.receiverName',
-            'details.toName',
-            'payload.receiverName',
-            'payload.toName'
-          ],
-          idPaths: [
-            'receiverId',
-            'toId',
-            'toUserId',
-            'targetUserId',
-            'recipientId',
-            'beneficiaryId'
-          ]
+        const toRefFromEntity = extractEntityReference(scopedSources, {
+          entityPaths: toEntityPaths,
+          namePaths: toNamePaths,
+          idPaths: toIdPaths
         });
+        const fromRefById = resolveTransferPartyById(fromIdRaw);
+        const toRefById = resolveTransferPartyById(toIdRaw);
+        const fromRef = (
+          (fromRefById && !fromRefById.startsWith('ID ')) ? fromRefById
+            : (fromRefFromEntity || fromRefById)
+        );
+        const toRef = (
+          (toRefById && !toRefById.startsWith('ID ')) ? toRefById
+            : (toRefFromEntity || toRefById)
+        );
         const detailLabel = pickMeaningfulLabel(scopedSources, [
           'description',
           'reason',
@@ -885,11 +1154,29 @@ export class ChatAppCoreMethods {
         let title = fallbackResolvedTitle;
         let subtitle = '';
         if (isTransfer) {
+          const normalizedFromId = normalizeComparableUserId(fromIdRaw);
+          const normalizedToId = normalizeComparableUserId(toIdRaw);
+          const fromCounterparty = (
+            selfUserIdNormalized
+            && normalizedFromId
+            && normalizedFromId !== selfUserIdNormalized
+          )
+            ? resolveTransferPartyById(fromIdRaw)
+            : '';
+          const toCounterparty = (
+            selfUserIdNormalized
+            && normalizedToId
+            && normalizedToId !== selfUserIdNormalized
+          )
+            ? resolveTransferPartyById(toIdRaw)
+            : '';
           if (signedAmount > 0) {
-            title = fromRef ? `Переказ від ${fromRef}` : 'Вхідний переказ';
+            const incomingFrom = fromCounterparty || fromRef;
+            title = incomingFrom ? `Переказ від ${incomingFrom}` : 'Вхідний переказ';
             if (toRef) subtitle = `Отримувач: ${toRef}`;
           } else {
-            title = toRef ? `Переказ для ${toRef}` : 'Вихідний переказ';
+            const outgoingTo = toCounterparty || toRef;
+            title = outgoingTo ? `Переказ для ${outgoingTo}` : 'Вихідний переказ';
             if (fromRef) subtitle = `Відправник: ${fromRef}`;
           }
         } else if (isPurchase || (signedAmount < 0 && itemLabel && /(shop|store|catalog|item|product|куп)/.test(semanticHaystack))) {
@@ -898,6 +1185,7 @@ export class ChatAppCoreMethods {
         } else if (isSale || (signedAmount > 0 && itemLabel && /(sale|sell|прод)/.test(semanticHaystack))) {
           title = itemLabel ? `Продаж: ${itemLabel}` : 'Продаж';
           if (toRef) subtitle = `Покупець: ${toRef}`;
+          else if (gameLabel) subtitle = `Розділ: ${gameLabel}`;
         } else if (isGame) {
           title = gameLabel ? `Гра: ${gameLabel}` : (signedAmount > 0 ? 'Ігрова нагорода' : 'Ігрова витрата');
           if (itemLabel && normalizeToken(itemLabel) !== normalizeToken(gameLabel)) {
@@ -943,6 +1231,7 @@ export class ChatAppCoreMethods {
       })
       .filter(Boolean)
       .slice(0, 200);
+    return this.applyWalletTransactionTitleHints(normalizedEntries).slice(0, 200);
   }
 
   async refreshCoinWalletFromBackend({ includeTransactions = false, silent = true, force = false } = {}) {
@@ -1065,67 +1354,8 @@ export class ChatAppCoreMethods {
         if (txResponse.ok) {
           const txPayload = await txResponse.json().catch(() => ({}));
           const normalized = this.normalizeWalletTransactionsPayload(txPayload);
-          const normalizeGenericToken = (value) => String(value || '')
-            .trim()
-            .toLowerCase()
-            .replace(/[_-]+/g, ' ')
-            .replace(/\s+/g, ' ');
-          const isGenericTitle = (value) => {
-            const token = normalizeGenericToken(value);
-            return (
-              !token
-              || token === 'adjustment'
-              || token === 'transaction'
-              || token === 'transactions'
-              || token === 'general'
-              || token === 'wallet'
-              || token === 'поповнення балансу'
-              || token === 'списання балансу'
-              || token === 'транзакція'
-              || token === 'коригування'
-              || token === 'дохід'
-            );
-          };
-          const hints = this.getWalletTransactionTitleHints();
-          const consumedHintIds = new Set();
-          const parseTimeMs = (value) => {
-            const ts = new Date(value).getTime();
-            return Number.isFinite(ts) ? ts : 0;
-          };
-          const titlePatched = normalized.map((entry) => {
-            if (!entry || typeof entry !== 'object') return entry;
-            if (!isGenericTitle(entry.title)) return entry;
-            const entryAmount = Number(entry.amountCents) || 0;
-            if (!entryAmount) return entry;
-            const entryTime = parseTimeMs(entry.createdAt);
-            if (!entryTime) return entry;
-
-            let bestHint = null;
-            let bestDistance = Number.POSITIVE_INFINITY;
-            hints.forEach((hint) => {
-              if (!hint || typeof hint !== 'object') return;
-              if (consumedHintIds.has(hint.id)) return;
-              const hintAmount = Number(hint.amountCents) || 0;
-              if (hintAmount !== entryAmount) return;
-              const hintTime = parseTimeMs(hint.createdAt);
-              if (!hintTime) return;
-              const distance = Math.abs(hintTime - entryTime);
-              if (distance > 3 * 60 * 1000) return;
-              if (distance < bestDistance) {
-                bestDistance = distance;
-                bestHint = hint;
-              }
-            });
-
-            if (!bestHint) return entry;
-            consumedHintIds.add(bestHint.id);
-            return {
-              ...entry,
-              title: bestHint.title,
-              subtitle: entry.subtitle || bestHint.subtitle || ''
-            };
-          });
-          this.saveCoinTransactionHistory(titlePatched);
+          const hintPatched = this.applyWalletTransactionTitleHints(normalized);
+          this.saveCoinTransactionHistory(hintPatched);
           this.walletTransactionsRetryAfterTs = 0;
           this.walletLastTransactionsRefreshAt = Date.now();
         } else if (!silent) {
@@ -1300,38 +1530,40 @@ export class ChatAppCoreMethods {
     if (transactionMeta && typeof transactionMeta === 'object') {
       const safeTitle = String(transactionMeta.title || '').trim();
       const safeCategory = String(transactionMeta.category || '').trim();
+      const safeSubtitle = String(transactionMeta.subtitle || '').trim();
+      const safeType = String(transactionMeta.type || '').trim();
+      const safeDirection = String(transactionMeta.direction || '').trim();
+      const safeGame = String(transactionMeta.game || '').trim();
+      const safeItem = String(transactionMeta.item || '').trim();
+      const safeSource = String(transactionMeta.source || '').trim();
+      const safeDetails = String(transactionMeta.details || '').trim();
       const safeAmountFromMeta = Number(transactionMeta.amountCents);
       const safeAmount = Number.isFinite(deltaCents)
-        ? Math.max(0, Math.trunc(deltaCents))
-        : (Number.isFinite(safeAmountFromMeta) ? Math.max(0, Math.trunc(safeAmountFromMeta)) : 0);
+        ? Math.trunc(deltaCents)
+        : (Number.isFinite(safeAmountFromMeta) ? Math.trunc(safeAmountFromMeta) : 0);
 
-      if (safeTitle && safeAmount > 0) {
-        const prevMeta = this.pendingCoinBalanceSyncMeta && typeof this.pendingCoinBalanceSyncMeta === 'object'
-          ? this.pendingCoinBalanceSyncMeta
-          : null;
-        const prevTitle = String(prevMeta?.title || '').trim();
-        const prevCategory = String(prevMeta?.category || '').trim();
-        const prevAmount = Number(prevMeta?.amountCents || 0);
-        if (prevMeta && Number.isFinite(prevAmount) && prevAmount > 0) {
-          const mergedAmount = Math.max(0, Math.trunc(prevAmount + safeAmount));
-          const mergedTitle = (prevTitle && prevTitle === safeTitle)
-            ? prevTitle
-            : 'Ігрові нагороди';
-          const mergedCategory = (prevCategory && prevCategory === safeCategory)
-            ? prevCategory
-            : (safeCategory || prevCategory || 'games');
-          this.pendingCoinBalanceSyncMeta = {
-            title: mergedTitle,
-            category: mergedCategory,
-            amountCents: mergedAmount
-          };
-        } else {
-          this.pendingCoinBalanceSyncMeta = {
-            title: safeTitle,
-            category: safeCategory || 'general',
-            amountCents: safeAmount
-          };
-        }
+      if (safeTitle && safeAmount !== 0) {
+        const nextMeta = {
+          title: safeTitle,
+          subtitle: safeSubtitle,
+          category: safeCategory || 'general',
+          type: safeType,
+          direction: safeDirection || (safeAmount > 0 ? 'credit' : 'debit'),
+          game: safeGame,
+          item: safeItem,
+          source: safeSource,
+          details: safeDetails,
+          amountCents: safeAmount
+        };
+        this.pendingCoinBalanceSyncMeta = nextMeta;
+        const hintQueue = Array.isArray(this.pendingCoinBalanceSyncHintQueue)
+          ? this.pendingCoinBalanceSyncHintQueue
+          : [];
+        hintQueue.push({
+          ...nextMeta,
+          createdAt: new Date().toISOString()
+        });
+        this.pendingCoinBalanceSyncHintQueue = hintQueue.slice(-40);
       }
     }
     if (this.coinBalanceSyncTimer) {
@@ -1342,17 +1574,33 @@ export class ChatAppCoreMethods {
       const metaToSync = this.pendingCoinBalanceSyncMeta && typeof this.pendingCoinBalanceSyncMeta === 'object'
         ? { ...this.pendingCoinBalanceSyncMeta }
         : null;
+      const hintQueue = Array.isArray(this.pendingCoinBalanceSyncHintQueue)
+        ? [...this.pendingCoinBalanceSyncHintQueue]
+        : [];
       this.pendingCoinBalanceSyncValue = null;
       this.pendingCoinBalanceSyncMeta = null;
+      this.pendingCoinBalanceSyncHintQueue = [];
       this.coinBalanceSyncTimer = null;
       if (!Number.isFinite(valueToSync)) return;
-      if (metaToSync && Number(metaToSync.amountCents) > 0 && String(metaToSync.title || '').trim()) {
+      hintQueue.forEach((hintEntry) => {
+        if (!hintEntry || typeof hintEntry !== 'object') return;
+        const hintTitle = String(hintEntry.title || '').trim();
+        const hintAmount = Number(hintEntry.amountCents);
+        if (!hintTitle || !Number.isFinite(hintAmount) || Math.trunc(hintAmount) === 0) return;
         this.addWalletTransactionTitleHint({
-          amountCents: Number(metaToSync.amountCents),
-          title: String(metaToSync.title || '').trim(),
-          createdAt: new Date().toISOString()
+          amountCents: Math.trunc(hintAmount),
+          title: hintTitle,
+          subtitle: String(hintEntry.subtitle || '').trim(),
+          category: String(hintEntry.category || '').trim(),
+          type: String(hintEntry.type || '').trim(),
+          direction: String(hintEntry.direction || '').trim(),
+          game: String(hintEntry.game || '').trim(),
+          item: String(hintEntry.item || '').trim(),
+          source: String(hintEntry.source || '').trim(),
+          details: String(hintEntry.details || '').trim(),
+          createdAt: String(hintEntry.createdAt || new Date().toISOString())
         });
-      }
+      });
       this.syncCoinBalanceToBackend(valueToSync, {
         silent: true,
         transactionMeta: metaToSync
@@ -1503,18 +1751,22 @@ export class ChatAppCoreMethods {
     const normalizeHistoryTitle = (title, amountCents) => {
       const clean = String(title || '').trim();
       const token = clean.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+      const isDateLike = /^\d{4}(?:[-/.:\s]\d{2}){2}(?:[t\s]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:z|[+-]\d{2}:?\d{2})?)?$/.test(token);
       const looksLikeUuid = (
         /^[0-9a-f]{8}[-\s][0-9a-f]{4}[-\s][0-9a-f]{4}[-\s][0-9a-f]{4}[-\s][0-9a-f]{12}$/i.test(clean)
         || /^[0-9a-f]{8}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{4}\s+[0-9a-f]{12}$/i.test(token)
       );
       if (!clean) return amountCents > 0 ? 'Поповнення балансу' : 'Списання балансу';
       if (looksLikeUuid) return amountCents > 0 ? 'Поповнення балансу' : 'Списання балансу';
+      if (isDateLike) return amountCents > 0 ? 'Поповнення балансу' : 'Списання балансу';
       if (
         token === 'adjustment'
         || token === 'transaction'
         || token === 'transactions'
         || token === 'general'
         || token === 'wallet'
+        || token === 'coin'
+        || token === 'coins'
         || token === 'коригування'
         || token === 'транзакція'
       ) {
@@ -1626,28 +1878,63 @@ export class ChatAppCoreMethods {
     const appliedDelta = nextBalance - currentBalance;
     if (!appliedDelta) return false;
 
+    const safeTitle = typeof title === 'string' && title.trim() ? title.trim() : '';
+    const safeCategory = typeof options.category === 'string' && options.category.trim()
+      ? options.category.trim()
+      : 'general';
+    const safeSubtitle = typeof options.subtitle === 'string' ? options.subtitle.trim() : '';
+    const safeType = typeof options.type === 'string' ? options.type.trim() : '';
+    const safeGame = typeof options.game === 'string' ? options.game.trim() : '';
+    const safeItem = typeof options.item === 'string' ? options.item.trim() : '';
+    const safeSource = typeof options.source === 'string' ? options.source.trim() : '';
+    const safeDetails = typeof options.details === 'string' ? options.details.trim() : '';
+
     this.setTapBalanceCents(nextBalance, { syncBackend: false });
     if (options.record !== false) {
       this.addCoinTransaction({
         amountCents: appliedDelta,
         title,
-        category: options.category || 'general'
+        subtitle: safeSubtitle,
+        category: safeCategory,
+        type: safeType,
+        direction: appliedDelta > 0 ? 'credit' : 'debit',
+        game: safeGame,
+        item: safeItem,
+        source: safeSource,
+        details: safeDetails
+      });
+    }
+    if (safeTitle) {
+      this.addWalletTransactionTitleHint({
+        amountCents: appliedDelta,
+        title: safeTitle,
+        subtitle: safeSubtitle,
+        category: safeCategory,
+        type: safeType,
+        direction: appliedDelta > 0 ? 'credit' : 'debit',
+        game: safeGame,
+        item: safeItem,
+        source: safeSource,
+        details: safeDetails,
+        createdAt: new Date().toISOString()
       });
     }
 
     const headers = this.getWalletApiHeaders();
     if (String(headers?.['X-User-Id'] || '').trim()) {
-      const safeTitle = typeof title === 'string' && title.trim() ? title.trim() : '';
-      const safeCategory = typeof options.category === 'string' && options.category.trim()
-        ? options.category.trim()
-        : 'general';
       this.syncCoinBalanceToBackend(nextBalance, {
         silent: true,
         transactionMeta: {
           amountCents: appliedDelta,
           title: safeTitle,
+          subtitle: safeSubtitle,
           category: safeCategory,
-          direction: appliedDelta > 0 ? 'credit' : 'debit'
+          type: safeType,
+          direction: appliedDelta > 0 ? 'credit' : 'debit',
+          game: safeGame,
+          item: safeItem,
+          source: safeSource,
+          details: safeDetails
         }
       })
         .then((ok) => {

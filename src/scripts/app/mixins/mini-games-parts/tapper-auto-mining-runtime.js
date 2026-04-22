@@ -299,7 +299,11 @@ const claimPendingOfflineReward = () => {
   persistPendingOfflineReward();
 
   const applied = app.applyCoinTransaction(rewardCents, 'Клікер: офлайн дохід', {
-    category: 'games'
+    category: 'games',
+    type: 'reward',
+    subtitle: 'Гра: Клікер',
+    game: 'Клікер',
+    source: 'Міні-гра'
   });
   if (!applied) {
     pendingOfflineRewardCents = rewardCents;
@@ -424,7 +428,14 @@ const buyAutoSender = (sender) => {
   const spent = app.applyCoinTransaction(
     -costCents,
     `Клікер: найм ${sender.title}${batchCount > 1 ? ` x${batchCount}` : ''}`,
-    { category: 'games' }
+    {
+      category: 'games',
+      type: 'purchase',
+      subtitle: 'Гра: Клікер',
+      game: 'Клікер',
+      item: sender.title,
+      source: 'Міні-гра'
+    }
   );
   if (!spent) return false;
   autoSenderState[sender.id] = {
@@ -442,7 +453,12 @@ const upgradeAutoSender = (sender) => {
   const costCents = getAutoSenderUpgradeCostCents(sender, progress.upgradeLevel, progress.count);
   if (app.getTapBalanceCents() < costCents) return false;
   const spent = app.applyCoinTransaction(-costCents, `Клікер: прокачка ${sender.title}`, {
-    category: 'games'
+    category: 'games',
+    type: 'purchase',
+    subtitle: 'Гра: Клікер',
+    game: 'Клікер',
+    item: sender.title,
+    source: 'Міні-гра'
   });
   if (!spent) return false;
   autoSenderState[sender.id] = {
