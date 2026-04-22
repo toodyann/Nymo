@@ -1,31 +1,31 @@
 :root {
   --app-header-height: 56px;
-  --primary-color: #6b7280;
-  --primary-strong: #4b5563;
-  --secondary-color: #d1d5db;
+  --primary-color: #0a84ff;
+  --primary-strong: #007aff;
+  --secondary-color: #8e8e93;
   --danger-color: #ff3b30;
   --success-color: #34c759;
-  --warning-color: #6b7280;
-  --wallet-income-color: #1f8f54;
+  --warning-color: #ff9f0a;
+  --wallet-income-color: #1fa866;
 
-  --text-primary: #0f1320;
-  --text-secondary: rgba(15, 19, 32, 0.6);
+  --text-primary: #1d1d1f;
+  --text-secondary: rgba(60, 60, 67, 0.72);
 
-  --bg-color: #f6f7fb;
+  --bg-color: #f5f5f7;
   --bg-secondary: #ffffff;
-  --bg-elevated: rgba(255, 255, 255, 0.85);
-  --bg-gradient: linear-gradient(135deg, #f2f3f5 0%, #e6e8ec 45%, #f4f5f7 100%);
+  --bg-elevated: rgba(255, 255, 255, 0.94);
+  --bg-gradient: linear-gradient(145deg, #f5f5f7 0%, #ececf0 52%, #f7f7fa 100%);
 
-  --border-color: rgba(30, 38, 68, 0.12);
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-strong: rgba(255, 255, 255, 0.88);
-  --glow: rgba(107, 114, 128, 0.28);
+  --border-color: rgba(60, 60, 67, 0.18);
+  --glass: rgba(255, 255, 255, 0.78);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --glow: rgba(10, 132, 255, 0.2);
 
-  --message-user: #335bff;
-  --message-other: #eef1f7;
+  --message-user: #0a84ff;
+  --message-other: #f0f1f5;
 
-  --shadow: 0 12px 24px rgba(15, 19, 32, 0.08);
-  --shadow-dark: 0 18px 40px rgba(15, 19, 32, 0.12);
+  --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --shadow-dark: 0 18px 40px rgba(15, 23, 42, 0.14);
 
   /* Shared UI tokens */
   --radius-card: 22px;
@@ -37,19 +37,34 @@
 }
 
 .dark-theme {
-  --text-primary: #f1f1f1;
-  --text-secondary: rgba(241, 241, 241, 0.62);
-  --bg-color: #000000;
-  --bg-secondary: #060606;
-  --bg-elevated: rgba(10, 10, 10, 0.94);
-  --bg-gradient: linear-gradient(160deg, #000000 0%, #040404 56%, #090909 100%);
-  --border-color: rgba(136, 136, 136, 0.34);
-  --glass: rgba(6, 6, 6, 0.86);
-  --glass-strong: rgba(10, 10, 10, 0.94);
-  --glow: rgba(160, 160, 160, 0.22);
-  --message-user: #141414;
-  --message-other: #090909;
-  --wallet-income-color: #63e6be;
+  --primary-color: #0a84ff;
+  --primary-strong: #409cff;
+  --secondary-color: #8e8e93;
+  --danger-color: #ff453a;
+  --success-color: #30d158;
+  --warning-color: #ffd60a;
+  --wallet-income-color: #30d158;
+
+  --text-primary: #f5f5f7;
+  --text-secondary: rgba(235, 235, 245, 0.6);
+
+  --bg-color: #0f1115;
+  --bg-secondary: #1c1c1e;
+  --bg-elevated: rgba(44, 44, 46, 0.9);
+  --bg-gradient: linear-gradient(160deg, #0b0d12 0%, #11141b 58%, #1c1c1e 100%);
+  --surface-soft: rgba(28, 28, 30, 0.86);
+  --surface-strong: rgba(44, 44, 46, 0.92);
+
+  --border-color: rgba(84, 84, 88, 0.65);
+  --glass: rgba(28, 28, 30, 0.78);
+  --glass-strong: rgba(44, 44, 46, 0.92);
+  --glow: rgba(10, 132, 255, 0.26);
+
+  --message-user: #0a84ff;
+  --message-other: #2c2c2e;
+
+  --shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+  --shadow-dark: 0 20px 44px rgba(0, 0, 0, 0.62);
 }
 
 @keyframes bounce {

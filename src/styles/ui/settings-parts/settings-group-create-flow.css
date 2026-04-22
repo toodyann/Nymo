@@ -299,7 +299,7 @@
 }
 
 html:not(.dark-theme) #messenger-settings .shop-header h2 {
-  color: #0f1320;
+  color: var(--text-primary);
   border: none;
   background: transparent;
   box-shadow: none;
@@ -308,17 +308,17 @@ html:not(.dark-theme) #messenger-settings .shop-header h2 {
 }
 
 html:not(.dark-theme) #messenger-settings .shop-balance-island {
-  border: 1px solid rgba(20, 24, 36, 0.1);
-  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid color-mix(in srgb, var(--border-color) 74%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 94%, #ffffff);
   box-shadow:
-    0 10px 22px rgba(15, 19, 32, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    0 10px 24px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 html.dark-theme #messenger-settings .shop-header h2 {
-  color: #ffffff;
+  color: var(--text-primary);
   border: none;
   background: transparent;
   box-shadow: none;
@@ -332,11 +332,13 @@ html.dark-theme #messenger-settings .shop-header h2 svg {
 }
 
 html.dark-theme #messenger-settings .shop-balance-island {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 94%, var(--bg-color));
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(138%);
+  -webkit-backdrop-filter: blur(16px) saturate(138%);
 }
 
 .settings-content {

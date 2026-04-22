@@ -1,32 +1,25 @@
-import * as THREE from 'three';
-import { setupSettingsSwipeBack } from '../../../shared/gestures/swipe-handlers.js';
 import { escapeHtml } from '../../../shared/helpers/ui-helpers.js';
-import { buildApiUrl } from '../../../shared/api/api-url.js';
-import {
-  getAuthSession,
-  setAuthSession,
-  syncLegacyUserProfile
-} from '../../../shared/auth/auth-session.js';
-import {
-  flappyCoinSoundUrl,
-  flappyWingSoundUrl,
-  flappyDieSoundUrl,
-  TAP_PERSONS_AVATAR_POOL,
-  TAP_PERSONS_AVATAR_IMPORTER_BY_KEY,
-  TAP_AUTO_AWAY_START_TS_KEY,
-  TAP_AUTO_PENDING_REWARD_CENTS_KEY,
-  TAP_AUTO_PENDING_REWARD_SECONDS_KEY,
-  ORION_DRIVE_SHOP_CARS,
-  ORION_DRIVE_CAR_PHYSICS_DEFAULT,
-  ORION_DRIVE_CAR_PHYSICS,
-  ORION_DRIVE_SMOKE_DEFAULT,
-  ORION_DRIVE_SHOP_SMOKE_COLORS,
-  createOrionDriveGltfLoader
-} from '../features-parts/index.js';
 import { ChatAppFeaturesFaqDriveUtilsMethods } from './features-faq-drive-utils-methods.js';
 
+let threeModulePromise = null;
+let driveLoaderModulePromise = null;
+
+function loadThreeModule() {
+  if (!threeModulePromise) {
+    threeModulePromise = import('three');
+  }
+  return threeModulePromise;
+}
+
+function loadDriveLoaderModule() {
+  if (!driveLoaderModulePromise) {
+    driveLoaderModulePromise = import('../features-parts/features-drive-loader.js');
+  }
+  return driveLoaderModulePromise;
+}
+
 export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMethods {
-  initOrionDriveGarage(settingsContainer) {
+  async initOrionDriveGarage(settingsContainer) {
     const sectionEl = settingsContainer.querySelector('#orion-drive-garage');
     const stageEl = settingsContainer.querySelector('#shopGarageStage');
     const canvasEl = settingsContainer.querySelector('#shopGarageCanvas');
@@ -40,6 +33,11 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
     const specsEl = settingsContainer.querySelector('#shopGarageSpecs');
     const actionBtn = settingsContainer.querySelector('#shopGarageActionBtn');
     if (!sectionEl || !stageEl || !canvasEl || !specsEl || !actionBtn) return;
+
+    const [{ createOrionDriveGltfLoader }, THREE] = await Promise.all([
+      loadDriveLoaderModule(),
+      loadThreeModule()
+    ]);
 
     const cars = this.getOrionDriveCarCatalog();
     if (!cars.length) return;
@@ -463,7 +461,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
   }
 
 
-  initShop(settingsContainer) {
+  async initShop(settingsContainer) {
     const balanceEl = settingsContainer.querySelector('#shopBalanceValue');
     const islandBalanceEl = settingsContainer.querySelector('#shopIslandBalance');
     const shopHeaderEl = settingsContainer.querySelector('.shop-header');
@@ -484,6 +482,11 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
     const walletOpenActionButtons = [...settingsContainer.querySelectorAll('[data-wallet-open-action]')];
     const gridEl = settingsContainer.querySelector('#shopGrid');
     if (!balanceEl || !gridEl || !shopContentEl) return;
+
+    const [{ createOrionDriveGltfLoader }, THREE] = await Promise.all([
+      loadDriveLoaderModule(),
+      loadThreeModule()
+    ]);
 
     walletOpenActionButtons.forEach((button) => {
       if (!(button instanceof HTMLButtonElement)) return;

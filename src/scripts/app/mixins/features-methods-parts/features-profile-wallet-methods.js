@@ -1,30 +1,8 @@
-import { setupSettingsSwipeBack } from '../../../shared/gestures/swipe-handlers.js';
 import { escapeHtml } from '../../../shared/helpers/ui-helpers.js';
 import { buildApiUrl } from '../../../shared/api/api-url.js';
-import {
-  getAuthSession,
-  setAuthSession,
-  syncLegacyUserProfile
-} from '../../../shared/auth/auth-session.js';
-import {
-  flappyCoinSoundUrl,
-  flappyWingSoundUrl,
-  flappyDieSoundUrl,
-  TAP_PERSONS_AVATAR_POOL,
-  TAP_PERSONS_AVATAR_IMPORTER_BY_KEY,
-  TAP_AUTO_AWAY_START_TS_KEY,
-  TAP_AUTO_PENDING_REWARD_CENTS_KEY,
-  TAP_AUTO_PENDING_REWARD_SECONDS_KEY,
-  ORION_DRIVE_SHOP_CARS,
-  ORION_DRIVE_CAR_PHYSICS_DEFAULT,
-  ORION_DRIVE_CAR_PHYSICS,
-  ORION_DRIVE_SMOKE_DEFAULT,
-  ORION_DRIVE_SHOP_SMOKE_COLORS,
-  createOrionDriveGltfLoader
-} from '../features-parts/index.js';
-import { ChatAppFeaturesMiniGamesMethods } from './features-mini-games-methods.js';
+import { ChatAppFeaturesShopMethods } from './features-shop-methods.js';
 
-export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesMiniGamesMethods {
+export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMethods {
   initProfileItems(settingsContainer, options = {}) {
     const balanceEl = settingsContainer.querySelector('#profileItemsBalance');
     const itemsCountEl = settingsContainer.querySelector('#profileItemsCount');

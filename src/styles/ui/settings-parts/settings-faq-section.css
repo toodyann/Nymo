@@ -358,8 +358,8 @@
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(6, 10, 18, 0.62);
-  backdrop-filter: blur(4px);
+  background: color-mix(in srgb, var(--bg-color) 56%, #000000);
+  backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -369,15 +369,15 @@
   position: relative;
   width: min(520px, 100%);
   border-radius: var(--radius-card);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   background: linear-gradient(
     165deg,
-    color-mix(in srgb, var(--bg-color) 95%, transparent),
-    color-mix(in srgb, var(--surface-soft) 86%, transparent)
+    color-mix(in srgb, var(--surface-strong) 94%, var(--bg-color)),
+    color-mix(in srgb, var(--surface-soft) 88%, transparent)
   );
   box-shadow:
-    0 20px 44px rgba(7, 11, 19, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 24px 52px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
   transform: translateY(10px) scale(0.98);
   opacity: 0;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -612,8 +612,8 @@
 }
 
 .wallet-transfer-status[data-tone='error'] {
-  border-color: color-mix(in srgb, #f36d8f 48%, var(--border-color));
-  color: color-mix(in srgb, #f36d8f 76%, var(--text-primary));
+  border-color: color-mix(in srgb, var(--danger-color) 48%, var(--border-color));
+  color: color-mix(in srgb, var(--danger-color) 76%, var(--text-primary));
 }
 
 .wallet-transfer-actions {
@@ -645,10 +645,16 @@
 }
 
 .wallet-history-card {
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
-  box-shadow: var(--shadow);
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--surface-soft) 94%, var(--bg-elevated)),
+    color-mix(in srgb, var(--surface-strong) 86%, transparent)
+  );
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
 }
 
 .wallet-history-card {
@@ -690,8 +696,14 @@
   gap: 12px;
   padding: 12px;
   border-radius: var(--radius-inner);
-  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
-  background: color-mix(in srgb, var(--bg-color) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.wallet-history-item:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  background: color-mix(in srgb, var(--surface-strong) 84%, var(--primary-color) 16%);
 }
 
 .wallet-history-item-main {
@@ -722,7 +734,7 @@
 }
 
 .wallet-history-item.is-expense .wallet-history-item-amount {
-  color: #ff7f7f;
+  color: var(--danger-color);
 }
 
 .wallet-history-empty {
@@ -827,26 +839,30 @@
 }
 
 .wallet-analytics-stat.is-expense strong {
-  color: #ff6b8a;
+  color: var(--danger-color);
 }
 
 .wallet-analytics-stat.is-net strong {
-  color: #8ec5ff;
+  color: var(--primary-color);
 }
 
 .wallet-analytics-card {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--surface-soft) 94%, var(--bg-elevated)),
+    color-mix(in srgb, var(--surface-strong) 86%, transparent)
+  );
   padding: 12px;
   box-shadow: var(--shadow);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .wallet-analytics-card:hover {
-  border-color: color-mix(in srgb, var(--border-color) 78%, #5db7ff);
+  border-color: color-mix(in srgb, var(--border-color) 68%, var(--primary-color));
 }
 
 .wallet-analytics-card--controls {
@@ -902,8 +918,8 @@
 
 .wallet-analytics-toggle-btn.is-active {
   color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--border-color) 70%, #5db7ff);
-  background: color-mix(in srgb, var(--bg-color) 86%, #5db7ff 14%);
+  border-color: color-mix(in srgb, var(--border-color) 70%, var(--primary-color));
+  background: color-mix(in srgb, var(--surface-strong) 86%, var(--primary-color) 14%);
 }
 
 .wallet-analytics-focus {
@@ -941,7 +957,7 @@
 }
 
 .wallet-analytics-focus[data-tone='negative'] .wallet-analytics-focus-value {
-  color: #ff8aa6;
+  color: var(--danger-color);
 }
 
 .wallet-analytics-card--hero {
@@ -977,7 +993,7 @@
 .wallet-analytics-net-card strong {
   font-size: 32px;
   line-height: 1;
-  color: #8ec5ff;
+  color: var(--primary-color);
   font-variant-numeric: tabular-nums;
 }
 
@@ -986,7 +1002,7 @@
 }
 
 .wallet-analytics-net-card.is-negative strong {
-  color: #ff8aa6;
+  color: var(--danger-color);
 }
 
 .wallet-analytics-side-metrics {
@@ -1026,12 +1042,12 @@
 .wallet-analytics-bar-row:hover,
 .wallet-analytics-bar-row:focus-visible,
 .wallet-analytics-bar-row.is-active {
-  border-color: color-mix(in srgb, #5db7ff 60%, var(--border-color));
-  box-shadow: 0 0 0 1px color-mix(in srgb, #5db7ff 25%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 60%, var(--border-color));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 24%, transparent);
 }
 
 .wallet-analytics-bar-row:focus-visible {
-  outline: 2px solid color-mix(in srgb, #5db7ff 70%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 70%, transparent);
   outline-offset: 1px;
 }
 
@@ -1057,7 +1073,7 @@
 }
 
 .wallet-analytics-bar-row.is-expense .wallet-analytics-bar-fill {
-  background: #ff7a8a;
+  background: var(--danger-color);
 }
 
 .wallet-analytics-bar-value {
@@ -1071,8 +1087,8 @@
   width: 100%;
   height: 172px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, #2e3747 78%, transparent);
-  background: #090c12;
+  border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 92%, var(--bg-color));
   padding: 12px 12px 28px;
   box-sizing: border-box;
   position: relative;
@@ -1100,12 +1116,12 @@
 }
 
 .wallet-analytics-area {
-  fill: rgba(62, 166, 255, 0.16);
+  fill: color-mix(in srgb, var(--primary-color) 18%, transparent);
 }
 
 .wallet-analytics-line {
   fill: none;
-  stroke: #3ea6ff;
+  stroke: var(--primary-color);
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1119,8 +1135,8 @@
 }
 
 .wallet-analytics-point {
-  fill: #3ea6ff;
-  stroke: #0c1119;
+  fill: var(--primary-color);
+  stroke: color-mix(in srgb, var(--bg-color) 86%, #000000);
   stroke-width: 1.6;
   opacity: 0;
   transform-box: fill-box;
@@ -1133,14 +1149,14 @@
 .wallet-analytics-point:focus,
 .wallet-analytics-point.is-active {
   opacity: 1;
-  fill: #8acbff;
+  fill: color-mix(in srgb, var(--primary-color) 72%, #ffffff);
   transform: scale(1.08);
 }
 
 .wallet-analytics-point.is-today {
   opacity: 0;
-  fill: #3ea6ff;
-  stroke: #0c1119;
+  fill: var(--primary-color);
+  stroke: color-mix(in srgb, var(--bg-color) 86%, #000000);
 }
 
 .wallet-analytics-point.is-today.is-active {
@@ -1181,7 +1197,7 @@
 }
 
 .wallet-analytics-line-axis span:last-child {
-  color: #3ea6ff;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -1199,11 +1215,11 @@ html:not(.dark-theme) .wallet-analytics-line-wrap::before {
 }
 
 html:not(.dark-theme) .wallet-analytics-area {
-  fill: rgba(47, 140, 255, 0.16);
+  fill: color-mix(in srgb, var(--primary-color) 16%, transparent);
 }
 
 html:not(.dark-theme) .wallet-analytics-line {
-  stroke: #2f8cff;
+  stroke: var(--primary-color);
 }
 
 html:not(.dark-theme) .wallet-analytics-zero-line {
@@ -1212,12 +1228,12 @@ html:not(.dark-theme) .wallet-analytics-zero-line {
 }
 
 html:not(.dark-theme) .wallet-analytics-point {
-  fill: #2f8cff;
+  fill: var(--primary-color);
   stroke: #ffffff;
 }
 
 html:not(.dark-theme) .wallet-analytics-point.is-today {
-  fill: #2f8cff;
+  fill: var(--primary-color);
   stroke: #ffffff;
 }
 
@@ -1228,7 +1244,7 @@ html:not(.dark-theme) .wallet-analytics-line-tooltip {
 }
 
 html:not(.dark-theme) .wallet-analytics-line-axis span:last-child {
-  color: #2f8cff;
+  color: var(--primary-color);
 }
 
 .wallet-analytics-sources {
@@ -1253,7 +1269,7 @@ html:not(.dark-theme) .wallet-analytics-line-axis span:last-child {
 
 .wallet-analytics-donut.is-interactive-active {
   transform: none;
-  box-shadow: 0 0 0 1px color-mix(in srgb, #5db7ff 20%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 22%, transparent);
   filter: none;
 }
 
@@ -1350,14 +1366,14 @@ html:not(.dark-theme) .wallet-analytics-line-axis span:last-child {
 .wallet-analytics-source-item:hover,
 .wallet-analytics-source-item:focus-visible,
 .wallet-analytics-source-item.is-active {
-  border-color: color-mix(in srgb, var(--accent-color, #5db7ff) 65%, var(--border-color));
+  border-color: color-mix(in srgb, var(--accent-color, var(--primary-color)) 65%, var(--border-color));
   transform: none;
-  background: color-mix(in srgb, var(--bg-color) 86%, #5db7ff 12%);
-  box-shadow: 0 0 0 1px color-mix(in srgb, #5db7ff 18%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 86%, var(--primary-color) 14%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 18%, transparent);
 }
 
 .wallet-analytics-source-item:focus-visible {
-  outline: 2px solid color-mix(in srgb, #5db7ff 70%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--primary-color) 70%, transparent);
   outline-offset: 1px;
 }
 

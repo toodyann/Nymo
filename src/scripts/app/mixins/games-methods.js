@@ -1,27 +1,23 @@
-import { ChatAppFeaturesMethods } from './features-methods.js';
+let miniGamesMethodsModulePromise = null;
 
-function forwardMethods(targetClass, sourceClass, methods) {
-  const resolveMethodDescriptor = (methodName) => {
-    let currentPrototype = sourceClass.prototype;
-    while (currentPrototype && currentPrototype !== Object.prototype) {
-      const descriptor = Object.getOwnPropertyDescriptor(currentPrototype, methodName);
-      if (descriptor) return descriptor;
-      currentPrototype = Object.getPrototypeOf(currentPrototype);
-    }
-    return null;
-  };
-
-  methods.forEach((methodName) => {
-    const descriptor = resolveMethodDescriptor(methodName);
-    if (!descriptor) {
-      throw new Error(`[games-methods] Method not found: ${methodName}`);
-    }
-    Object.defineProperty(targetClass.prototype, methodName, descriptor);
-  });
+function loadMiniGamesMethodsModule() {
+  if (!miniGamesMethodsModulePromise) {
+    miniGamesMethodsModulePromise = import('./features-methods-parts/features-mini-games-methods.js');
+  }
+  return miniGamesMethodsModulePromise;
 }
 
-export class ChatAppGamesMethods {}
-
-forwardMethods(ChatAppGamesMethods, ChatAppFeaturesMethods, [
-  'initMiniGames'
-]);
+export class ChatAppGamesMethods {
+  async initMiniGames(settingsContainer) {
+    const { ChatAppFeaturesMiniGamesMethods } = await loadMiniGamesMethodsModule();
+    const descriptor = Object.getOwnPropertyDescriptor(
+      ChatAppFeaturesMiniGamesMethods.prototype,
+      'initMiniGames'
+    );
+    const method = descriptor?.value;
+    if (typeof method !== 'function') {
+      throw new Error('[games-methods] Method not found: initMiniGames');
+    }
+    return method.call(this, settingsContainer);
+  }
+}

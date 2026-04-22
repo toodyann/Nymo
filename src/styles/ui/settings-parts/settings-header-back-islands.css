@@ -42,11 +42,13 @@
   justify-content: center;
   pointer-events: auto;
   color: var(--text-primary);
-  border: none;
-  background: transparent;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-elevated));
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
 }
 
 #profile-items .profile-items-back-island svg {
@@ -66,13 +68,13 @@ html:not(.dark-theme) #wallet .calls-header h2 {
 }
 
 html:not(.dark-theme) #profile-items .profile-items-back-island {
-  border: none;
-  background: transparent;
+  border-color: color-mix(in srgb, var(--border-color) 74%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 94%, #ffffff);
   box-shadow:
-    0 10px 22px rgba(15, 19, 32, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    0 10px 24px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 html.dark-theme #notifications-center .calls-header h2,
@@ -87,16 +89,19 @@ html.dark-theme #wallet .calls-header h2 {
 }
 
 html.dark-theme #profile-items .profile-items-back-island {
-  border: none;
-  background: transparent;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 94%, var(--bg-color));
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(138%);
+  -webkit-backdrop-filter: blur(16px) saturate(138%);
 }
 
 #profile-items .profile-items-back-island:hover,
 #profile-items .profile-items-back-island:active {
-  background: transparent;
+  background: color-mix(in srgb, var(--surface-strong) 90%, var(--primary-color) 10%);
+  border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
 }
 
 #notifications-center .calls-content,
@@ -187,11 +192,13 @@ html.dark-theme #profile-items .profile-items-back-island {
   justify-content: center;
   pointer-events: auto;
   color: var(--text-primary);
-  border: none;
-  background: transparent;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-elevated));
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
   z-index: 10;
   touch-action: manipulation;
   cursor: pointer;
@@ -215,12 +222,13 @@ html:not(.dark-theme) .settings-subsection .settings-subsection-title {
 }
 
 html:not(.dark-theme) .settings-subsection .settings-subsection-back {
-  background: transparent;
+  border-color: color-mix(in srgb, var(--border-color) 74%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 94%, #ffffff);
   box-shadow:
-    0 10px 22px rgba(15, 19, 32, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    0 10px 24px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 html.dark-theme .settings-subsection .settings-subsection-title {
@@ -231,18 +239,26 @@ html.dark-theme .settings-subsection .settings-subsection-title {
 }
 
 html.dark-theme .settings-subsection .settings-subsection-back {
-  background: transparent;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 94%, var(--bg-color));
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(138%);
+  -webkit-backdrop-filter: blur(16px) saturate(138%);
 }
 
 /* Use the same island surface as .shop-filter-summary for all header islands */
 #messenger-settings .shop-balance-island,
 #profile-items .profile-items-back-island,
 .settings-subsection .settings-subsection-back {
-  background: var(--surface-soft) !important;
-  border: 1px solid var(--border-color) !important;
+  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-elevated)) !important;
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent) !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(138%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(138%) !important;
 }
 
 #messenger-settings .shop-header h2,
@@ -261,11 +277,13 @@ html.dark-theme .settings-subsection .settings-subsection-back {
 
 #profile-items .profile-items-back-island,
 .settings-subsection .settings-subsection-back {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent) !important;
+  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-elevated)) !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(138%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(138%) !important;
 }
 
 .settings-subsection .settings-content {
@@ -279,11 +297,13 @@ html.dark-theme .settings-subsection .settings-subsection-back {
 
 .settings-group {
   margin-bottom: 24px;
-  background-color: var(--bg-color);
-  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 92%, var(--bg-elevated));
+  border-radius: var(--radius-inner);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border-color);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
 }
 
 .settings-group h3 {
@@ -293,7 +313,7 @@ html.dark-theme .settings-subsection .settings-subsection-back {
   font-weight: 600;
   text-transform: uppercase;
   color: var(--text-secondary);
-  background-color: var(--bg-secondary);
+  background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
   letter-spacing: 0.5px;
 }
 
@@ -302,10 +322,10 @@ html.dark-theme .settings-subsection .settings-subsection-back {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 76%, transparent);
   gap: 16px;
-  background-color: var(--bg-color);
-  transition: background-color 0.15s ease;
+  background: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .settings-item:last-child {
@@ -313,11 +333,12 @@ html.dark-theme .settings-subsection .settings-subsection-back {
 }
 
 .settings-item:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background: color-mix(in srgb, var(--surface-strong) 90%, var(--primary-color) 10%);
+  border-bottom-color: color-mix(in srgb, var(--primary-color) 28%, var(--border-color));
 }
 
 .settings-item:active {
-  background-color: var(--bg-secondary);
+  background: color-mix(in srgb, var(--surface-strong) 86%, var(--primary-color) 14%);
 }
 
 .settings-item-label {

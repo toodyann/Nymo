@@ -8,6 +8,41 @@ import {
 } from './shared/auth/auth-session.js';
 import { getApiBaseUrl } from './shared/api/api-url.js';
 
+function isServiceWorkerEnabledByEnv() {
+  const rawFlag = String(import.meta.env?.VITE_ENABLE_SW || '').trim().toLowerCase();
+  if (rawFlag === '1' || rawFlag === 'true' || rawFlag === 'yes' || rawFlag === 'on') {
+    return true;
+  }
+  if (rawFlag === '0' || rawFlag === 'false' || rawFlag === 'no' || rawFlag === 'off') {
+    return false;
+  }
+  return import.meta.env?.DEV !== true;
+}
+
+async function disableOrionServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      registrations.map((registration) => registration.unregister())
+    );
+  } catch (_) {
+    // Ignore service worker cleanup failures.
+  }
+
+  if (!('caches' in window)) return;
+  try {
+    const cacheKeys = await caches.keys();
+    await Promise.all(
+      cacheKeys
+        .filter((key) => String(key || '').startsWith('nymo-'))
+        .map((key) => caches.delete(key))
+    );
+  } catch (_) {
+    // Ignore cache cleanup failures.
+  }
+}
+
 function dispatchOrionPwaEvent(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
@@ -156,6 +191,12 @@ function bindPwaLifecycleEvents() {
 
 async function registerOrionServiceWorker() {
   if (!('serviceWorker' in navigator) || !window.isSecureContext) return null;
+
+  if (!isServiceWorkerEnabledByEnv()) {
+    await disableOrionServiceWorker();
+    setPendingPwaUpdateRegistration(null);
+    return null;
+  }
 
   try {
     const registration = await navigator.serviceWorker.register(getServiceWorkerRegistrationUrl(), {

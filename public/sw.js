@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'nymo-shell-v7';
-const RUNTIME_CACHE = 'nymo-runtime-v7';
+const SHELL_CACHE = 'nymo-shell-v8';
+const RUNTIME_CACHE = 'nymo-runtime-v8';
 const APP_SHELL_FILES = [
   './',
   './index.html',
@@ -80,25 +80,27 @@ async function handleStaticRequest(request) {
   const isImmutableAsset = requestUrl.pathname.includes('/assets/')
     || requestUrl.pathname.includes('/pwa/');
 
-  if (cachedResponse && isImmutableAsset) {
-    return cachedResponse;
+  if (!isImmutableAsset) {
+    try {
+      return await fetch(request);
+    } catch (_) {
+      if (cachedResponse) return cachedResponse;
+      return Response.error();
+    }
   }
 
-  const networkPromise = fetch(request)
-    .then(async (response) => {
-      if (response && response.ok) {
-        await runtimeCache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
+  if (cachedResponse) return cachedResponse;
 
-  if (cachedResponse) {
-    void networkPromise;
-    return cachedResponse;
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse && networkResponse.ok) {
+      await runtimeCache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (_) {
+    if (cachedResponse) return cachedResponse;
+    return Response.error();
   }
-
-  return networkPromise || fetch(request);
 }
 
 self.addEventListener('fetch', (event) => {
@@ -114,18 +116,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   const destination = request.destination || '';
-  const shouldHandleStatic = [
-    'style',
-    'script',
-    'worker',
-    'image',
-    'font',
-    'manifest'
-  ].includes(destination)
-    || requestUrl.pathname.includes('/assets/')
-    || requestUrl.pathname.endsWith('.css')
-    || requestUrl.pathname.endsWith('.js')
-    || requestUrl.pathname.endsWith('.png');
+  const isImmutableAsset = requestUrl.pathname.includes('/assets/')
+    || requestUrl.pathname.includes('/pwa/');
+  const isAppManifest = destination === 'manifest'
+    || requestUrl.pathname.endsWith('manifest.webmanifest');
+  const shouldHandleStatic = isImmutableAsset || isAppManifest;
 
   if (shouldHandleStatic) {
     event.respondWith(handleStaticRequest(request));
