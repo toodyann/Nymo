@@ -91,6 +91,7 @@ export function showAlert(message, title = 'Помилка', { okText = 'OK', va
  * @returns {Promise<void>}
  */
 export function showNotice(message, title = 'Повідомлення') {
+  const noticeAutoCloseMs = 2800;
   const uiLanguage = resolveUiLanguage();
   const localizedTitle = uiLanguage === 'en'
     ? (String(title || '').trim() === 'Повідомлення' ? 'Notice' : translateUiText(title, uiLanguage))
@@ -111,20 +112,32 @@ export function showNotice(message, title = 'Повідомлення') {
   titleEl.textContent = localizedTitle;
   messageEl.textContent = localizedMessage;
   cancelBtn.style.display = 'none';
+  const previousOkDisplay = okBtn.style.display;
+  okBtn.style.display = 'none';
   setAlertVariant(overlay, 'notice');
+  overlay.classList.add('is-autoclose');
+  overlay.style.setProperty('--notice-autoclose-ms', `${noticeAutoCloseMs}ms`);
 
   overlay.classList.add('active');
   overlay.setAttribute('aria-hidden', 'false');
 
   return new Promise(resolve => {
+    let autoCloseTimerId = 0;
+
     const cleanup = () => {
       overlay.classList.remove('active');
       overlay.setAttribute('aria-hidden', 'true');
       clearAlertVariant(overlay);
-      okBtn.removeEventListener('click', onOk);
+      overlay.classList.remove('is-autoclose');
+      overlay.style.removeProperty('--notice-autoclose-ms');
+      okBtn.style.display = previousOkDisplay;
       closeBtn.removeEventListener('click', onOk);
       overlay.removeEventListener('click', onOverlay);
       document.removeEventListener('keydown', onEnter);
+      if (autoCloseTimerId > 0) {
+        window.clearTimeout(autoCloseTimerId);
+        autoCloseTimerId = 0;
+      }
     };
     const onOk = () => {
       cleanup();
@@ -136,10 +149,10 @@ export function showNotice(message, title = 'Повідомлення') {
     const onEnter = (e) => {
       if (e.key === 'Enter') onOk();
     };
-    okBtn.addEventListener('click', onOk);
     closeBtn.addEventListener('click', onOk);
     overlay.addEventListener('click', onOverlay);
     document.addEventListener('keydown', onEnter);
+    autoCloseTimerId = window.setTimeout(onOk, noticeAutoCloseMs);
   });
 }
 

@@ -26,10 +26,10 @@
           : true;
         const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
         document.documentElement.classList.toggle('dark-theme', isDark);
-        const nextIconHref = isDark ? './pwa/favicon-dark.png?v=1' : './pwa/favicon-light.png?v=1';
-        document.getElementById('appFavicon')?.setAttribute('href', nextIconHref);
-        document.getElementById('appFaviconShort')?.setAttribute('href', nextIconHref);
-        document.getElementById('appAppleTouchIcon')?.setAttribute('href', nextIconHref);
+        const fixedIconHref = './pwa/favicon-dark.png?v=1';
+        document.getElementById('appFavicon')?.setAttribute('href', fixedIconHref);
+        document.getElementById('appFaviconShort')?.setAttribute('href', fixedIconHref);
+        document.getElementById('appAppleTouchIcon')?.setAttribute('href', fixedIconHref);
       })();
     </script>
 

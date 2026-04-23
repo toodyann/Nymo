@@ -8,9 +8,9 @@ function getAppBasePath() {
   return '/';
 }
 
-function resolveThemedIconHref(isDark) {
+function resolveThemedIconHref() {
   const base = getAppBasePath();
-  const fileName = isDark ? 'favicon-dark.png' : 'favicon-light.png';
+  const fileName = 'favicon-dark.png';
   return `${base}pwa/${fileName}?v=1`;
 }
 
@@ -60,5 +60,5 @@ export function applyThemeBranding() {
   const isDark = mode === 'dark';
   document.documentElement.setAttribute('data-brand-theme', mode);
   updateHeaderLogos(isDark);
-  updateFaviconLinks(resolveThemedIconHref(isDark));
+  updateFaviconLinks(resolveThemedIconHref());
 }

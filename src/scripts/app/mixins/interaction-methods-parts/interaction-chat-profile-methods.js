@@ -934,7 +934,10 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
     this.setMobilePageScrollLock(false);
     if (window.innerWidth > 768) {
       const sidebar = document.querySelector('.sidebar');
-      if (sidebar) sidebar.classList.remove('compact');
+      if (sidebar) {
+        sidebar.classList.remove('compact');
+        this.syncDesktopSecondaryMenuBackButtonIcon();
+      }
     }
     this.restoreBottomNavToHome({ animate: false });
     try {

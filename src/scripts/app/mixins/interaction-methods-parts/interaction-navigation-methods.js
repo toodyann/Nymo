@@ -14,7 +14,27 @@ import {
   getDesktopSecondaryMenuIconSvg
 } from '../interaction-parts/index.js';
 
+const DESKTOP_SECONDARY_BACK_ARROW_LEFT_PATH = 'M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z';
+const DESKTOP_SECONDARY_BACK_ARROW_RIGHT_PATH = 'M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66A8,8,0,0,1,101.66,42.34l80,80A8,8,0,0,1,181.66,133.66Z';
+
 export class ChatAppInteractionNavigationMethods {
+  syncDesktopSecondaryMenuBackButtonIcon() {
+    const sidebar = document.querySelector('.sidebar');
+    const backButton = document.getElementById('desktopSecondaryMenuBack');
+    const pathEl = backButton?.querySelector('svg path');
+    if (!pathEl) return;
+
+    const isCompact = window.innerWidth > 768 && sidebar?.classList.contains('compact');
+    const targetPath = isCompact
+      ? DESKTOP_SECONDARY_BACK_ARROW_RIGHT_PATH
+      : DESKTOP_SECONDARY_BACK_ARROW_LEFT_PATH;
+
+    if (pathEl.getAttribute('d') !== targetPath) {
+      pathEl.setAttribute('d', targetPath);
+    }
+  }
+
+
   enforcePlainChatModalHeader() {
     const header = document.querySelector('#chatContainer .chat-modal-header');
     if (!header) return;
@@ -756,6 +776,7 @@ export class ChatAppInteractionNavigationMethods {
     if (sidebar) {
       sidebar.style.display = '';
       sidebar.classList.remove('compact');
+      this.syncDesktopSecondaryMenuBackButtonIcon();
     }
     if (profileMenu) profileMenu.classList.remove('floating-nav');
 
@@ -957,6 +978,7 @@ export class ChatAppInteractionNavigationMethods {
     this.resetDesktopSecondaryChatSearchState();
     if (sidebar) {
       sidebar.classList.remove('compact');
+      this.syncDesktopSecondaryMenuBackButtonIcon();
     }
   }
 

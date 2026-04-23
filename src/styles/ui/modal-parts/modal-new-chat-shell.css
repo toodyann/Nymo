@@ -115,6 +115,8 @@ html:not(.dark-theme) #newChatModal .new-chat-footer .btn {
   max-width: 420px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
   border-radius: 16px;
   color: var(--text-primary);
   background: var(--bg-secondary);
@@ -122,6 +124,32 @@ html:not(.dark-theme) #newChatModal .new-chat-footer .btn {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+.alert-overlay.is-notice.is-autoclose .alert-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid #22c55e;
+  box-sizing: border-box;
+  clip-path: inset(0 0 0 0 round 16px);
+  animation: alertNoticeCountdown var(--notice-autoclose-ms, 2800ms) linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes alertNoticeCountdown {
+  from {
+    clip-path: inset(0 0 0 0 round 16px);
+  }
+  to {
+    clip-path: inset(0 100% 0 0 round 16px);
+  }
+}
+
+.alert-overlay.is-notice.is-autoclose .alert-modal {
+  border-color: var(--border-color);
 }
 
 .alert-overlay.is-notice .alert-modal {
@@ -148,6 +176,10 @@ html:not(.dark-theme) .alert-modal {
 
 html:not(.dark-theme) .alert-overlay.is-notice .alert-modal {
   border-color: color-mix(in srgb, #22c55e 28%, rgba(20, 24, 36, 0.12));
+}
+
+html:not(.dark-theme) .alert-overlay.is-notice.is-autoclose .alert-modal {
+  border-color: rgba(20, 24, 36, 0.12);
 }
 
 html:not(.dark-theme) .alert-overlay.is-warning .alert-modal {
@@ -342,6 +374,10 @@ html:not(.dark-theme) .alert-overlay.is-notice .alert-modal-inner::before {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.alert-overlay.is-notice.is-autoclose .alert-actions {
+  display: none;
 }
 
 .alert-actions .btn {

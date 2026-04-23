@@ -70,7 +70,7 @@
     display: flex;
     justify-content: flex-end;
     height: auto;
-    padding: 10px 8px 6px !important;
+    padding: 8px 8px 4px !important;
   }
 
   .sidebar.compact
@@ -89,28 +89,31 @@
     width: 30px;
     height: 30px;
     border-radius: 999px;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.96);
     box-shadow: none;
-  }
-
-  .sidebar.compact
-    .desktop-secondary-menu.active[data-menu-root="navChats"]
-    #desktopSecondaryMenuBack
-    svg {
-    transform: rotate(180deg);
   }
 
   .sidebar.compact
     .desktop-secondary-menu.active
     .desktop-secondary-menu-list--chats {
-    padding: 8px 0 !important;
+    padding: 6px 0 10px !important;
+  }
+
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-search {
+    display: none !important;
   }
 
   .sidebar.compact
     .desktop-secondary-menu.active[data-menu-root="navChats"]
     .desktop-secondary-chat-list {
     align-items: center;
+  }
+
+  .sidebar.compact
+    .desktop-secondary-menu.active[data-menu-root="navChats"]
+    .desktop-secondary-chat-content {
+    padding-top: 2px;
   }
 
   .sidebar.compact

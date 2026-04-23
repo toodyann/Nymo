@@ -19,6 +19,7 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
   setupEventListeners() {
     if (this.eventListenersBound) return;
     this.eventListenersBound = true;
+    this.syncDesktopSecondaryMenuBackButtonIcon();
 
     const newChatBtn = document.getElementById('newChatBtn');
     const desktopSecondaryMenuNewChat = document.getElementById('desktopSecondaryMenuNewChat');
@@ -108,6 +109,7 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
         const sidebar = document.querySelector('.sidebar');
         if (!sidebar) return;
         sidebar.classList.toggle('compact');
+        this.syncDesktopSecondaryMenuBackButtonIcon();
         if (this.currentChat) {
           this.syncDateSeparatorToChatInfo();
         }

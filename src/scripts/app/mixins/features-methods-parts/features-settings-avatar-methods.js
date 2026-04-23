@@ -109,6 +109,9 @@ export class ChatAppFeaturesSettingsAvatarMethods extends ChatAppFeaturesProfile
       if (sidebar) {
         sidebar.style.display = '';
         sidebar.classList.remove('compact');
+        if (typeof this.syncDesktopSecondaryMenuBackButtonIcon === 'function') {
+          this.syncDesktopSecondaryMenuBackButtonIcon();
+        }
       }
       if (profileMenu) {
         profileMenu.classList.remove('floating-nav');
