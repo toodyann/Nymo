@@ -1,7 +1,9 @@
 :root {
   --app-header-height: 56px;
-  --primary-color: #0a84ff;
-  --primary-strong: #007aff;
+  --primary-color: #000000;
+  --primary-strong: #1a1a1a;
+  --accent-color: #000000;
+  --primary-foreground: #ffffff;
   --secondary-color: #8e8e93;
   --danger-color: #ff3b30;
   --success-color: #34c759;
@@ -19,9 +21,9 @@
   --border-color: rgba(60, 60, 67, 0.18);
   --glass: rgba(255, 255, 255, 0.78);
   --glass-strong: rgba(255, 255, 255, 0.9);
-  --glow: rgba(10, 132, 255, 0.2);
+  --glow: rgba(0, 0, 0, 0.2);
 
-  --message-user: #0a84ff;
+  --message-user: var(--primary-color);
   --message-other: #f0f1f5;
 
   --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
@@ -37,8 +39,10 @@
 }
 
 .dark-theme {
-  --primary-color: #0a84ff;
-  --primary-strong: #409cff;
+  --primary-color: #ffffff;
+  --primary-strong: #ececef;
+  --accent-color: #ffffff;
+  --primary-foreground: #0f1115;
   --secondary-color: #8e8e93;
   --danger-color: #ff453a;
   --success-color: #30d158;
@@ -58,9 +62,9 @@
   --border-color: rgba(84, 84, 88, 0.65);
   --glass: rgba(28, 28, 30, 0.78);
   --glass-strong: rgba(44, 44, 46, 0.92);
-  --glow: rgba(10, 132, 255, 0.26);
+  --glow: rgba(255, 255, 255, 0.26);
 
-  --message-user: #0a84ff;
+  --message-user: var(--primary-color);
   --message-other: #2c2c2e;
 
   --shadow: 0 12px 24px rgba(0, 0, 0, 0.45);

@@ -372,7 +372,7 @@
 .message.own .message-meta .message-time,
 .message.own .message-meta .message-edited,
 .message.own .message-meta .message-status {
-  color: color-mix(in srgb, #ffffff 84%, transparent);
+  color: color-mix(in srgb, var(--primary-foreground) 84%, transparent);
 }
 
 .message.own[data-failed="true"] .message-meta .message-status,

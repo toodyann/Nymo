@@ -74,7 +74,8 @@ html.dark-theme .settings-menu-icon {
 }
 
 .settings-icon-messages {
-  background: linear-gradient(135deg, #007aff, #0051d5);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-strong));
+  color: var(--primary-foreground);
 }
 
 .settings-icon-wallet {

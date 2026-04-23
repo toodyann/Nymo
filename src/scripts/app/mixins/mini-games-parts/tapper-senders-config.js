@@ -1,4 +1,4 @@
-const DEFAULT_AUTO_SENDERS_CONFIG_KEY = 'orionTapAutoSendersConfigV3';
+const DEFAULT_AUTO_SENDERS_CONFIG_KEY = 'orionTapAutoSendersConfigV4';
 const DEFAULT_AUTO_SENDERS_CONFIG_SIZE = 10;
 
 const TAP_SENDER_MALE_NAME_POOL = [
@@ -66,102 +66,102 @@ const TAP_SENDER_ROLE_POOL = [
 const TAP_SENDER_ECONOMY_PRESETS = [
   {
     baseCostCents: 120,
-    costGrowth: 1.14,
+    costGrowth: 1.12,
     baseMessagesPerSecond: 0.8,
     coinsPerMessageCents: 1,
     upgradeBaseCostCents: 170,
-    upgradeGrowth: 1.2,
+    upgradeGrowth: 1.17,
     messageBonusPerLevel: 0.28,
     tier: 'Starter'
   },
   {
-    baseCostCents: 250,
-    costGrowth: 1.15,
+    baseCostCents: 240,
+    costGrowth: 1.125,
     baseMessagesPerSecond: 1.7,
     coinsPerMessageCents: 1,
-    upgradeBaseCostCents: 310,
-    upgradeGrowth: 1.2,
+    upgradeBaseCostCents: 200,
+    upgradeGrowth: 1.175,
     messageBonusPerLevel: 0.31,
     tier: 'Starter'
   },
   {
-    baseCostCents: 620,
-    costGrowth: 1.18,
+    baseCostCents: 960,
+    costGrowth: 1.13,
     baseMessagesPerSecond: 3.8,
     coinsPerMessageCents: 2,
-    upgradeBaseCostCents: 790,
-    upgradeGrowth: 1.22,
-    messageBonusPerLevel: 0.36,
+    upgradeBaseCostCents: 540,
+    upgradeGrowth: 1.18,
+    messageBonusPerLevel: 0.34,
     tier: 'Pro'
   },
   {
-    baseCostCents: 1420,
-    costGrowth: 1.2,
+    baseCostCents: 1700,
+    costGrowth: 1.135,
     baseMessagesPerSecond: 6.9,
     coinsPerMessageCents: 2,
-    upgradeBaseCostCents: 1860,
-    upgradeGrowth: 1.24,
-    messageBonusPerLevel: 0.4,
+    upgradeBaseCostCents: 980,
+    upgradeGrowth: 1.19,
+    messageBonusPerLevel: 0.37,
     tier: 'Pro'
   },
   {
-    baseCostCents: 3480,
-    costGrowth: 1.23,
+    baseCostCents: 4300,
+    costGrowth: 1.14,
     baseMessagesPerSecond: 11.8,
     coinsPerMessageCents: 3,
-    upgradeBaseCostCents: 4880,
-    upgradeGrowth: 1.26,
-    messageBonusPerLevel: 0.46,
+    upgradeBaseCostCents: 2520,
+    upgradeGrowth: 1.2,
+    messageBonusPerLevel: 0.4,
     tier: 'Elite'
   },
   {
-    baseCostCents: 8200,
-    costGrowth: 1.25,
+    baseCostCents: 9000,
+    costGrowth: 1.145,
     baseMessagesPerSecond: 18.6,
     coinsPerMessageCents: 4,
-    upgradeBaseCostCents: 11800,
-    upgradeGrowth: 1.29,
-    messageBonusPerLevel: 0.52,
+    upgradeBaseCostCents: 6200,
+    upgradeGrowth: 1.21,
+    messageBonusPerLevel: 0.44,
     tier: 'Elite'
   },
   {
-    baseCostCents: 15800,
-    costGrowth: 1.27,
+    baseCostCents: 14500,
+    costGrowth: 1.15,
     baseMessagesPerSecond: 26.4,
     coinsPerMessageCents: 4,
-    upgradeBaseCostCents: 23600,
-    upgradeGrowth: 1.31,
+    upgradeBaseCostCents: 10000,
+    upgradeGrowth: 1.22,
+    messageBonusPerLevel: 0.48,
+    tier: 'Elite'
+  },
+  {
+    baseCostCents: 27000,
+    costGrowth: 1.155,
+    baseMessagesPerSecond: 37.5,
+    coinsPerMessageCents: 5,
+    upgradeBaseCostCents: 19800,
+    upgradeGrowth: 1.23,
+    messageBonusPerLevel: 0.53,
+    tier: 'Elite'
+  },
+  {
+    baseCostCents: 39000,
+    costGrowth: 1.16,
+    baseMessagesPerSecond: 52.8,
+    coinsPerMessageCents: 5,
+    upgradeBaseCostCents: 30800,
+    upgradeGrowth: 1.24,
     messageBonusPerLevel: 0.58,
     tier: 'Elite'
   },
   {
-    baseCostCents: 29800,
-    costGrowth: 1.29,
-    baseMessagesPerSecond: 37.5,
-    coinsPerMessageCents: 5,
-    upgradeBaseCostCents: 46200,
-    upgradeGrowth: 1.33,
-    messageBonusPerLevel: 0.64,
-    tier: 'Elite'
-  },
-  {
-    baseCostCents: 52000,
-    costGrowth: 1.31,
-    baseMessagesPerSecond: 52.8,
-    coinsPerMessageCents: 5,
-    upgradeBaseCostCents: 83400,
-    upgradeGrowth: 1.35,
-    messageBonusPerLevel: 0.71,
-    tier: 'Elite'
-  },
-  {
-    baseCostCents: 89000,
-    costGrowth: 1.33,
+    baseCostCents: 65000,
+    costGrowth: 1.165,
     baseMessagesPerSecond: 74.2,
     coinsPerMessageCents: 6,
-    upgradeBaseCostCents: 147000,
-    upgradeGrowth: 1.37,
-    messageBonusPerLevel: 0.79,
+    upgradeBaseCostCents: 57000,
+    upgradeGrowth: 1.25,
+    messageBonusPerLevel: 0.64,
     tier: 'Elite'
   }
 ];

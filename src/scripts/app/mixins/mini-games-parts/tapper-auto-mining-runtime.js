@@ -128,8 +128,8 @@ const getAutoSenderUnitMessagesPerSecond = (sender, upgradeLevel) => Math.max(
   sender.baseMessagesPerSecond * (1 + upgradeLevel * sender.messageBonusPerLevel)
 );
 const getAutoSenderUnitIncomeCents = (sender, upgradeLevel) => Math.max(
-  0,
-  Math.floor(getAutoSenderUnitMessagesPerSecond(sender, upgradeLevel) * sender.coinsPerMessageCents)
+  1,
+  Math.ceil(getAutoSenderUnitMessagesPerSecond(sender, upgradeLevel) * sender.coinsPerMessageCents)
 );
 const getAutoSenderTotalIncomeCents = (sender) => {
   const progress = getAutoSenderProgress(sender.id);

@@ -234,6 +234,16 @@
   flex-wrap: wrap;
 }
 
+@media (min-width: 769px) {
+  .profile-content > .profile-settings-menu-card {
+    display: none !important;
+  }
+
+  #profile-settings .profile-settings-card {
+    display: contents;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-content,
   .profile-settings-content,

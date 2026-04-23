@@ -216,7 +216,7 @@
   --bubble-bg: var(--message-user);
   --bubble-border: color-mix(in srgb, var(--message-user) 86%, #ffffff 14%);
   background: var(--bubble-bg);
-  color: #fff;
+  color: var(--primary-foreground);
   border: 1px solid color-mix(in srgb, var(--bubble-border) 24%, transparent);
 }
 
@@ -225,7 +225,7 @@ html:not(.dark-theme) .message.own .message-content {
   --bubble-border: color-mix(in srgb, var(--message-user) 88%, #ffffff 12%);
   background: var(--bubble-bg);
   border-color: color-mix(in srgb, var(--bubble-border) 34%, transparent);
-  color: #ffffff;
+  color: var(--primary-foreground);
   box-shadow: 0 1px 2px rgba(15, 19, 32, 0.14);
 }
 
@@ -234,7 +234,7 @@ html.dark-theme .message.own .message-content {
   --bubble-border: color-mix(in srgb, var(--message-user) 82%, #ffffff 18%);
   background: var(--bubble-bg);
   border-color: color-mix(in srgb, var(--bubble-border) 26%, transparent);
-  color: #fff;
+  color: var(--primary-foreground);
 }
 
 .message.other .message-content {

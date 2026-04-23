@@ -128,7 +128,7 @@
   }
 
   .bottom-nav-item.active {
-    color: white !important;
+    color: var(--primary-foreground) !important;
     background: var(--primary-color) !important;
     border: 1px solid var(--secondary-color) !important;
     transform: none !important;

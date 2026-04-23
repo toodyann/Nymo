@@ -168,7 +168,7 @@
 
 .preview-bubble {
   background: var(--primary-color);
-  color: white;
+  color: var(--primary-foreground);
   border-radius: 18px;
   padding: 12px 16px;
   max-width: 75%;

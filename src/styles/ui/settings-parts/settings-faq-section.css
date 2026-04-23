@@ -233,7 +233,7 @@
 
 .calls-item-btn:hover {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--primary-foreground);
 }
 
 .calls-item-btn:active {

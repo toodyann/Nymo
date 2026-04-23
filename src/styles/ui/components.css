@@ -11,7 +11,7 @@
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--primary-foreground);
 }
 
 .btn-primary:hover {
@@ -260,7 +260,7 @@
   content: "";
   width: 10px;
   height: 6px;
-  border: 2px solid #fff;
+  border: 2px solid var(--primary-foreground);
   border-top: 0;
   border-right: 0;
   transform: rotate(-45deg) scale(0);

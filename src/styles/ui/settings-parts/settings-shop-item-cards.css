@@ -15,7 +15,7 @@
 .shop-item-action.is-equipped {
   border-color: var(--secondary-color);
   background: var(--primary-color);
-  color: #fff;
+  color: var(--primary-foreground);
 }
 
 .shop-item-action.is-locked {
