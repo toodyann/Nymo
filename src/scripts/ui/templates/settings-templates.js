@@ -78,6 +78,94 @@ export const settingsTemplates = {
       </div>
     </section>
 
+    <section class="profile-settings-card profile-quick-sections-card">
+      <div class="profile-section-heading">
+        <h3>Швидкі розділи</h3>
+        <p>Найпопулярніші переходи по сайту в один клік.</p>
+      </div>
+      <div class="settings-menu-list profile-quick-sections-list">
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="messenger-settings">
+          <span class="settings-menu-icon settings-icon-store">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96h0v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96ZM54,48H202l11.42,40H42.61Zm50,56h48v8a24,24,0,0,1-48,0Zm-16,0v8a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8ZM200,208H56V151.2a40.57,40.57,0,0,0,8,.8,40,40,0,0,0,32-16,40,40,0,0,0,64,0,40,40,0,0,0,32,16,40.57,40.57,0,0,0,8-.8Zm4.93-75.8a8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48v8A24,24,0,0,1,204.93,132.2Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Магазин</span>
+            <small class="settings-item-desc">Покупки, косметика профілю та Nymo Drive</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="wallet">
+          <span class="settings-menu-icon settings-icon-wallet">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M216,64H56a8,8,0,0,1,0-16H192a8,8,0,0,0,0-16H56A24,24,0,0,0,32,56V184a24,24,0,0,0,24,24H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm0,128H56a8,8,0,0,1-8-8V78.63A23.84,23.84,0,0,0,56,80H216Zm-48-60a12,12,0,1,1,12,12A12,12,0,0,1,168,132Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Гаманець</span>
+            <small class="settings-item-desc">Баланс, витрати та історія транзакцій</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="mini-games">
+          <span class="settings-menu-icon settings-icon-games">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M176,112H152a8,8,0,0,1,0-16h24a8,8,0,0,1,0,16ZM104,96H96V88a8,8,0,0,0-16,0v8H72a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0v-8h8a8,8,0,0,0,0-16ZM241.48,200.65a36,36,0,0,1-54.94,4.81c-.12-.12-.24-.24-.35-.37L146.48,160h-37L69.81,205.09l-.35.37A36.08,36.08,0,0,1,44,216,36,36,0,0,1,8.56,173.75a.68.68,0,0,1,0-.14L24.93,89.52A59.88,59.88,0,0,1,83.89,40H172a60.08,60.08,0,0,1,59,49.25c0,.06,0,.12,0,.18l16.37,84.17a.68.68,0,0,1,0,.14A35.74,35.74,0,0,1,241.48,200.65ZM172,144a44,44,0,0,0,0-88H83.89A43.9,43.9,0,0,0,40.68,92.37l0,.13L24.3,176.59A20,20,0,0,0,58,194.3l41.92-47.59a8,8,0,0,1,6-2.71Zm59.7,32.59-8.74-45A60,60,0,0,1,172,160h-4.2L198,194.31a20.09,20.09,0,0,0,17.46,5.39,20,20,0,0,0,16.23-23.11Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Ігри</span>
+            <small class="settings-item-desc">Мініігри, Flappy Nymo, 2048 та Nymo Drive</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="profile-items">
+          <span class="settings-menu-icon settings-icon-profile-items">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2 3 7l9 5 9-5-9-5Z" stroke="currentColor" stroke-width="2"></path>
+              <path d="M3 17l9 5 9-5" stroke="currentColor" stroke-width="2"></path>
+              <path d="M3 12l9 5 9-5" stroke="currentColor" stroke-width="2"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Мої предмети</span>
+            <small class="settings-item-desc">Куплені предмети та активні ефекти</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="messages">
+          <span class="settings-menu-icon settings-icon-messages">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M216,40H40A16,16,0,0,0,24,56V192a16,16,0,0,0,16,16H82.34l23,23a8,8,0,0,0,11.32,0l23-23H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,152H136a8,8,0,0,0-5.66,2.34L111,213.66,91.66,194.34A8,8,0,0,0,86,192H40V56H216Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Повідомлення</span>
+            <small class="settings-item-desc">Налаштування чатів і повідомлень</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+
+        <button type="button" class="settings-menu-item profile-quick-section-item" data-section="notifications-center">
+          <span class="settings-menu-icon settings-icon-notifications">
+            <svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+              <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
+            </svg>
+          </span>
+          <span class="settings-menu-label">
+            <span>Центр повідомлень</span>
+            <small class="settings-item-desc">Непрочитані повідомлення та системні події</small>
+          </span>
+          <span class="settings-menu-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
     <section class="profile-settings-card profile-settings-menu-card">
       <div class="profile-section-heading">
         <h3>Налаштування</h3>

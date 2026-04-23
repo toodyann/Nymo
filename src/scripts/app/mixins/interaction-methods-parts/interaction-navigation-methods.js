@@ -867,6 +867,48 @@ export class ChatAppInteractionNavigationMethods {
   }
 
 
+  syncDesktopSecondaryMenuActiveItem(criteria = {}) {
+    const list = document.getElementById('desktopSecondaryMenuList');
+    if (!list) return;
+
+    const buttons = Array.from(list.querySelectorAll('.desktop-secondary-menu-item'));
+    if (!buttons.length) return;
+
+    const section = String(criteria.section || '').trim();
+    const walletView = String(criteria.walletView || '').trim();
+    const miniGameView = String(criteria.miniGameView || '').trim();
+    const faqSection = String(criteria.faqSection || '').trim();
+    const shopCategory = String(criteria.shopCategory || '').trim();
+    const parentSection = String(criteria.parentSection || '').trim();
+    const action = String(criteria.action || '').trim();
+
+    const matches = (button) => {
+      if (!(button instanceof HTMLElement)) return false;
+      if (section && button.dataset.section !== section) return false;
+      if (walletView && button.dataset.walletView !== walletView) return false;
+      if (miniGameView && button.dataset.miniGameView !== miniGameView) return false;
+      if (faqSection && button.dataset.faqSection !== faqSection) return false;
+      if (shopCategory && button.dataset.shopCategory !== shopCategory) return false;
+      if (parentSection && button.dataset.parentSection !== parentSection) return false;
+      if (action && button.dataset.action !== action) return false;
+      return true;
+    };
+
+    let activeButton = buttons.find(matches);
+    if (!activeButton && section) {
+      activeButton = buttons.find((button) => button.dataset.section === section) || null;
+    }
+    if (!activeButton && action) {
+      activeButton = buttons.find((button) => button.dataset.action === action) || null;
+    }
+
+    buttons.forEach((button) => button.classList.remove('active'));
+    if (activeButton) {
+      activeButton.classList.add('active');
+    }
+  }
+
+
   openDesktopSecondaryMenu(targetNavId, { activateFirst = true, triggerButton = null } = {}) {
     if (window.innerWidth <= 768) return;
     const menuRoot = document.getElementById('desktopSecondaryMenu');
@@ -921,6 +963,13 @@ export class ChatAppInteractionNavigationMethods {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'desktop-secondary-menu-item';
+        if (item.section) button.dataset.section = String(item.section);
+        if (item.parentSection) button.dataset.parentSection = String(item.parentSection);
+        if (item.walletView) button.dataset.walletView = String(item.walletView);
+        if (item.miniGameView) button.dataset.miniGameView = String(item.miniGameView);
+        if (item.faqSection) button.dataset.faqSection = String(item.faqSection);
+        if (item.shopCategory) button.dataset.shopCategory = String(item.shopCategory);
+        if (item.action) button.dataset.action = String(item.action);
         const iconWrap = document.createElement('span');
         iconWrap.className = 'desktop-secondary-menu-item-icon';
         iconWrap.innerHTML = this.getDesktopSecondaryMenuItemIcon(item.icon);

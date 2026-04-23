@@ -2374,11 +2374,61 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       'language': 'language-settings',
       'faq': 'faq-settings',
       'wallet': 'wallet',
-      'profile-items': 'profile-items'
+      'profile-items': 'profile-items',
+      'messenger-settings': 'messenger-settings',
+      'mini-games': 'mini-games',
+      'notifications-center': 'notifications-center',
+      'calls': 'calls'
+    };
+
+    const resolveDesktopNavTarget = () => {
+      const navMap = {
+        'notifications': 'navSettings',
+        'privacy': 'navSettings',
+        'messages': 'navSettings',
+        'appearance': 'navSettings',
+        'language': 'navSettings',
+        'faq': 'navFaq',
+        'wallet': 'navWallet',
+        'messenger-settings': 'navShop',
+        'mini-games': 'navGames',
+        'notifications-center': 'navCalls',
+        'calls': 'navCalls',
+        'profile-items': sourceSection === 'mini-games' ? 'navGames' : 'navProfile'
+      };
+      return navMap[subsectionName] || null;
     };
     
     const sectionName = sectionMap[subsectionName];
     if (sectionName) {
+      const isDesktop = window.innerWidth > 768;
+      if (isDesktop) {
+        const targetNavId = resolveDesktopNavTarget();
+        if (targetNavId && typeof this.openDesktopSecondaryMenu === 'function') {
+          this.openDesktopSecondaryMenu(targetNavId, { activateFirst: false });
+        }
+        if (targetNavId && typeof this.syncDesktopNavRailActive === 'function') {
+          this.syncDesktopNavRailActive(targetNavId);
+        }
+        if (targetNavId && typeof this.syncDesktopSecondaryMenuActiveItem === 'function') {
+          const activeCriteria = {
+            section: sectionName
+          };
+          if (sectionName === 'wallet') {
+            activeCriteria.walletView = 'ledger';
+          }
+          if (sectionName === 'mini-games') {
+            activeCriteria.miniGameView = 'tapper';
+          }
+          if (sectionName === 'messenger-settings') {
+            activeCriteria.shopCategory = 'all';
+          }
+          if (sectionName === 'profile-items' && sourceSection === 'mini-games') {
+            activeCriteria.parentSection = 'mini-games';
+          }
+          this.syncDesktopSecondaryMenuActiveItem(activeCriteria);
+        }
+      }
       this.settingsParentSection = sourceSection || this.settingsParentSection || 'messenger-settings';
       this.showSettings(sectionName);
     }

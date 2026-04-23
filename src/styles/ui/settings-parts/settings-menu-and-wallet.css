@@ -87,6 +87,7 @@ html.dark-theme .settings-menu-icon {
 }
 
 .settings-icon-profile-items {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
   color: #ffffff;
 }
 
