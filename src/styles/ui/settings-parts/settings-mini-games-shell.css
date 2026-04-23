@@ -745,7 +745,11 @@
 
   .coin-auto-mining-launcher {
     right: 14px;
-    bottom: calc(var(--bottom-nav-height, 72px) + 12px);
+    bottom: calc(
+      var(--mobile-dock-height, var(--bottom-nav-height, 72px))
+      + var(--mobile-dock-bottom, 10px)
+      + 14px
+    );
     z-index: 270;
   }
 
@@ -769,7 +773,11 @@
     top: auto;
     left: 8px;
     right: 8px;
-    bottom: calc(var(--bottom-nav-height, 72px) + 8px);
+    bottom: calc(
+      var(--mobile-dock-height, var(--bottom-nav-height, 72px))
+      + var(--mobile-dock-bottom, 10px)
+      + 10px
+    );
     width: auto;
     min-height: min(66vh, 620px);
     max-height: min(74vh, 680px);

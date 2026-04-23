@@ -305,6 +305,10 @@ html.dark-theme .profile-quick-section-item .settings-item-desc {
 }
 
 @media (max-width: 768px) {
+  .profile-content > .profile-quick-sections-card {
+    display: none !important;
+  }
+
   .profile-content,
   .profile-settings-content,
   .profile-items-content {

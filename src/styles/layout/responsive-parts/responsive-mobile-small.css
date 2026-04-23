@@ -159,6 +159,31 @@
     padding-left: var(--mobile-space-3) !important;
   }
 
+  #settingsContainerMobile #wallet .wallet-content {
+    padding-top: calc(var(--mobile-space-4) + 8px) !important;
+    padding-right: calc(var(--mobile-space-3) + 2px) !important;
+    padding-left: calc(var(--mobile-space-3) + 2px) !important;
+    padding-bottom: calc(var(--mobile-content-bottom) + 30px) !important;
+    scroll-padding-bottom: calc(var(--mobile-content-bottom) + 30px);
+  }
+
+  #settingsContainerMobile #wallet .wallet-panel[data-wallet-panel="ledger"] {
+    padding-bottom: calc(var(--mobile-space-4) + 8px);
+  }
+
+  #settingsContainerMobile #wallet .wallet-history-list {
+    padding-bottom: calc(var(--mobile-space-4) + 10px);
+  }
+
+  #settingsContainerMobile #wallet .wallet-subsection-switch {
+    margin: 4px 0 8px;
+    padding: 6px;
+  }
+
+  #settingsContainerMobile #wallet .wallet-subsection-btn {
+    padding: 8px 13px;
+  }
+
   #settingsContainerMobile .settings-menu-item,
   #settingsContainerMobile #mobile-sections .mobile-sections-item {
     min-height: 58px;
