@@ -563,9 +563,15 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
       payload.senderId
         ?? payload.fromUserId
         ?? payload.authorId
+        ?? payload.sender_id
+        ?? payload.from_user_id
+        ?? payload.author_id
         ?? nestedMessage?.senderId
         ?? nestedMessage?.fromUserId
         ?? nestedMessage?.authorId
+        ?? nestedMessage?.sender_id
+        ?? nestedMessage?.from_user_id
+        ?? nestedMessage?.author_id
         ?? nestedMessageSender?.id
         ?? nestedMessageSender?.userId
         ?? nestedMessageAuthor?.id
@@ -573,6 +579,7 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
         ?? nestedMessageUser?.id
         ?? nestedMessageUser?.userId
         ?? payload.userId
+        ?? payload.user_id
         ?? nestedUser?.id
         ?? nestedUser?.userId
         ?? ''
@@ -588,11 +595,18 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
       payload.chatId
         ?? payload.roomId
         ?? payload.conversationId
+        ?? payload.chat_id
+        ?? payload.room_id
+        ?? payload.conversation_id
         ?? nestedMessage?.chatId
         ?? nestedMessage?.roomId
         ?? nestedMessage?.conversationId
+        ?? nestedMessage?.chat_id
+        ?? nestedMessage?.room_id
+        ?? nestedMessage?.conversation_id
         ?? nestedChat?.id
         ?? nestedChat?.chatId
+        ?? nestedChat?.chat_id
         ?? payload.id
         ?? ''
     ).trim();
@@ -609,9 +623,16 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
 
     return {
       ...source,
-      id: source.id ?? source.messageId ?? payload.messageId ?? payload.id,
-      messageId: source.messageId ?? payload.messageId ?? source.id ?? payload.id,
-      chatId: source.chatId ?? payload.chatId ?? payload.roomId ?? payload.conversationId,
+      id: source.id ?? source.messageId ?? payload.messageId ?? source.message_id ?? payload.message_id ?? payload.id,
+      messageId: source.messageId ?? payload.messageId ?? source.message_id ?? payload.message_id ?? source.id ?? payload.id,
+      chatId: source.chatId
+        ?? payload.chatId
+        ?? payload.roomId
+        ?? payload.conversationId
+        ?? source.chat_id
+        ?? payload.chat_id
+        ?? payload.room_id
+        ?? payload.conversation_id,
       createdAt: source.createdAt ?? payload.createdAt ?? source.timestamp ?? payload.timestamp,
       senderId: source.senderId ?? payload.senderId ?? source.fromUserId ?? payload.fromUserId ?? source.authorId ?? payload.authorId,
       userId: source.userId ?? payload.userId

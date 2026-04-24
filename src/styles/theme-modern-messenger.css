@@ -73,10 +73,9 @@ html.dark-theme .orion-app {
   --ms-sidebar-bg: #0d141d;
   --ms-rail-bg: #0b121a;
   --ms-panel-bg: #101a26;
-  --ms-chat-bg: #0e1620;
-  --ms-chat-gradient: radial-gradient(120% 120% at 0% 0%, rgba(80, 126, 214, 0.14), transparent 58%),
-    radial-gradient(120% 120% at 100% 100%, rgba(57, 94, 164, 0.16), transparent 64%),
-    #0e1620;
+  /* Neutral dark background (match site style, no blue tint). */
+  --ms-chat-bg: #0f1115;
+  --ms-chat-gradient: #0f1115;
   --ms-surface-1: #182433;
   --ms-surface-2: #1f2d3f;
   --ms-border: rgba(157, 187, 235, 0.2);

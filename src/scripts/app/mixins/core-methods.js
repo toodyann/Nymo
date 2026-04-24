@@ -91,6 +91,7 @@ export class ChatAppCoreMethods {
         equippedProfileAura: data.equippedProfileAura || '',
         equippedProfileMotion: data.equippedProfileMotion || '',
         equippedProfileBadge: data.equippedProfileBadge || '',
+        equippedChatBackground: data.equippedChatBackground || '',
         equippedDriveCar: data.equippedDriveCar || '',
         equippedDriveSmokeColor: data.equippedDriveSmokeColor || ''
       };
@@ -110,6 +111,7 @@ export class ChatAppCoreMethods {
       equippedProfileAura: '',
       equippedProfileMotion: '',
       equippedProfileBadge: '',
+      equippedChatBackground: '',
       equippedDriveCar: '',
       equippedDriveSmokeColor: ''
     };
@@ -118,6 +120,7 @@ export class ChatAppCoreMethods {
   saveUserProfile(userData) {
     const avatarImage = this.getAvatarImage(userData?.avatarImage || userData?.avatarUrl);
     const nextUserData = {
+      ...(this.user && typeof this.user === 'object' ? this.user : {}),
       ...userData,
       id: String(userData?.id || userData?.userId || userData?._id || this.user?.id || '').trim(),
       avatarImage,
@@ -127,6 +130,7 @@ export class ChatAppCoreMethods {
     this.writeRawStorageWithLegacy('nymo_user', 'orion_user', JSON.stringify(nextUserData));
     this.updateProfileMenuButton();
     this.updateProfileDisplay();
+    this.applyChatBackground(document);
   }
 
   formatCoinBalance(value, wholeDigits = 1) {
@@ -2188,6 +2192,46 @@ export class ChatAppCoreMethods {
         title: 'Orbit Mark',
         description: 'Планетарний значок для впізнаваного вигляду профілю.',
         price: 620
+      },
+      {
+        id: 'chatbg_nebula',
+        type: 'chat_bg',
+        effect: 'nebula',
+        title: 'Nebula Haze',
+        description: 'Космічний серпанок з мʼякими світловими плямами.',
+        price: 520
+      },
+      {
+        id: 'chatbg_graphite',
+        type: 'chat_bg',
+        effect: 'graphite',
+        title: 'Graphite Grain',
+        description: 'Темний матовий фон із легким зерном.',
+        price: 430
+      },
+      {
+        id: 'chatbg_aurora',
+        type: 'chat_bg',
+        effect: 'aurora',
+        title: 'Aurora Sweep',
+        description: 'Плавний північний градієнт у стилі Nymo.',
+        price: 690
+      },
+      {
+        id: 'chatbg_sunset',
+        type: 'chat_bg',
+        effect: 'sunset',
+        title: 'Sunset Glow',
+        description: 'Теплий захід із мʼяким світлом для діалогу.',
+        price: 610
+      },
+      {
+        id: 'chatbg_grid',
+        type: 'chat_bg',
+        effect: 'grid',
+        title: 'Subtle Grid',
+        description: 'Ледь помітна сітка для акуратного техно-вайбу.',
+        price: 480
       }
     ];
   }
@@ -2292,6 +2336,18 @@ export class ChatAppCoreMethods {
     containerEl.toggleAttribute('hidden', !badge);
   }
 
+  applyChatBackground(root = document) {
+    const appEl = root?.querySelector?.('.nymo-app, .orion-app') || document.querySelector('.nymo-app, .orion-app');
+    if (!appEl) return;
+    const background = String(this.user?.equippedChatBackground || '').trim();
+    if (background) {
+      appEl.dataset.chatBg = background;
+    } else {
+      appEl.removeAttribute('data-chat-bg');
+    }
+    appEl.classList.toggle('has-chat-bg', Boolean(background));
+  }
+
   syncProfileCosmetics(root = document) {
     root.querySelectorAll('.profile-avatar-large').forEach(avatarEl => {
       this.applyAvatarDecoration(avatarEl);
@@ -2303,6 +2359,7 @@ export class ChatAppCoreMethods {
     root.querySelectorAll('#profile .profile-name-badges').forEach(containerEl => {
       this.applyProfileBadge(containerEl);
     });
+    this.applyChatBackground(root);
   }
 
   updateProfileMenuButton() {
@@ -2885,6 +2942,7 @@ export class ChatAppCoreMethods {
     this.applyFontSize(this.settings.fontSize);
     this.applySettingsToUI();
     this.updateProfileMenuButton();
+    this.applyChatBackground(document);
     this.updateBottomNavIndicator();
     this.setupMobileSwipeBack();
     this.setupBottomNavReveal();

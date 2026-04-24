@@ -523,7 +523,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       minPrice: minCatalogPrice,
       maxPrice: maxCatalogPrice
     };
-    const presetCategory = ['all', 'frame', 'aura', 'motion', 'badge', 'car', 'smoke'].includes(this.pendingShopCategory)
+    const presetCategory = ['all', 'frame', 'aura', 'motion', 'badge', 'chat_bg', 'car', 'smoke'].includes(this.pendingShopCategory)
       ? this.pendingShopCategory
       : null;
     if (presetCategory) {
@@ -701,6 +701,16 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         `;
       }
 
+      if (item.type === 'chat_bg') {
+        return `
+          <div class="shop-item-preview-chat-bg" data-chat-bg="${this.escapeAttr(item.effect)}">
+            <div class="shop-item-preview-chat-bg-row"></div>
+            <div class="shop-item-preview-chat-bg-row short"></div>
+            <div class="shop-item-preview-chat-bg-row"></div>
+          </div>
+        `;
+      }
+
       if (item.type === 'car') {
         return `
           <div class="shop-item-preview-vehicle">
@@ -745,6 +755,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (item.type === 'aura') return this.user?.equippedProfileAura === item.effect;
       if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
       if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
+      if (item.type === 'chat_bg') return this.user?.equippedChatBackground === item.effect;
       if (item.type === 'car') return this.user?.equippedDriveCar === item.effect;
       if (item.type === 'smoke') return this.user?.equippedDriveSmokeColor === item.effect;
       return false;
@@ -755,6 +766,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (type === 'aura') return t('Фон');
       if (type === 'motion') return t('Анімація');
       if (type === 'badge') return t('Значок');
+      if (type === 'chat_bg') return t('Фон чату');
       if (type === 'car') return t('Авто Nymo Drive');
       if (type === 'smoke') return t('Дим Nymo Drive');
       return t('Предмет');
@@ -766,6 +778,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
       if (filterState.category === 'aura') parts.push(t('Фон'));
       if (filterState.category === 'motion') parts.push(t('Анімація'));
       if (filterState.category === 'badge') parts.push(t('Значки'));
+      if (filterState.category === 'chat_bg') parts.push(t('Фон чату'));
       if (filterState.category === 'car') parts.push(t('Авто Nymo Drive'));
       if (filterState.category === 'smoke') parts.push(t('Дим Nymo Drive'));
       if (filterState.ownership === 'owned') parts.push(t('Куплені'));
@@ -1104,6 +1117,8 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         this.user.equippedProfileMotion = this.user.equippedProfileMotion === item.effect ? '' : item.effect;
       } else if (item.type === 'badge') {
         this.user.equippedProfileBadge = this.user.equippedProfileBadge === item.effect ? '' : item.effect;
+      } else if (item.type === 'chat_bg') {
+        this.user.equippedChatBackground = this.user.equippedChatBackground === item.effect ? '' : item.effect;
       } else if (item.type === 'car') {
         this.user.equippedDriveCar = this.user.equippedDriveCar === item.effect ? '' : item.effect;
       } else if (item.type === 'smoke') {
@@ -1116,6 +1131,7 @@ export class ChatAppFeaturesShopMethods extends ChatAppFeaturesFaqDriveUtilsMeth
         equippedProfileAura: this.user.equippedProfileAura || '',
         equippedProfileMotion: this.user.equippedProfileMotion || '',
         equippedProfileBadge: this.user.equippedProfileBadge || '',
+        equippedChatBackground: this.user.equippedChatBackground || '',
         equippedDriveCar: this.user.equippedDriveCar || '',
         equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
       });

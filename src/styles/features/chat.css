@@ -1,5 +1,55 @@
 /* Message bubble styles moved to features/messages.css to keep one source of truth. */
 
+.orion-app .chat-area {
+  background: var(--bg-gradient);
+}
+
+.orion-app.has-chat-bg .chat-area {
+  background: var(--nymo-chat-bg, var(--bg-gradient));
+}
+
+.orion-app[data-chat-bg="nebula"] {
+  --nymo-chat-bg:
+    radial-gradient(circle at 14% 22%, rgba(166, 104, 255, 0.22), transparent 44%),
+    radial-gradient(circle at 72% 30%, rgba(93, 197, 255, 0.18), transparent 46%),
+    radial-gradient(circle at 40% 84%, rgba(255, 120, 196, 0.12), transparent 52%),
+    linear-gradient(160deg, #0f1115 0%, #0b0d12 70%, #0a0c10 100%);
+}
+
+.orion-app[data-chat-bg="graphite"] {
+  --nymo-chat-bg:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 8px),
+    linear-gradient(160deg, #0f1115 0%, #0b0c0e 100%);
+}
+
+.orion-app[data-chat-bg="aurora"] {
+  --nymo-chat-bg:
+    radial-gradient(circle at 20% 18%, rgba(118, 255, 209, 0.18), transparent 44%),
+    radial-gradient(circle at 80% 36%, rgba(124, 174, 255, 0.18), transparent 48%),
+    linear-gradient(160deg, #0f1115 0%, #0b0d12 72%, #0a0c10 100%);
+}
+
+.orion-app[data-chat-bg="sunset"] {
+  --nymo-chat-bg:
+    radial-gradient(circle at 18% 26%, rgba(255, 163, 107, 0.18), transparent 44%),
+    radial-gradient(circle at 72% 34%, rgba(255, 114, 166, 0.16), transparent 48%),
+    linear-gradient(160deg, #111014 0%, #0d0b10 72%, #0a090c 100%);
+}
+
+.orion-app[data-chat-bg="grid"] {
+  --nymo-chat-bg:
+    linear-gradient(160deg, #0f1115 0%, #0b0d12 72%, #0a0c10 100%);
+}
+
+.orion-app[data-chat-bg="grid"] .chat-area {
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    var(--nymo-chat-bg);
+  background-size: 22px 22px, 22px 22px, auto;
+  background-position: 0 0, 0 0, 0 0;
+}
+
 .message-reply {
   background-color: rgba(0, 0, 0, 0.1);
   padding: 8px;

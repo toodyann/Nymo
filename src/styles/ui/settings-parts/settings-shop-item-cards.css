@@ -44,6 +44,83 @@
   color: var(--text-primary);
 }
 
+.shop-item-preview-chat-bg {
+  width: 100%;
+  height: 112px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 14px;
+  background: var(--chat-bg-preview, linear-gradient(160deg, var(--bg-secondary), var(--bg-color)));
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 28px rgba(0, 0, 0, 0.10);
+}
+
+.shop-item-preview-chat-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.12), transparent 42%);
+  pointer-events: none;
+}
+
+.shop-item-preview-chat-bg-row {
+  height: 10px;
+  border-radius: 999px;
+  width: 100%;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.shop-item-preview-chat-bg-row.short {
+  width: 68%;
+}
+
+.shop-item-preview-chat-bg[data-chat-bg="nebula"] {
+  --chat-bg-preview:
+    radial-gradient(circle at 14% 22%, rgba(166, 104, 255, 0.28), transparent 44%),
+    radial-gradient(circle at 72% 30%, rgba(93, 197, 255, 0.22), transparent 46%),
+    radial-gradient(circle at 40% 84%, rgba(255, 120, 196, 0.16), transparent 52%),
+    linear-gradient(160deg, rgba(17, 18, 25, 0.98), rgba(12, 14, 18, 0.98));
+}
+
+.shop-item-preview-chat-bg[data-chat-bg="graphite"] {
+  --chat-bg-preview:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.028) 0 2px, transparent 2px 8px),
+    linear-gradient(160deg, rgba(18, 18, 20, 1), rgba(12, 12, 13, 1));
+}
+
+.shop-item-preview-chat-bg[data-chat-bg="aurora"] {
+  --chat-bg-preview:
+    radial-gradient(circle at 20% 18%, rgba(118, 255, 209, 0.24), transparent 44%),
+    radial-gradient(circle at 80% 36%, rgba(124, 174, 255, 0.24), transparent 48%),
+    linear-gradient(160deg, rgba(14, 16, 22, 0.98), rgba(10, 12, 16, 0.98));
+}
+
+.shop-item-preview-chat-bg[data-chat-bg="sunset"] {
+  --chat-bg-preview:
+    radial-gradient(circle at 18% 26%, rgba(255, 163, 107, 0.26), transparent 44%),
+    radial-gradient(circle at 72% 34%, rgba(255, 114, 166, 0.22), transparent 48%),
+    linear-gradient(160deg, rgba(18, 14, 16, 0.98), rgba(12, 10, 12, 0.98));
+}
+
+.shop-item-preview-chat-bg[data-chat-bg="grid"] {
+  --chat-bg-preview:
+    linear-gradient(transparent, transparent),
+    linear-gradient(160deg, rgba(14, 16, 19, 1), rgba(10, 12, 14, 1));
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    var(--chat-bg-preview);
+  background-size: 18px 18px, 18px 18px, auto;
+  background-position: 0 0, 0 0, 0 0;
+}
+
 #orion-drive-garage .settings-content.orion-drive-garage-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);

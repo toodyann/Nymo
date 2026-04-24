@@ -55,7 +55,8 @@
   --bg-color: #0f1115;
   --bg-secondary: #1c1c1e;
   --bg-elevated: rgba(44, 44, 46, 0.9);
-  --bg-gradient: linear-gradient(160deg, #0b0d12 0%, #11141b 58%, #1c1c1e 100%);
+  /* Neutral dark background (no blue tint). */
+  --bg-gradient: linear-gradient(160deg, #0f1115 0%, #0f1115 58%, #1c1c1e 100%);
   --surface-soft: rgba(28, 28, 30, 0.86);
   --surface-strong: rgba(44, 44, 46, 0.92);
 

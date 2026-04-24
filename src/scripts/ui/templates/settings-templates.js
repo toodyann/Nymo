@@ -605,6 +605,7 @@ export const settingsTemplates = {
 	              <button type="button" class="shop-filter-btn active" data-shop-filter-group="category" data-shop-filter-value="all">Усе</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="frame">Аватар</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="aura">Фон</button>
+	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="chat_bg">Фон чату</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="motion">Анімація</button>
 	              <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="badge">Значки</button>
                 <button type="button" class="shop-filter-btn" data-shop-filter-group="category" data-shop-filter-value="car">Авто Nymo Drive</button>

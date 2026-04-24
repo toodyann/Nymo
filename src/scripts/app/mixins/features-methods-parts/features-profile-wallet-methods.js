@@ -53,6 +53,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (type === 'aura') return t('Фон');
       if (type === 'motion') return t('Анімація');
       if (type === 'badge') return t('Бейдж');
+      if (type === 'chat_bg') return t('Фон чату');
       if (type === 'car') return t('Авто Nymo Drive');
       if (type === 'smoke') return t('Дим Nymo Drive');
       return t('Предмет');
@@ -74,6 +75,16 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
           <div class="shop-item-preview-badges">
             <span class="shop-item-preview-name">${escapeHtml(this.user?.name || 'Nymo')}</span>
             ${this.getProfileBadgeMarkup(item.effect, 'shop-item-preview-badge-chip')}
+          </div>
+        `;
+      }
+
+      if (item.type === 'chat_bg') {
+        return `
+          <div class="shop-item-preview-chat-bg" data-chat-bg="${this.escapeAttr(item.effect)}">
+            <div class="shop-item-preview-chat-bg-row"></div>
+            <div class="shop-item-preview-chat-bg-row short"></div>
+            <div class="shop-item-preview-chat-bg-row"></div>
           </div>
         `;
       }
@@ -125,6 +136,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (item.type === 'aura') return this.user?.equippedProfileAura === item.effect;
       if (item.type === 'motion') return this.user?.equippedProfileMotion === item.effect;
       if (item.type === 'badge') return this.user?.equippedProfileBadge === item.effect;
+      if (item.type === 'chat_bg') return this.user?.equippedChatBackground === item.effect;
       if (item.type === 'car') return this.user?.equippedDriveCar === item.effect;
       if (item.type === 'smoke') return this.user?.equippedDriveSmokeColor === item.effect;
       return false;
@@ -135,6 +147,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
       if (item.type === 'aura') this.user.equippedProfileAura = value;
       if (item.type === 'motion') this.user.equippedProfileMotion = value;
       if (item.type === 'badge') this.user.equippedProfileBadge = value;
+      if (item.type === 'chat_bg') this.user.equippedChatBackground = value;
       if (item.type === 'car') this.user.equippedDriveCar = value;
       if (item.type === 'smoke') this.user.equippedDriveSmokeColor = value;
     };
@@ -146,6 +159,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         equippedProfileAura: this.user.equippedProfileAura || '',
         equippedProfileMotion: this.user.equippedProfileMotion || '',
         equippedProfileBadge: this.user.equippedProfileBadge || '',
+        equippedChatBackground: this.user.equippedChatBackground || '',
         equippedDriveCar: this.user.equippedDriveCar || '',
         equippedDriveSmokeColor: this.user.equippedDriveSmokeColor || ''
       });

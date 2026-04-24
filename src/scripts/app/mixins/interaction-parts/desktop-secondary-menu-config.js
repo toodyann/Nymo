@@ -43,6 +43,7 @@ const DESKTOP_SECONDARY_MENU_CONFIG =
               { label: 'Усі товари', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'store', shopCategory: 'all' },
               { label: 'Аватар', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'user', shopCategory: 'frame' },
               { label: 'Фон', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'image', shopCategory: 'aura' },
+              { label: 'Фон чату', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'chat', shopCategory: 'chat_bg' },
               { label: 'Анімація', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'sparkles', shopCategory: 'motion' },
               { label: 'Значки', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'badge', shopCategory: 'badge' },
               { label: 'Авто Nymo Drive', section: 'messenger-settings', parentSection: 'messenger-settings', icon: 'drift', shopCategory: 'car' },

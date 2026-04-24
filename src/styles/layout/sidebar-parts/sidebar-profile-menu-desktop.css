@@ -1100,6 +1100,12 @@ html.dark-theme .bottom-nav-indicator {
     box-sizing: border-box;
   }
 
+  html.dark-theme .desktop-secondary-chat-unread {
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--primary-foreground);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+  }
+
   .desktop-secondary-menu-group {
     display: flex;
     flex-direction: column;

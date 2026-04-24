@@ -448,6 +448,16 @@ export class ChatAppMessagingSendUploadMethods extends ChatAppMessagingRealtimeS
       const data = await this.readJsonSafe(response);
 
       if (response.ok) {
+        // Best-effort: ask server to fan-out deletion realtime event.
+        // Some backends require an explicit socket event to notify other clients.
+        try {
+          if (this.realtimeSocket && this.realtimeSocketConnected) {
+            this.realtimeSocket.emit('messageDeleted', { chatId: chatServerId, messageId: messageServerId });
+            this.realtimeSocket.emit('deleteMessage', { chatId: chatServerId, messageId: messageServerId });
+          }
+        } catch {
+          // Ignore transient websocket emit errors.
+        }
         return data || {};
       }
 

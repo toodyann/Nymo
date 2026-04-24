@@ -9,6 +9,77 @@ import {
 import { ChatAppMessagingChatApiMethods } from './messaging-chat-api-methods.js';
 
 export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApiMethods {
+  isServerMessageDeleted(item) {
+    if (!item || typeof item !== 'object') return false;
+    const truthyFlags = [
+      item.deleted,
+      item.isDeleted,
+      item.is_deleted,
+      item.removed,
+      item.isRemoved,
+      item.is_removed
+    ];
+    if (truthyFlags.some((flag) => flag === true || flag === 1 || flag === 'true')) {
+      return true;
+    }
+
+    const deletedAt = item.deletedAt ?? item.deleted_at ?? item.removedAt ?? item.removed_at ?? null;
+    if (typeof deletedAt === 'number') return Number.isFinite(deletedAt) && deletedAt > 0;
+    if (typeof deletedAt === 'string') return Boolean(String(deletedAt).trim());
+    if (deletedAt instanceof Date) return !Number.isNaN(deletedAt.getTime());
+    return false;
+  }
+
+  resolveRealtimeDeletedMessageId(payload = {}) {
+    const direct = String(
+      payload?.messageId
+        ?? payload?.message_id
+        ?? payload?.id
+        ?? payload?._id
+        ?? payload?.message?.id
+        ?? payload?.message?.messageId
+        ?? payload?.message?.message_id
+        ?? payload?.message?._id
+        ?? ''
+    ).trim();
+    if (direct) return direct;
+    return '';
+  }
+
+  applyRealtimeDeletedMessage(payload = {}) {
+    const chatServerId = this.extractRealtimeChatId(payload);
+    const messageServerId = this.resolveRealtimeDeletedMessageId(payload);
+    if (!chatServerId || !messageServerId) return;
+
+    // Persist deletion locally so server polling won't resurrect it.
+    if (typeof this.markMessageDeletedForSelf === 'function') {
+      this.markMessageDeletedForSelf({ serverId: chatServerId }, { serverId: messageServerId });
+    }
+
+    const chats = Array.isArray(this.chats) ? this.chats : [];
+    chats.forEach((chat) => {
+      if (!chat) return;
+      if (String(this.resolveChatServerId(chat) || '').trim() !== String(chatServerId).trim()) return;
+      if (!Array.isArray(chat.messages) || !chat.messages.length) return;
+      const idx = chat.messages.findIndex((msg) => String(msg?.serverId ?? '').trim() === messageServerId);
+      if (idx >= 0) {
+        chat.messages.splice(idx, 1);
+      }
+    });
+
+    if (this.currentChat && String(this.resolveChatServerId(this.currentChat) || '').trim() === String(chatServerId).trim()) {
+      this.saveChats();
+      this.renderChat();
+      this.renderChatsList();
+      if (typeof this.isContactProfileSectionActive === 'function' && this.isContactProfileSectionActive()) {
+        this.renderContactProfileMedia?.();
+      }
+    } else {
+      this.saveChats();
+      this.renderChatsList();
+    }
+  }
+
   initializeRealtimeSocket() {
     if (this.realtimeSocketInitialized) return;
     this.realtimeSocketInitialized = true;
@@ -337,6 +408,9 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
 
 
   handleRealtimeMessageEvent(payload = {}, eventName = '') {
+    if (eventName === 'messageDeleted') {
+      this.applyRealtimeDeletedMessage(payload);
+    }
     const eventChatId = this.extractRealtimeChatId(payload);
     const currentChatServerId = this.resolveChatServerId(this.currentChat);
     const senderId = this.extractRealtimeUserId(payload);
@@ -1146,6 +1220,10 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
         }
         if (existingLocalMessage?.from === 'own') {
           from = 'own';
+        }
+
+        if (this.isServerMessageDeleted(item)) {
+          return null;
         }
 
         const content = item.content ?? item.text ?? item.message ?? '';
