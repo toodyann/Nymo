@@ -221,6 +221,35 @@
     margin-bottom: 8px;
   }
 
+  .desktop-nav-rail-brand--boot {
+    animation: nymo-brand-boot 720ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    transform-origin: 50% 40%;
+  }
+
+  @keyframes nymo-brand-boot {
+    0% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.94);
+      filter: blur(6px);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(0) scale(1.02);
+      filter: blur(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desktop-nav-rail-brand--boot {
+      animation: none;
+    }
+  }
+
   .desktop-nav-rail-logo {
     width: 24px;
     height: 24px;

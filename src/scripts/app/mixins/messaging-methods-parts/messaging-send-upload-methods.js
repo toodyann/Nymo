@@ -400,16 +400,19 @@ export class ChatAppMessagingSendUploadMethods extends ChatAppMessagingRealtimeS
     }
 
     const chatServerId = this.resolveChatServerId(chat);
-    const messageServerId = String(message?.serverId ?? '').trim();
-    if (!chatServerId || !messageServerId) {
+    const messageServerId = String(
+      message?.serverId
+        ?? message?.messageId
+        ?? message?.message_id
+        ?? message?.id
+        ?? message?._id
+        ?? ''
+    ).trim() || this.getServerMessageIdByLocalId(chat, message?.id);
+    if (!messageServerId) {
       throw new Error('Повідомлення ще не синхронізовано з сервером.');
     }
 
     const attempts = [
-      {
-        endpoint: `/messages/${encodeURIComponent(messageServerId)}?chatId=${encodeURIComponent(chatServerId)}`,
-        method: 'DELETE'
-      },
       {
         endpoint: `/messages/${encodeURIComponent(messageServerId)}`,
         method: 'DELETE'
@@ -451,7 +454,7 @@ export class ChatAppMessagingSendUploadMethods extends ChatAppMessagingRealtimeS
         // Best-effort: ask server to fan-out deletion realtime event.
         // Some backends require an explicit socket event to notify other clients.
         try {
-          if (this.realtimeSocket && this.realtimeSocketConnected) {
+          if (chatServerId && this.realtimeSocket && this.realtimeSocketConnected) {
             this.realtimeSocket.emit('messageDeleted', { chatId: chatServerId, messageId: messageServerId });
             this.realtimeSocket.emit('deleteMessage', { chatId: chatServerId, messageId: messageServerId });
           }

@@ -114,7 +114,7 @@ export function mountAppShell() {
   <!-- Sidebar з контактами -->
   <aside class="sidebar">
     <nav class="desktop-nav-rail" aria-label="Основна навігація">
-      <button class="desktop-nav-rail-brand" id="desktopRailReload" type="button" title="Перезавантажити" aria-label="Перезавантажити">
+      <button class="desktop-nav-rail-brand desktop-nav-rail-brand--boot" id="desktopRailReload" type="button" title="Перезавантажити" aria-label="Перезавантажити">
         <img
           class="desktop-nav-rail-logo"
           src="${resolveActiveLogo()}"

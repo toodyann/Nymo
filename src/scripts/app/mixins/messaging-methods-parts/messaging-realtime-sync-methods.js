@@ -546,11 +546,13 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
       window.clearInterval(this.serverChatSyncTimer);
       this.serverChatSyncTimer = null;
     }
-    // Keep low-frequency HTTP polling only as fallback when realtime socket is down.
-    if (this.realtimeSocketConnected) return;
+    // Keep periodic HTTP polling even when realtime is up:
+    // - some backends don't broadcast delete/update events reliably
+    // - polling keeps clients converged after actions like "delete for everyone"
+    const intervalMs = this.realtimeSocketConnected ? 30000 : 12000;
     this.serverChatSyncTimer = window.setInterval(() => {
       this.runServerChatSync({ forceScroll: false, skipWhenHidden: true });
-    }, 12000);
+    }, intervalMs);
   }
 
 
