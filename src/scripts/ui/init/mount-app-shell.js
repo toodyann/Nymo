@@ -13,7 +13,10 @@ function getAppBasePath() {
 function resolvePreferredThemeMode() {
   if (document.documentElement.classList.contains('dark-theme')) return 'dark';
   try {
-    const savedTheme = localStorage.getItem('orion_theme');
+    const savedTheme = localStorage.getItem('nymo_theme') || localStorage.getItem('orion_theme');
+    if (!localStorage.getItem('nymo_theme') && (savedTheme === 'dark' || savedTheme === 'light')) {
+      localStorage.setItem('nymo_theme', savedTheme);
+    }
     if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
   } catch {
     // Ignore storage failures.
@@ -40,10 +43,10 @@ export function mountAppShell() {
     console.error('App container not found');
     return;
   }
-  if (appContainer.querySelector('.orion-app')) return;
+  if (appContainer.querySelector('.nymo-app, .orion-app')) return;
 
   const uiLanguage = resolveUiLanguage();
-  const htmlContent = `<div class="orion-app">
+  const htmlContent = `<div class="nymo-app orion-app">
   <header class="app-header">
     <div class="app-header-left">
       <div class="chat-brand">

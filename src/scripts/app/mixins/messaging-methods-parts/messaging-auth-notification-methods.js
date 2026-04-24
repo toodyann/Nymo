@@ -4,7 +4,9 @@ import { buildApiUrl } from '../../../shared/api/api-url.js';
 import { getAuthSession } from '../../../shared/auth/auth-session.js';
 import {
   SELF_DELETED_CHATS_STORAGE_KEY,
-  SELF_DELETED_MESSAGES_STORAGE_KEY
+  SELF_DELETED_MESSAGES_STORAGE_KEY,
+  LEGACY_SELF_DELETED_CHATS_STORAGE_KEY,
+  LEGACY_SELF_DELETED_MESSAGES_STORAGE_KEY
 } from '../messaging-parts/index.js';
 
 export class ChatAppMessagingAuthNotificationMethods {
@@ -14,11 +16,23 @@ export class ChatAppMessagingAuthNotificationMethods {
     return `${SELF_DELETED_CHATS_STORAGE_KEY}:${userId}`;
   }
 
+  getLegacySelfDeletedChatsStorageKey() {
+    const userId = this.getAuthUserId();
+    if (!userId) return LEGACY_SELF_DELETED_CHATS_STORAGE_KEY;
+    return `${LEGACY_SELF_DELETED_CHATS_STORAGE_KEY}:${userId}`;
+  }
+
 
   getSelfDeletedMessagesStorageKey() {
     const userId = this.getAuthUserId();
     if (!userId) return SELF_DELETED_MESSAGES_STORAGE_KEY;
     return `${SELF_DELETED_MESSAGES_STORAGE_KEY}:${userId}`;
+  }
+
+  getLegacySelfDeletedMessagesStorageKey() {
+    const userId = this.getAuthUserId();
+    if (!userId) return LEGACY_SELF_DELETED_MESSAGES_STORAGE_KEY;
+    return `${LEGACY_SELF_DELETED_MESSAGES_STORAGE_KEY}:${userId}`;
   }
 
 
@@ -242,7 +256,7 @@ export class ChatAppMessagingAuthNotificationMethods {
       icon,
       tag: notificationKey,
       data: {
-        type: 'orion-open-chat',
+        type: 'nymo-open-chat',
         url: window.location.href,
         chatServerId,
         localChatId

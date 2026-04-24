@@ -135,7 +135,7 @@ self.addEventListener('notificationclick', (event) => {
     : {};
   const targetUrl = resolveScopeUrl(data.url || './');
   const payload = {
-    type: 'orion-open-chat',
+    type: 'nymo-open-chat',
     url: targetUrl,
     chatServerId: String(data.chatServerId || '').trim(),
     localChatId: data.localChatId != null ? String(data.localChatId).trim() : ''

@@ -17,7 +17,10 @@ function resolveThemedIconHref() {
 function resolveThemeMode() {
   if (document.documentElement.classList.contains('dark-theme')) return 'dark';
   try {
-    const savedTheme = localStorage.getItem('orion_theme');
+    const savedTheme = localStorage.getItem('nymo_theme') || localStorage.getItem('orion_theme');
+    if (!localStorage.getItem('nymo_theme') && (savedTheme === 'dark' || savedTheme === 'light')) {
+      localStorage.setItem('nymo_theme', savedTheme);
+    }
     if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
   } catch {
     // Ignore storage failures.

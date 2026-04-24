@@ -2637,8 +2637,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
     const isSupported = 'serviceWorker' in navigator;
     const isInstalled = this.isStandalonePwaMode();
-    const deferredPrompt = window.__ORION_PWA_DEFERRED_PROMPT || null;
-    const updateRegistration = window.__ORION_PWA_UPDATE_REGISTRATION || null;
+    const deferredPrompt = window.__NYMO_PWA_DEFERRED_PROMPT || window.__ORION_PWA_DEFERRED_PROMPT || null;
+    const updateRegistration = window.__NYMO_PWA_UPDATE_REGISTRATION || window.__ORION_PWA_UPDATE_REGISTRATION || null;
     const hasUpdate = Boolean(updateRegistration?.waiting);
 
     if (!('serviceWorker' in navigator)) {
@@ -2682,7 +2682,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
 
   async handlePwaInstallAction(settingsContainer) {
-    const deferredPrompt = window.__ORION_PWA_DEFERRED_PROMPT || null;
+    const deferredPrompt = window.__NYMO_PWA_DEFERRED_PROMPT || window.__ORION_PWA_DEFERRED_PROMPT || null;
     if (!deferredPrompt || typeof deferredPrompt.prompt !== 'function') {
       this.updatePwaControls(settingsContainer);
       return;
@@ -2694,6 +2694,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
     } catch (_) {
       // Ignore prompt dismissal errors.
     } finally {
+      window.__NYMO_PWA_DEFERRED_PROMPT = null;
       window.__ORION_PWA_DEFERRED_PROMPT = null;
       this.updatePwaControls(settingsContainer);
     }
@@ -2701,7 +2702,7 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
 
   handlePwaUpdateAction() {
-    const registration = window.__ORION_PWA_UPDATE_REGISTRATION || null;
+    const registration = window.__NYMO_PWA_UPDATE_REGISTRATION || window.__ORION_PWA_UPDATE_REGISTRATION || null;
     const waitingWorker = registration?.waiting;
     if (!waitingWorker) return;
     waitingWorker.postMessage({ type: 'SKIP_WAITING' });

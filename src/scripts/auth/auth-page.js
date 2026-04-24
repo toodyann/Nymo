@@ -269,7 +269,9 @@ function setTheme(isDark) {
   document.documentElement.classList.toggle('dark-theme', isDark);
   applyThemeBranding();
   try {
-    localStorage.setItem('orion_theme', isDark ? 'dark' : 'light');
+    const nextTheme = isDark ? 'dark' : 'light';
+    localStorage.setItem('nymo_theme', nextTheme);
+    localStorage.setItem('orion_theme', nextTheme);
   } catch {
     // Ignore storage errors.
   }
@@ -292,7 +294,10 @@ function redirectToAppHomeNow() {
 
 function readInitialTheme() {
   try {
-    const saved = localStorage.getItem('orion_theme');
+    const saved = localStorage.getItem('nymo_theme') || localStorage.getItem('orion_theme');
+    if (!localStorage.getItem('nymo_theme') && (saved === 'dark' || saved === 'light')) {
+      localStorage.setItem('nymo_theme', saved);
+    }
     if (saved === 'dark') return true;
     if (saved === 'light') return false;
   } catch {

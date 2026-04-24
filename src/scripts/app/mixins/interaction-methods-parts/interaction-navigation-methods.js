@@ -1307,6 +1307,7 @@ export class ChatAppInteractionNavigationMethods {
 
       try {
         clearAuthSession();
+        localStorage.removeItem('nymo_user');
         localStorage.removeItem('orion_user');
       } catch {
         // Ignore storage failures and continue with in-memory reset.

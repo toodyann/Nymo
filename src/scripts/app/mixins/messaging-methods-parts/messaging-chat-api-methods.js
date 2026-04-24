@@ -546,7 +546,7 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
 
   getRealtimeSocketUrl() {
     if (typeof window === 'undefined') return '';
-    const explicit = String(window.__ORION_SOCKET_URL || '').trim();
+    const explicit = String(window.__NYMO_SOCKET_URL || window.__ORION_SOCKET_URL || '').trim();
     if (explicit) return explicit.replace(/\/+$/, '');
     return String(buildApiUrl('/')).replace(/\/+$/, '');
   }

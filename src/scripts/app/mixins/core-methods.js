@@ -9,6 +9,55 @@ import {
 } from '../../shared/i18n/ui-localization.js';
 
 export class ChatAppCoreMethods {
+  readRawStorageWithLegacy(primaryKey, legacyKey = '') {
+    const primary = String(primaryKey || '').trim();
+    const legacy = String(legacyKey || '').trim();
+    if (!primary) return '';
+    const primaryValue = localStorage.getItem(primary);
+    if (primaryValue != null && primaryValue !== '') return primaryValue;
+    if (!legacy) return primaryValue || '';
+    const legacyValue = localStorage.getItem(legacy);
+    if (legacyValue != null && legacyValue !== '') {
+      try {
+        localStorage.setItem(primary, legacyValue);
+      } catch {
+        // Ignore storage migration failures.
+      }
+      return legacyValue;
+    }
+    return primaryValue || '';
+  }
+
+  readJsonStorageWithLegacy(primaryKey, legacyKey, fallback) {
+    const rawValue = this.readRawStorageWithLegacy(primaryKey, legacyKey);
+    if (!rawValue) return fallback;
+    try {
+      return JSON.parse(rawValue);
+    } catch {
+      try {
+        localStorage.removeItem(primaryKey);
+        if (legacyKey) localStorage.removeItem(legacyKey);
+      } catch {
+        // Ignore storage cleanup failures.
+      }
+      return fallback;
+    }
+  }
+
+  writeRawStorageWithLegacy(primaryKey, legacyKey, value) {
+    try {
+      localStorage.setItem(primaryKey, value);
+    } catch {
+      // Ignore storage write errors.
+    }
+    if (!legacyKey) return;
+    try {
+      localStorage.setItem(legacyKey, value);
+    } catch {
+      // Ignore legacy storage write errors.
+    }
+  }
+
   readJsonStorage(key, fallback) {
     const rawValue = localStorage.getItem(key);
     if (!rawValue) return fallback;
@@ -23,7 +72,7 @@ export class ChatAppCoreMethods {
   }
 
   loadUserProfile() {
-    const data = this.readJsonStorage('orion_user', null);
+    const data = this.readJsonStorageWithLegacy('nymo_user', 'orion_user', null);
     if (data && typeof data === 'object') {
       const avatarImage = String(data.avatarImage || data.avatarUrl || '').trim();
       const userId = String(data.id || data.userId || data._id || '').trim();
@@ -75,7 +124,7 @@ export class ChatAppCoreMethods {
       avatarUrl: avatarImage
     };
     this.user = nextUserData;
-    localStorage.setItem('orion_user', JSON.stringify(nextUserData));
+    this.writeRawStorageWithLegacy('nymo_user', 'orion_user', JSON.stringify(nextUserData));
     this.updateProfileMenuButton();
     this.updateProfileDisplay();
   }
@@ -93,7 +142,11 @@ export class ChatAppCoreMethods {
   }
 
   getWalletTransactionTitleHints() {
-    const stored = this.readJsonStorage('orion_wallet_tx_title_hints', []);
+    const stored = this.readJsonStorageWithLegacy(
+      'nymo_wallet_tx_title_hints',
+      'orion_wallet_tx_title_hints',
+      []
+    );
     if (!Array.isArray(stored)) return [];
     return stored
       .filter((entry) => entry && typeof entry === 'object')
@@ -125,7 +178,11 @@ export class ChatAppCoreMethods {
   saveWalletTransactionTitleHints(entries) {
     const safeEntries = Array.isArray(entries) ? entries.slice(0, 500) : [];
     try {
-      window.localStorage.setItem('orion_wallet_tx_title_hints', JSON.stringify(safeEntries));
+      this.writeRawStorageWithLegacy(
+        'nymo_wallet_tx_title_hints',
+        'orion_wallet_tx_title_hints',
+        JSON.stringify(safeEntries)
+      );
     } catch {
       // Ignore storage failures.
     }
@@ -1425,14 +1482,20 @@ export class ChatAppCoreMethods {
 
     if (!this.walletSetBalancePayloadKey) {
       try {
-        this.walletSetBalancePayloadKey = String(localStorage.getItem('orion_wallet_set_balance_payload_key') || '').trim();
+        this.walletSetBalancePayloadKey = String(this.readRawStorageWithLegacy(
+          'nymo_wallet_set_balance_payload_key',
+          'orion_wallet_set_balance_payload_key'
+        ) || '').trim();
       } catch {
         // Ignore storage read errors.
       }
     }
     if (!this.walletSetBalanceCurrency) {
       try {
-        this.walletSetBalanceCurrency = String(localStorage.getItem('orion_wallet_set_balance_currency') || '').trim().toUpperCase();
+        this.walletSetBalanceCurrency = String(this.readRawStorageWithLegacy(
+          'nymo_wallet_set_balance_currency',
+          'orion_wallet_set_balance_currency'
+        ) || '').trim().toUpperCase();
       } catch {
         // Ignore storage read errors.
       }
@@ -1488,8 +1551,16 @@ export class ChatAppCoreMethods {
             this.walletSetBalanceCurrency = currency;
             this.walletSetBalancePayloadKey = payloadKey;
             try {
-              localStorage.setItem('orion_wallet_set_balance_currency', this.walletSetBalanceCurrency);
-              localStorage.setItem('orion_wallet_set_balance_payload_key', this.walletSetBalancePayloadKey);
+              this.writeRawStorageWithLegacy(
+                'nymo_wallet_set_balance_currency',
+                'orion_wallet_set_balance_currency',
+                this.walletSetBalanceCurrency
+              );
+              this.writeRawStorageWithLegacy(
+                'nymo_wallet_set_balance_payload_key',
+                'orion_wallet_set_balance_payload_key',
+                this.walletSetBalancePayloadKey
+              );
             } catch {
               // Ignore storage write errors.
             }
@@ -1751,7 +1822,11 @@ export class ChatAppCoreMethods {
   }
 
   getCoinTransactionHistory() {
-    const stored = this.readJsonStorage('orion_coin_transactions', []);
+    const stored = this.readJsonStorageWithLegacy(
+      'nymo_coin_transactions',
+      'orion_coin_transactions',
+      []
+    );
     if (!Array.isArray(stored)) return [];
     const normalizeHistoryTitle = (title, amountCents) => {
       const clean = String(title || '').trim();
@@ -1827,7 +1902,11 @@ export class ChatAppCoreMethods {
   saveCoinTransactionHistory(entries) {
     const safeEntries = Array.isArray(entries) ? entries.slice(0, 200) : [];
     try {
-      window.localStorage.setItem('orion_coin_transactions', JSON.stringify(safeEntries));
+      this.writeRawStorageWithLegacy(
+        'nymo_coin_transactions',
+        'orion_coin_transactions',
+        JSON.stringify(safeEntries)
+      );
     } catch {
       // Ignore storage failures and keep runtime flow.
     }
@@ -2114,13 +2193,21 @@ export class ChatAppCoreMethods {
   }
 
   loadShopInventory() {
-    const stored = this.readJsonStorage('orion_shop_inventory', []);
+    const stored = this.readJsonStorageWithLegacy(
+      'nymo_shop_inventory',
+      'orion_shop_inventory',
+      []
+    );
     return Array.isArray(stored) ? stored : [];
   }
 
   saveShopInventory(items) {
     const uniqueItems = [...new Set(Array.isArray(items) ? items : [])];
-    localStorage.setItem('orion_shop_inventory', JSON.stringify(uniqueItems));
+    this.writeRawStorageWithLegacy(
+      'nymo_shop_inventory',
+      'orion_shop_inventory',
+      JSON.stringify(uniqueItems)
+    );
     return uniqueItems;
   }
 
@@ -2467,7 +2554,7 @@ export class ChatAppCoreMethods {
   }
 
   loadSettings() {
-    const saved = this.readJsonStorage('orion_settings', null);
+    const saved = this.readJsonStorageWithLegacy('nymo_settings', 'orion_settings', null);
     if (saved && typeof saved === 'object') {
       return saved;
     }
@@ -2496,7 +2583,7 @@ export class ChatAppCoreMethods {
 
   saveSettings(settingsData) {
     this.settings = settingsData;
-    localStorage.setItem('orion_settings', JSON.stringify(settingsData));
+    this.writeRawStorageWithLegacy('nymo_settings', 'orion_settings', JSON.stringify(settingsData));
   }
 
   applySettingsToUI() {
@@ -2569,15 +2656,17 @@ export class ChatAppCoreMethods {
     const themeMode = this.settings?.theme || 'system';
     if (themeMode === 'dark') {
       document.documentElement.classList.add('dark-theme');
+      localStorage.setItem('nymo_theme', 'dark');
       localStorage.setItem('orion_theme', 'dark');
       this.syncThemeToggleCheckboxes();
     } else if (themeMode === 'light') {
       document.documentElement.classList.remove('dark-theme');
+      localStorage.setItem('nymo_theme', 'light');
       localStorage.setItem('orion_theme', 'light');
       this.syncThemeToggleCheckboxes();
     } else {
       this.settings = { ...(this.settings || {}), theme: 'system' };
-      localStorage.setItem('orion_settings', JSON.stringify(this.settings));
+      this.writeRawStorageWithLegacy('nymo_settings', 'orion_settings', JSON.stringify(this.settings));
       this.applySystemTheme();
     }
     applyThemeBranding();
@@ -2586,9 +2675,11 @@ export class ChatAppCoreMethods {
 
   toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark-theme');
-    localStorage.setItem('orion_theme', isDark ? 'dark' : 'light');
+    const nextTheme = isDark ? 'dark' : 'light';
+    localStorage.setItem('nymo_theme', nextTheme);
+    localStorage.setItem('orion_theme', nextTheme);
     this.settings = { ...(this.settings || {}), theme: isDark ? 'dark' : 'light' };
-    localStorage.setItem('orion_settings', JSON.stringify(this.settings));
+    this.writeRawStorageWithLegacy('nymo_settings', 'orion_settings', JSON.stringify(this.settings));
     applyThemeBranding();
     this.syncThemeToggleCheckboxes();
     if (!this.currentChat && window.innerWidth > 768) {
@@ -2598,13 +2689,19 @@ export class ChatAppCoreMethods {
 
   getChatsStorageKey() {
     const userId = typeof this.getAuthUserId === 'function' ? this.getAuthUserId() : '';
+    if (userId) return `nymo_chats:${userId}`;
+    return 'nymo_chats';
+  }
+
+  getLegacyChatsStorageKey() {
+    const userId = typeof this.getAuthUserId === 'function' ? this.getAuthUserId() : '';
     if (userId) return `orion_chats:${userId}`;
     return 'orion_chats';
   }
 
   loadChats() {
     const primaryKey = this.getChatsStorageKey();
-    const stored = this.readJsonStorage(primaryKey, null);
+    const stored = this.readJsonStorageWithLegacy(primaryKey, this.getLegacyChatsStorageKey(), null);
     if (Array.isArray(stored)) {
       return stored.map((chat) => {
         if (!chat || typeof chat !== 'object') return chat;

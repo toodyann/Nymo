@@ -914,6 +914,22 @@ html.dark-theme .bottom-nav-indicator {
     position: relative;
   }
 
+  .desktop-secondary-chat-item::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 1px;
+    background: color-mix(in srgb, var(--border-color) 78%, transparent);
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  .desktop-secondary-chat-item:last-child::after {
+    display: none;
+  }
+
   .desktop-secondary-chat-pin {
     position: absolute;
     top: 3px;

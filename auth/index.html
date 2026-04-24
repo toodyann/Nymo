@@ -17,7 +17,10 @@
     <link id="authAppleTouchIcon" rel="apple-touch-icon" href="../pwa/favicon-dark.png?v=1" />
     <script>
       try {
-        const savedTheme = localStorage.getItem('orion_theme');
+        const savedTheme = localStorage.getItem('nymo_theme') || localStorage.getItem('orion_theme');
+        if (!localStorage.getItem('nymo_theme') && (savedTheme === 'dark' || savedTheme === 'light')) {
+          localStorage.setItem('nymo_theme', savedTheme);
+        }
         const prefersDark = window.matchMedia
           ? window.matchMedia('(prefers-color-scheme: dark)').matches
           : true;

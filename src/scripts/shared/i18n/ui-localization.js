@@ -1,6 +1,7 @@
 const DEFAULT_LANGUAGE = 'uk';
 const SUPPORTED_LANGUAGES = new Set(['uk', 'en']);
-const SETTINGS_STORAGE_KEY = 'orion_settings';
+const SETTINGS_STORAGE_KEY = 'nymo_settings';
+const LEGACY_SETTINGS_STORAGE_KEY = 'orion_settings';
 const CYRILLIC_PATTERN = /[\u0400-\u04FF]/;
 
 const UK_TO_EN_REPLACEMENTS = {
@@ -1135,7 +1136,13 @@ export function normalizeUiLanguage(value) {
 
 export function readStoredUiLanguage() {
   try {
-    const rawSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    let rawSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!rawSettings) {
+      rawSettings = window.localStorage.getItem(LEGACY_SETTINGS_STORAGE_KEY);
+      if (rawSettings) {
+        window.localStorage.setItem(SETTINGS_STORAGE_KEY, rawSettings);
+      }
+    }
     if (!rawSettings) return DEFAULT_LANGUAGE;
     const parsed = JSON.parse(rawSettings);
     return normalizeUiLanguage(parsed?.language);

@@ -21,12 +21,19 @@ export class ChatAppMessagingSelfDeleteUnreadMethods extends ChatAppMessagingAut
 
     let parsed = {};
     try {
-      const raw = localStorage.getItem(storageKey);
+      let raw = localStorage.getItem(storageKey);
+      if (!raw) {
+        const legacyKey = typeof this.getLegacySelfDeletedChatsStorageKey === 'function'
+          ? this.getLegacySelfDeletedChatsStorageKey()
+          : '';
+        raw = legacyKey ? localStorage.getItem(legacyKey) : '';
+        if (raw) {
+          localStorage.setItem(storageKey, raw);
+        }
+      }
       if (raw) {
         const data = JSON.parse(raw);
-        if (data && typeof data === 'object') {
-          parsed = data;
-        }
+        if (data && typeof data === 'object') parsed = data;
       }
     } catch {
       parsed = {};
@@ -63,12 +70,19 @@ export class ChatAppMessagingSelfDeleteUnreadMethods extends ChatAppMessagingAut
 
     let parsed = {};
     try {
-      const raw = localStorage.getItem(storageKey);
+      let raw = localStorage.getItem(storageKey);
+      if (!raw) {
+        const legacyKey = typeof this.getLegacySelfDeletedMessagesStorageKey === 'function'
+          ? this.getLegacySelfDeletedMessagesStorageKey()
+          : '';
+        raw = legacyKey ? localStorage.getItem(legacyKey) : '';
+        if (raw) {
+          localStorage.setItem(storageKey, raw);
+        }
+      }
       if (raw) {
         const data = JSON.parse(raw);
-        if (data && typeof data === 'object') {
-          parsed = data;
-        }
+        if (data && typeof data === 'object') parsed = data;
       }
     } catch {
       parsed = {};

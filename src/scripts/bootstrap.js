@@ -9,6 +9,8 @@ import {
 import { getApiBaseUrl } from './shared/api/api-url.js';
 import { translateUiText } from './shared/i18n/ui-localization.js';
 
+syncLegacyOrionGlobals();
+
 function isServiceWorkerEnabledByEnv() {
   const rawFlag = String(import.meta.env?.VITE_ENABLE_SW || '').trim().toLowerCase();
   if (rawFlag === '1' || rawFlag === 'true' || rawFlag === 'yes' || rawFlag === 'on') {
@@ -44,8 +46,29 @@ async function disableOrionServiceWorker() {
   }
 }
 
-function dispatchOrionPwaEvent(name, detail = {}) {
+function dispatchNymoPwaEvent(name, detail = {}) {
   window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
+function syncLegacyOrionGlobals() {
+  const pairs = [
+    ['__NYMO_PENDING_NOTIFICATION_OPEN', '__ORION_PENDING_NOTIFICATION_OPEN'],
+    ['__NYMO_SW_MESSAGE_BOUND', '__ORION_SW_MESSAGE_BOUND'],
+    ['__NYMO_PWA_DEFERRED_PROMPT', '__ORION_PWA_DEFERRED_PROMPT'],
+    ['__NYMO_PWA_UPDATE_REGISTRATION', '__ORION_PWA_UPDATE_REGISTRATION'],
+    ['__NYMO_PWA_LIFECYCLE_BOUND', '__ORION_PWA_LIFECYCLE_BOUND'],
+    ['__NYMO_NETWORK_RESILIENCE_INSTALLED', '__ORION_NETWORK_RESILIENCE_INSTALLED'],
+    ['__NYMO_FETCH_WRAPPED', '__ORION_FETCH_WRAPPED'],
+    ['__NYMO_APP_BOOTSTRAPPED', '__ORION_APP_BOOTSTRAPPED']
+  ];
+  pairs.forEach(([nymoKey, orionKey]) => {
+    if (window[nymoKey] == null && window[orionKey] != null) {
+      window[nymoKey] = window[orionKey];
+    }
+    if (window[orionKey] == null && window[nymoKey] != null) {
+      window[orionKey] = window[nymoKey];
+    }
+  });
 }
 
 function getAppBasePath() {
@@ -91,16 +114,18 @@ function getServiceWorkerScopePath() {
   return getAppBasePath();
 }
 
-function queueOrionNotificationOpenRequest(payload = {}) {
-  window.__ORION_PENDING_NOTIFICATION_OPEN = {
+function queueNymoNotificationOpenRequest(payload = {}) {
+  const nextPayload = {
     chatServerId: String(payload.chatServerId || '').trim(),
     localChatId: payload.localChatId != null ? String(payload.localChatId).trim() : '',
     url: String(payload.url || '').trim()
   };
+  window.__NYMO_PENDING_NOTIFICATION_OPEN = nextPayload;
+  window.__ORION_PENDING_NOTIFICATION_OPEN = nextPayload;
 }
 
-function consumeOrionNotificationOpenRequest() {
-  const pending = window.__ORION_PENDING_NOTIFICATION_OPEN;
+function consumeNymoNotificationOpenRequest() {
+  const pending = window.__NYMO_PENDING_NOTIFICATION_OPEN || window.__ORION_PENDING_NOTIFICATION_OPEN;
   if (!pending || typeof pending !== 'object') return false;
   const app = window.app;
   if (!app || !Array.isArray(app.chats)) return false;
@@ -124,34 +149,44 @@ function consumeOrionNotificationOpenRequest() {
   if (typeof app.selectChat === 'function') {
     app.selectChat(targetChat.id);
   }
+  delete window.__NYMO_PENDING_NOTIFICATION_OPEN;
   delete window.__ORION_PENDING_NOTIFICATION_OPEN;
   return true;
 }
 
 function bindServiceWorkerNotificationRouting() {
   if (!('serviceWorker' in navigator)) return;
-  if (window.__ORION_SW_MESSAGE_BOUND) return;
+  if (window.__NYMO_SW_MESSAGE_BOUND || window.__ORION_SW_MESSAGE_BOUND) return;
+  window.__NYMO_SW_MESSAGE_BOUND = true;
   window.__ORION_SW_MESSAGE_BOUND = true;
 
   navigator.serviceWorker.addEventListener('message', (event) => {
     const data = event?.data;
     if (!data || typeof data !== 'object') return;
-    if (data.type !== 'orion-open-chat') return;
-    queueOrionNotificationOpenRequest(data);
-    consumeOrionNotificationOpenRequest();
+    if (data.type !== 'nymo-open-chat' && data.type !== 'orion-open-chat') return;
+    queueNymoNotificationOpenRequest(data);
+    consumeNymoNotificationOpenRequest();
   });
 }
 
 function setPendingPwaInstallPrompt(promptEvent = null) {
-  window.__ORION_PWA_DEFERRED_PROMPT = promptEvent || null;
-  dispatchOrionPwaEvent('orion:pwa-installable-change', {
+  window.__NYMO_PWA_DEFERRED_PROMPT = promptEvent || null;
+  window.__ORION_PWA_DEFERRED_PROMPT = window.__NYMO_PWA_DEFERRED_PROMPT;
+  dispatchNymoPwaEvent('nymo:pwa-installable-change', {
+    canInstall: Boolean(promptEvent)
+  });
+  dispatchNymoPwaEvent('orion:pwa-installable-change', {
     canInstall: Boolean(promptEvent)
   });
 }
 
 function setPendingPwaUpdateRegistration(registration = null) {
-  window.__ORION_PWA_UPDATE_REGISTRATION = registration || null;
-  dispatchOrionPwaEvent('orion:pwa-update-change', {
+  window.__NYMO_PWA_UPDATE_REGISTRATION = registration || null;
+  window.__ORION_PWA_UPDATE_REGISTRATION = window.__NYMO_PWA_UPDATE_REGISTRATION;
+  dispatchNymoPwaEvent('nymo:pwa-update-change', {
+    hasUpdate: Boolean(registration?.waiting)
+  });
+  dispatchNymoPwaEvent('orion:pwa-update-change', {
     hasUpdate: Boolean(registration?.waiting)
   });
 }
@@ -176,7 +211,8 @@ function watchPwaRegistrationForUpdates(registration) {
 }
 
 function bindPwaLifecycleEvents() {
-  if (window.__ORION_PWA_LIFECYCLE_BOUND) return;
+  if (window.__NYMO_PWA_LIFECYCLE_BOUND || window.__ORION_PWA_LIFECYCLE_BOUND) return;
+  window.__NYMO_PWA_LIFECYCLE_BOUND = true;
   window.__ORION_PWA_LIFECYCLE_BOUND = true;
 
   window.addEventListener('beforeinstallprompt', (event) => {
@@ -186,7 +222,8 @@ function bindPwaLifecycleEvents() {
 
   window.addEventListener('appinstalled', () => {
     setPendingPwaInstallPrompt(null);
-    dispatchOrionPwaEvent('orion:pwa-installed', { installed: true });
+    dispatchNymoPwaEvent('nymo:pwa-installed', { installed: true });
+    dispatchNymoPwaEvent('orion:pwa-installed', { installed: true });
   });
 }
 
@@ -442,8 +479,9 @@ function installOrionNetworkResilience() {
   refreshConnectionWarning();
 }
 
-function bootOrionApp() {
-  if (window.__ORION_APP_BOOTSTRAPPED) return;
+function bootNymoApp() {
+  if (window.__NYMO_APP_BOOTSTRAPPED || window.__ORION_APP_BOOTSTRAPPED) return;
+  window.__NYMO_APP_BOOTSTRAPPED = true;
   window.__ORION_APP_BOOTSTRAPPED = true;
 
   const session = getAuthSession();
@@ -463,7 +501,7 @@ function bootOrionApp() {
     }
   }
   window.app = new ChatApp();
-  consumeOrionNotificationOpenRequest();
+  consumeNymoNotificationOpenRequest();
 }
 
 bindServiceWorkerNotificationRouting();
@@ -474,7 +512,7 @@ window.addEventListener('load', () => {
 }, { once: true });
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootOrionApp, { once: true });
+  document.addEventListener('DOMContentLoaded', bootNymoApp, { once: true });
 } else {
-  bootOrionApp();
+  bootNymoApp();
 }

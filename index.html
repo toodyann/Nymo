@@ -19,7 +19,10 @@
       (() => {
         let savedTheme = '';
         try {
-          savedTheme = localStorage.getItem('orion_theme') || '';
+          savedTheme = localStorage.getItem('nymo_theme') || localStorage.getItem('orion_theme') || '';
+          if (!localStorage.getItem('nymo_theme') && (savedTheme === 'dark' || savedTheme === 'light')) {
+            localStorage.setItem('nymo_theme', savedTheme);
+          }
         } catch {}
         const prefersDark = window.matchMedia
           ? window.matchMedia('(prefers-color-scheme: dark)').matches

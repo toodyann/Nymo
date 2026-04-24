@@ -1,0 +1,988 @@
+/* Modern messenger redesign layer: loaded last to override legacy visual rules without JS changes. */
+
+.orion-app {
+  --ms-font: "Manrope", "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  --ms-radius-xs: 10px;
+  --ms-radius-sm: 14px;
+  --ms-radius-md: 18px;
+  --ms-radius-lg: 24px;
+  --ms-radius-pill: 999px;
+  --ms-shadow-soft: 0 10px 24px rgba(5, 10, 22, 0.16);
+  --ms-shadow-card: 0 20px 44px rgba(5, 10, 22, 0.26);
+
+  --ms-accent: #4e8fff;
+  --ms-accent-strong: #3f7ef1;
+  --ms-accent-soft: rgba(78, 143, 255, 0.16);
+
+  /* Light mode closer to the provided mobile mock: cleaner whites, softer neutrals */
+  --ms-app-bg: #ffffff;
+  --ms-sidebar-bg: #ffffff;
+  --ms-rail-bg: #f6f7fb;
+  --ms-panel-bg: #ffffff;
+  --ms-chat-bg: #ffffff;
+  --ms-chat-gradient: radial-gradient(120% 120% at 0% 0%, rgba(94, 138, 236, 0.1), transparent 56%),
+    radial-gradient(120% 120% at 100% 100%, rgba(129, 173, 245, 0.13), transparent 62%),
+    #ffffff;
+  --ms-surface-1: #ffffff;
+  --ms-surface-2: #f2f4f8;
+  --ms-border: rgba(17, 24, 39, 0.10);
+  --ms-border-strong: rgba(20, 36, 66, 0.2);
+  --ms-text-1: #121f33;
+  --ms-text-2: #62718c;
+  --ms-text-3: #8c9ab3;
+
+  /* Map modern tokens to existing UI variables (keeps your components/buttons). */
+  --primary-color: var(--ms-accent);
+  --primary-strong: var(--ms-accent-strong);
+  --accent-color: var(--ms-accent);
+  --primary-foreground: #ffffff;
+  --secondary-color: var(--ms-text-2);
+  --danger-color: #ff5e5e;
+  --success-color: #30d158;
+  --warning-color: #ff9f0a;
+
+  --text-primary: var(--ms-text-1);
+  --text-secondary: color-mix(in srgb, var(--ms-text-2) 92%, transparent);
+
+  --bg-color: var(--ms-app-bg);
+  --bg-secondary: var(--ms-panel-bg);
+  --bg-elevated: color-mix(in srgb, var(--ms-surface-1) 92%, transparent);
+  --bg-gradient: var(--ms-chat-gradient);
+
+  --border-color: var(--ms-border);
+  --glass: color-mix(in srgb, var(--ms-surface-1) 78%, transparent);
+  --glass-strong: color-mix(in srgb, var(--ms-surface-1) 88%, transparent);
+  --glow: rgba(0, 0, 0, 0.18);
+
+  --message-user: var(--primary-color);
+  --message-other: var(--ms-surface-2);
+
+  --shadow: var(--ms-shadow-soft);
+  --shadow-dark: var(--ms-shadow-card);
+
+  font-family: var(--ms-font);
+  background: var(--ms-app-bg);
+}
+
+html.dark-theme .orion-app {
+  --ms-accent: #6aa4ff;
+  --ms-accent-strong: #568ff0;
+  --ms-accent-soft: rgba(106, 164, 255, 0.22);
+
+  --ms-app-bg: #0b1118;
+  --ms-sidebar-bg: #0d141d;
+  --ms-rail-bg: #0b121a;
+  --ms-panel-bg: #101a26;
+  --ms-chat-bg: #0e1620;
+  --ms-chat-gradient: radial-gradient(120% 120% at 0% 0%, rgba(80, 126, 214, 0.14), transparent 58%),
+    radial-gradient(120% 120% at 100% 100%, rgba(57, 94, 164, 0.16), transparent 64%),
+    #0e1620;
+  --ms-surface-1: #182433;
+  --ms-surface-2: #1f2d3f;
+  --ms-border: rgba(157, 187, 235, 0.2);
+  --ms-border-strong: rgba(182, 207, 245, 0.34);
+  --ms-text-1: #ebf3ff;
+  --ms-text-2: #9eb0ce;
+  --ms-text-3: #7489ab;
+
+  --ms-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --ms-shadow-card: 0 22px 48px rgba(0, 0, 0, 0.5);
+
+  --primary-foreground: #0b1118;
+  --danger-color: #ff6b6b;
+  --success-color: #30d158;
+  --warning-color: #ffd60a;
+  --glow: rgba(255, 255, 255, 0.22);
+}
+
+.orion-app * {
+  font-family: var(--ms-font);
+}
+
+/* Mobile home header base styles (kept outside media to avoid being hidden by other layout rules). */
+.orion-app .mobile-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.orion-app .mobile-home-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.orion-app .mobile-home-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+.orion-app .mobile-home-nick {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ms-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hard guarantees (other global CSS may override generic class rules). */
+.orion-app #mobileHomeHeader {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.orion-app #mobileHomeAvatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 60%, transparent) !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10) !important;
+}
+
+.orion-app #mobileHomeNick {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--ms-text-1) !important;
+}
+
+.orion-app .mobile-home-action {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 60%, transparent);
+  background: color-mix(in srgb, var(--ms-surface-1) 88%, transparent);
+  color: color-mix(in srgb, var(--ms-text-2) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+.orion-app .mobile-home-action:hover {
+  color: var(--ms-text-1);
+  background: color-mix(in srgb, var(--ms-accent) 10%, var(--ms-surface-1));
+}
+
+.orion-app .mobile-home-action-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff3b30;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ms-surface-1) 92%, transparent);
+}
+
+/* Layout shell */
+.orion-app .main-layout {
+  background: var(--ms-app-bg);
+}
+
+.orion-app .chat-area {
+  background: var(--ms-chat-gradient);
+}
+
+.orion-app .sidebar {
+  background: var(--ms-sidebar-bg);
+  border-right: 1px solid var(--ms-border);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Scrollbars */
+.orion-app .chats-list,
+.orion-app .messages-container,
+.orion-app .desktop-secondary-menu-list,
+.orion-app .desktop-secondary-chat-content,
+.orion-app .settings-content,
+.orion-app .wallet-content {
+  scrollbar-color: color-mix(in srgb, var(--ms-text-3) 50%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.orion-app .chats-list::-webkit-scrollbar,
+.orion-app .messages-container::-webkit-scrollbar,
+.orion-app .desktop-secondary-menu-list::-webkit-scrollbar,
+.orion-app .desktop-secondary-chat-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.orion-app .chats-list::-webkit-scrollbar-thumb,
+.orion-app .messages-container::-webkit-scrollbar-thumb,
+.orion-app .desktop-secondary-menu-list::-webkit-scrollbar-thumb,
+.orion-app .desktop-secondary-chat-content::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ms-text-3) 48%, transparent);
+  border-radius: 999px;
+}
+
+.orion-app .chats-list::-webkit-scrollbar-thumb:hover,
+.orion-app .messages-container::-webkit-scrollbar-thumb:hover,
+.orion-app .desktop-secondary-menu-list::-webkit-scrollbar-thumb:hover,
+.orion-app .desktop-secondary-chat-content::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ms-text-2) 64%, transparent);
+}
+
+.orion-app .app-chat-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #30d158;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ms-surface-1) 88%, transparent);
+}
+
+.orion-app .desktop-nav-rail-account-menu,
+.orion-app .chat-list-menu,
+.orion-app .chat-menu,
+.orion-app .message-menu {
+  background: color-mix(in srgb, var(--ms-surface-1) 90%, var(--ms-panel-bg) 10%) !important;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 95%, transparent) !important;
+  box-shadow: var(--ms-shadow-card);
+  border-radius: 14px;
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.orion-app .desktop-nav-rail-account-menu-item,
+.orion-app .chat-menu-item,
+.orion-app .chat-list-menu-item,
+.orion-app .message-menu-item {
+  color: var(--ms-text-1);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.orion-app .chat-menu-item:hover,
+.orion-app .chat-list-menu-item:hover,
+.orion-app .message-menu-item:hover,
+.orion-app .desktop-nav-rail-account-menu-item:hover {
+  background: color-mix(in srgb, var(--ms-accent) 14%, var(--ms-surface-2));
+}
+
+.orion-app .message-menu-date {
+  color: var(--ms-text-2);
+  border-bottom-color: color-mix(in srgb, var(--ms-border) 78%, transparent);
+}
+
+.orion-app .chat-list-menu-item-danger,
+.orion-app #messageMenuDelete,
+.orion-app .desktop-nav-rail-account-menu-item.is-danger {
+  color: #ff5e5e;
+}
+
+/* Desktop nav rail + secondary panel */
+@media (min-width: 769px) {
+  .orion-app .sidebar {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ms-sidebar-bg) 94%, transparent), var(--ms-sidebar-bg));
+  }
+
+  .orion-app .desktop-nav-rail {
+    background: var(--ms-rail-bg);
+    border-right: 1px solid var(--ms-border) !important;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .orion-app .desktop-nav-rail-item,
+  .orion-app .desktop-nav-rail-brand,
+  .orion-app .desktop-nav-rail-account-btn {
+    color: var(--ms-text-2) !important;
+  }
+
+  .orion-app .desktop-nav-rail-item::before,
+  .orion-app .desktop-nav-rail-account-btn::before {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    transition: background-color 0.22s ease, border-color 0.22s ease;
+  }
+
+  .orion-app .desktop-nav-rail-item:hover::before,
+  .orion-app .desktop-nav-rail-account-btn:hover::before {
+    background: color-mix(in srgb, var(--ms-surface-1) 72%, transparent);
+    border-color: color-mix(in srgb, var(--ms-border) 80%, transparent);
+  }
+
+  .orion-app .desktop-nav-rail-item.active::before {
+    background: var(--ms-surface-1) !important;
+    border-color: var(--ms-border-strong) !important;
+    box-shadow: var(--ms-shadow-soft);
+  }
+
+  .orion-app .desktop-nav-rail-item.active {
+    color: var(--ms-text-1) !important;
+  }
+
+  .orion-app .desktop-nav-rail-item.has-unread-dot::after {
+    background: var(--ms-accent);
+    box-shadow: 0 0 0 2px var(--ms-rail-bg);
+  }
+
+  .orion-app .desktop-secondary-menu,
+  .orion-app .desktop-secondary-menu.active,
+  html.dark-theme .orion-app .desktop-secondary-menu.active,
+  html:not(.dark-theme) .orion-app .desktop-secondary-menu.active {
+    background: var(--ms-panel-bg) !important;
+  }
+
+  .orion-app .desktop-secondary-menu {
+    border-left: 1px solid color-mix(in srgb, var(--ms-border) 80%, transparent);
+  }
+
+  .orion-app .desktop-secondary-menu-header {
+    height: 66px;
+    padding: 0 14px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--ms-border) 82%, transparent);
+    background: color-mix(in srgb, var(--ms-panel-bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .orion-app .desktop-secondary-menu-header h3 {
+    font-size: 19px;
+    letter-spacing: -0.02em;
+    color: var(--ms-text-1);
+  }
+
+  .orion-app .desktop-secondary-menu-header-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: var(--ms-text-2);
+    transition: all 0.2s ease;
+  }
+
+  .orion-app .desktop-secondary-menu-header-btn:hover {
+    background: var(--ms-surface-2);
+    border-color: var(--ms-border);
+    color: var(--ms-text-1);
+  }
+
+  .orion-app .desktop-secondary-menu-header-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ms-accent-soft);
+  }
+
+  .orion-app .desktop-secondary-menu-list {
+    gap: 10px;
+    padding: 10px 0 14px !important;
+  }
+
+  .orion-app .desktop-secondary-menu-list--chats {
+    gap: 0;
+    padding: 6px 0 10px !important;
+  }
+
+  .orion-app .desktop-secondary-chat-search {
+    padding: 8px 14px 10px;
+    background: color-mix(in srgb, var(--ms-panel-bg) 96%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--ms-border) 64%, transparent);
+  }
+
+  .orion-app .desktop-secondary-chat-search-icon {
+    color: var(--ms-text-3);
+    left: 26px;
+  }
+
+  .orion-app .desktop-secondary-chat-search-input {
+    height: 40px;
+    border: 1px solid var(--ms-border);
+    border-radius: 12px;
+    background: var(--ms-surface-1);
+    color: var(--ms-text-1);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 12px 0 36px;
+  }
+
+  .orion-app .desktop-secondary-chat-search-input::placeholder {
+    color: var(--ms-text-3);
+  }
+
+  .orion-app .desktop-secondary-chat-search-input:focus {
+    border-color: color-mix(in srgb, var(--ms-accent) 76%, white 24%);
+    box-shadow: 0 0 0 3px var(--ms-accent-soft);
+    background: color-mix(in srgb, var(--ms-surface-1) 88%, white 12%);
+  }
+
+  .orion-app .desktop-secondary-chat-item,
+  .orion-app .desktop-secondary-user-item {
+    min-height: 70px;
+    padding: 0 14px;
+    border-radius: 0;
+    position: relative;
+    transition: background-color 0.18s ease;
+  }
+
+  .orion-app .desktop-secondary-chat-item::after,
+  .orion-app .desktop-secondary-user-item::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 1px;
+    background: color-mix(in srgb, var(--ms-border) 78%, transparent);
+    pointer-events: none;
+  }
+
+  .orion-app .desktop-secondary-chat-item:hover,
+  .orion-app .desktop-secondary-user-item:hover {
+    background: color-mix(in srgb, var(--ms-surface-1) 66%, transparent);
+  }
+
+  .orion-app .desktop-secondary-chat-item.active {
+    background: color-mix(in srgb, var(--ms-accent) 16%, var(--ms-surface-1) 84%);
+  }
+
+  .orion-app .desktop-secondary-chat-avatar {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  }
+
+  .orion-app .desktop-secondary-chat-name,
+  .orion-app .desktop-secondary-user-main {
+    color: var(--ms-text-1);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .orion-app .desktop-secondary-chat-preview,
+  .orion-app .desktop-secondary-user-secondary,
+  .orion-app .desktop-secondary-chat-time,
+  .orion-app .desktop-secondary-chat-status,
+  .orion-app .desktop-secondary-search-state,
+  .orion-app .desktop-secondary-chat-empty,
+  .orion-app .desktop-secondary-menu-group-title {
+    color: var(--ms-text-2);
+  }
+
+  .orion-app .desktop-secondary-chat-preview.is-typing {
+    color: var(--ms-accent);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .orion-app .desktop-secondary-chat-unread,
+  .orion-app .desktop-secondary-menu-item-badge {
+    background: var(--ms-accent);
+    color: #ffffff;
+    box-shadow: 0 6px 14px rgba(70, 136, 255, 0.3);
+  }
+
+  .orion-app .desktop-secondary-menu-group-title {
+    padding: 0 14px;
+    text-indent: 0;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+
+  .orion-app .desktop-secondary-menu-item {
+    height: 48px;
+    margin: 2px 10px;
+    width: calc(100% - 20px);
+    border-radius: 12px;
+    border: 1px solid transparent;
+    color: var(--ms-text-1);
+    transition: all 0.2s ease;
+  }
+
+  .orion-app .desktop-secondary-menu-item-icon {
+    color: var(--ms-text-2);
+  }
+
+  .orion-app .desktop-secondary-menu-item-label {
+    color: var(--ms-text-1);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .orion-app .desktop-secondary-menu-item:hover {
+    background: color-mix(in srgb, var(--ms-surface-1) 74%, transparent);
+    border-color: color-mix(in srgb, var(--ms-border) 92%, transparent);
+  }
+
+  .orion-app .desktop-secondary-menu-item.active {
+    background: color-mix(in srgb, var(--ms-accent) 16%, var(--ms-surface-1) 84%);
+    border-color: color-mix(in srgb, var(--ms-accent) 36%, var(--ms-border));
+  }
+
+  .orion-app .desktop-secondary-menu-item.active .desktop-secondary-menu-item-icon,
+  .orion-app .desktop-secondary-menu-item.active .desktop-secondary-menu-item-label {
+    color: var(--ms-text-1);
+  }
+
+}
+
+/* Desktop chat area */
+@media (min-width: 769px) {
+  .orion-app .chat-area {
+    position: relative;
+  }
+
+  .orion-app .chat-container {
+    background: transparent;
+  }
+
+  .orion-app .messages-container {
+    padding: 22px 28px 16px;
+    gap: 8px;
+  }
+
+  .orion-app .message-input-area {
+    margin: 0 16px 14px;
+    padding: 10px;
+    border: 1px solid color-mix(in srgb, var(--ms-border) 92%, transparent);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--ms-surface-1) 90%, transparent);
+    box-shadow: var(--ms-shadow-soft);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .orion-app .input-wrapper {
+    min-height: 48px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--ms-border) 90%, transparent);
+    background: color-mix(in srgb, var(--ms-surface-1) 94%, transparent);
+    padding: 4px 6px;
+    gap: 6px;
+  }
+
+  .orion-app .message-input {
+    min-height: 40px;
+    max-height: 140px;
+    padding: 9px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--ms-text-1);
+    font-size: 14px;
+  }
+
+  .orion-app .message-input:focus {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .orion-app .message-input::placeholder {
+    color: var(--ms-text-3);
+  }
+
+  .orion-app.chat-open .app-header,
+  .orion-app.chat-active .app-header {
+    top: 10px;
+    left: calc(var(--sidebar-panel-width, 440px) + 12px);
+    width: calc(100% - var(--sidebar-panel-width, 440px) - 26px);
+    pointer-events: none;
+  }
+
+  .orion-app.chat-open #appChatInfo,
+  .orion-app.chat-active #appChatInfo {
+    min-height: 42px;
+    width: auto;
+    min-width: 220px;
+    max-width: 520px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--ms-border) 85%, transparent);
+    background: color-mix(in srgb, var(--ms-surface-1) 86%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--ms-shadow-soft);
+  }
+
+  .orion-app.chat-open .app-chat-name,
+  .orion-app.chat-active .app-chat-name {
+    color: var(--ms-text-1);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .orion-app.chat-open .app-chat-typing,
+  .orion-app.chat-active .app-chat-typing {
+    color: var(--ms-text-2);
+    font-size: 11px;
+  }
+
+  .orion-app.chat-open .app-header-right,
+  .orion-app.chat-active .app-header-right {
+    right: 18px;
+    width: auto;
+    min-width: 0;
+    gap: 8px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .orion-app .welcome-screen {
+    background: var(--ms-chat-gradient);
+  }
+}
+
+/* Chat list (shared) */
+.orion-app .search-box {
+  padding: 10px 14px 12px;
+  background: color-mix(in srgb, var(--ms-panel-bg) 86%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ms-border) 78%, transparent);
+}
+
+.orion-app .search-input {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 88%, transparent);
+  background: var(--ms-surface-1);
+  color: var(--ms-text-1);
+  font-weight: 600;
+}
+
+.orion-app .search-input::placeholder {
+  color: var(--ms-text-3);
+}
+
+.orion-app .search-input:focus {
+  border-color: color-mix(in srgb, var(--ms-accent) 76%, #ffffff 24%);
+  box-shadow: 0 0 0 3px var(--ms-accent-soft);
+}
+
+.orion-app .search-icon {
+  color: var(--ms-text-3);
+}
+
+.orion-app .chats-list {
+  background: var(--ms-panel-bg);
+  gap: 0;
+  padding: 2px 0 12px;
+}
+
+.orion-app .chat-item {
+  width: calc(100% - 16px);
+  margin: 0 8px;
+  min-height: 74px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  gap: 12px;
+  position: relative;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.orion-app .chat-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: color-mix(in srgb, var(--ms-border) 92%, transparent);
+  opacity: 1;
+  pointer-events: none;
+}
+
+.orion-app .chat-item:hover {
+  background: color-mix(in srgb, var(--ms-surface-1) 80%, transparent);
+}
+
+.orion-app .chat-item:last-child::after {
+  display: none;
+}
+
+.orion-app .chat-item:active {
+  transform: scale(0.995);
+}
+
+.orion-app .chat-item.active {
+  background: color-mix(in srgb, var(--ms-accent) 14%, var(--ms-surface-1) 86%);
+  border-color: color-mix(in srgb, var(--ms-accent) 32%, var(--ms-border));
+}
+
+.orion-app .chat-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.orion-app .chat-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ms-text-1);
+  letter-spacing: -0.01em;
+}
+
+.orion-app .chat-preview,
+.orion-app .chat-time {
+  color: var(--ms-text-2);
+  font-size: 13px;
+}
+
+.orion-app .chat-preview.is-typing {
+  color: var(--ms-accent);
+  font-weight: 600;
+  font-style: normal;
+}
+
+.orion-app .chat-unread {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--ms-accent);
+  color: #ffffff;
+  font-size: 11px;
+  box-shadow: 0 6px 14px rgba(70, 136, 255, 0.32);
+}
+
+.orion-app .chat-item-arrow {
+  display: inline-flex;
+  color: var(--ms-text-3);
+  font-size: 17px;
+}
+
+.orion-app .chat-item-actions {
+  gap: 2px;
+}
+
+.orion-app .btn-delete-chat {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--ms-text-3);
+}
+
+.orion-app .btn-delete-chat:hover {
+  background: rgba(255, 82, 82, 0.12);
+  color: #ff5252;
+}
+
+.orion-app .chats-list-empty {
+  padding: 44px 16px;
+  color: var(--ms-text-2);
+}
+
+.orion-app .empty-state-text {
+  color: var(--ms-text-1);
+}
+
+.orion-app .empty-state-hint {
+  color: var(--ms-text-2);
+}
+
+/* Messages */
+.orion-app .date-separator {
+  top: 0;
+  margin: 10px 0 12px;
+}
+
+.orion-app .date-separator-text {
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 84%, transparent);
+  background: color-mix(in srgb, var(--ms-surface-1) 82%, transparent);
+  color: var(--ms-text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.orion-app .message {
+  gap: 10px;
+}
+
+.orion-app .message-bubble {
+  max-width: min(76%, 680px);
+}
+
+.orion-app .message-sender-name {
+  color: var(--ms-text-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.orion-app .message-content {
+  border-radius: 18px;
+  border: 1px solid transparent;
+  padding: 8px 12px 9px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.orion-app .message.other .message-content {
+  background: color-mix(in srgb, var(--ms-surface-1) 90%, transparent);
+  border-color: color-mix(in srgb, var(--ms-border) 84%, transparent);
+  color: var(--ms-text-1);
+}
+
+.orion-app .message.own .message-content {
+  background: linear-gradient(140deg, var(--ms-accent), var(--ms-accent-strong));
+  border-color: color-mix(in srgb, var(--ms-accent) 70%, #ffffff 30%);
+  color: #ffffff;
+}
+
+.orion-app .message-content.with-tail::before {
+  width: 8px;
+  height: 8px;
+}
+
+.orion-app .message-text {
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.orion-app .message-meta,
+.orion-app .message-meta .message-time,
+.orion-app .message-meta .message-edited,
+.orion-app .message-meta .message-status {
+  color: color-mix(in srgb, var(--ms-text-2) 90%, transparent);
+  font-size: 11px;
+}
+
+.orion-app .message.own .message-meta,
+.orion-app .message.own .message-meta .message-time,
+.orion-app .message.own .message-meta .message-edited,
+.orion-app .message.own .message-meta .message-status {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.orion-app .message-file,
+.orion-app .message-voice {
+  border-radius: 14px;
+}
+
+.orion-app .message-media-failure {
+  margin-top: 6px;
+}
+
+.orion-app .message-media-retry {
+  border-radius: 8px;
+}
+
+.orion-app .messages-scroll-bottom-btn {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 94%, transparent);
+  background: color-mix(in srgb, var(--ms-surface-1) 88%, transparent);
+  color: var(--ms-text-1);
+  box-shadow: var(--ms-shadow-soft);
+}
+
+.orion-app .messages-scroll-bottom-btn:hover {
+  background: color-mix(in srgb, var(--ms-accent) 12%, var(--ms-surface-1));
+  border-color: color-mix(in srgb, var(--ms-accent) 34%, var(--ms-border));
+}
+
+/* Composer */
+.orion-app .reply-bar {
+  border-left: 0;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 88%, transparent);
+  background: color-mix(in srgb, var(--ms-surface-2) 88%, transparent);
+  padding: 9px 11px;
+}
+
+.orion-app .reply-bar-label {
+  color: var(--ms-accent);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.orion-app .reply-bar-text {
+  color: var(--ms-text-2);
+}
+
+.orion-app .reply-bar-close {
+  border-radius: 8px;
+  color: var(--ms-text-3);
+}
+
+.orion-app .reply-bar-close:hover {
+  background: color-mix(in srgb, var(--ms-surface-1) 74%, transparent);
+  color: var(--ms-text-1);
+}
+
+/* Welcome / empty chat state */
+.orion-app .welcome-screen {
+  background: var(--ms-chat-gradient);
+}
+
+.orion-app .welcome-minimal {
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--ms-border) 82%, transparent);
+  background: color-mix(in srgb, var(--ms-surface-1) 82%, transparent);
+  box-shadow: var(--ms-shadow-card);
+  padding: 34px clamp(24px, 4vw, 54px);
+  text-align: center;
+}
+
+.orion-app .welcome-minimal-title {
+  margin: 0 0 8px;
+  color: var(--ms-text-1);
+  letter-spacing: -0.03em;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 800;
+}
+
+.orion-app .welcome-minimal-subtitle {
+  margin: 0;
+  color: var(--ms-text-2);
+  font-size: clamp(14px, 1.2vw, 16px);
+}
+
+/* Mobile styles removed — handled by src/styles/mobile/mobile-modern.css */
+
+.orion-app .message-input:focus-visible,
+.orion-app .search-input:focus-visible,
+.orion-app .desktop-secondary-chat-search-input:focus-visible,
+.orion-app .desktop-nav-rail-item:focus-visible,
+.orion-app .desktop-secondary-menu-item:focus-visible,
+.orion-app .desktop-secondary-chat-item:focus-visible,
+.orion-app .chat-item:focus-visible,
+.orion-app .btn-icon:focus-visible,
+.orion-app .btn-send:focus-visible,
+.orion-app .btn-attach:focus-visible,
+.orion-app .btn-emoji:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ms-accent-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orion-app *,
+  .orion-app *::before,
+  .orion-app *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

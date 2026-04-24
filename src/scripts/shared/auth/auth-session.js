@@ -1,6 +1,7 @@
 import { BASE_URL, buildApiUrl, getApiBaseUrl } from '../api/api-url.js';
 
-const AUTH_SESSION_KEY = 'orion_auth_session';
+const AUTH_SESSION_KEY = 'nymo_auth_session';
+const LEGACY_AUTH_SESSION_KEY = 'orion_auth_session';
 
 function readViteEnv() {
   try {
@@ -88,13 +89,15 @@ export function redirectToAppHome() {
 
 export function getAuthSession() {
   if (typeof window === 'undefined') return null;
-  const raw = window.localStorage.getItem(AUTH_SESSION_KEY);
+  const raw = window.localStorage.getItem(AUTH_SESSION_KEY)
+    || window.localStorage.getItem(LEGACY_AUTH_SESSION_KEY);
   if (!raw) return null;
 
   try {
     return JSON.parse(raw);
   } catch {
     window.localStorage.removeItem(AUTH_SESSION_KEY);
+    window.localStorage.removeItem(LEGACY_AUTH_SESSION_KEY);
     return null;
   }
 }
@@ -112,12 +115,15 @@ export function setAuthSession(session) {
     user: session?.user && typeof session.user === 'object' ? session.user : {},
     issuedAt: Date.now()
   };
-  window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(safeSession));
+  const payload = JSON.stringify(safeSession);
+  window.localStorage.setItem(AUTH_SESSION_KEY, payload);
+  window.localStorage.setItem(LEGACY_AUTH_SESSION_KEY, payload);
 }
 
 export function clearAuthSession() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(AUTH_SESSION_KEY);
+  window.localStorage.removeItem(LEGACY_AUTH_SESSION_KEY);
 }
 
 export function syncLegacyUserProfile(user = {}) {
@@ -143,7 +149,9 @@ export function syncLegacyUserProfile(user = {}) {
     avatarImage: avatarSource,
     avatarColor: user?.avatarColor || ''
   };
-  window.localStorage.setItem('orion_user', JSON.stringify(profile));
+  const payload = JSON.stringify(profile);
+  window.localStorage.setItem('nymo_user', payload);
+  window.localStorage.setItem('orion_user', payload);
 }
 
 export { BASE_URL, buildApiUrl, getApiBaseUrl };

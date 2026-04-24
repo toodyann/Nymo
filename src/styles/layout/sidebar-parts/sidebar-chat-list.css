@@ -19,26 +19,28 @@
   text-align: left;
   position: relative;
   background: transparent;
-  border: none;
   box-shadow: none;
   backdrop-filter: none;
 }
 
-.chat-item + .chat-item::before {
+.chat-item::after {
   content: "";
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 12px;
   right: 12px;
   height: 1px;
-  background: var(--border-color);
-  opacity: 0.65;
+  background: color-mix(in srgb, var(--border-color) 85%, transparent);
+  opacity: 1;
   pointer-events: none;
 }
 
 .chat-item:hover {
   background-color: transparent;
-  border-color: transparent;
+}
+
+.chat-item:last-child::after {
+  display: none;
 }
 
 .chat-item.pinned {
@@ -72,7 +74,6 @@
 
 .chat-item.active {
   background-color: transparent;
-  border-color: transparent;
   color: var(--primary-color);
 }
 
