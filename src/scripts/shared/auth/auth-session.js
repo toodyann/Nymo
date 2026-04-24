@@ -128,6 +128,13 @@ export function clearAuthSession() {
 
 export function syncLegacyUserProfile(user = {}) {
   if (typeof window === 'undefined') return;
+  let existingProfile = null;
+  try {
+    const rawExisting = window.localStorage.getItem('nymo_user') || window.localStorage.getItem('orion_user') || '';
+    existingProfile = rawExisting ? JSON.parse(rawExisting) : null;
+  } catch {
+    existingProfile = null;
+  }
   const avatarSource = String(user?.avatarImage || user?.avatarUrl || '').trim();
   const displayName = String(
     user?.nickname ||
@@ -138,6 +145,7 @@ export function syncLegacyUserProfile(user = {}) {
       ''
   ).trim();
   const profile = {
+    ...(existingProfile && typeof existingProfile === 'object' ? existingProfile : {}),
     id: String(user?.id || user?.userId || user?._id || '').trim(),
     name: displayName || 'Користувач Nymo',
     nickname: String(user?.nickname || '').trim(),
