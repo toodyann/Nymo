@@ -118,6 +118,92 @@
   transform: none;
 }
 
+/* Icon hover micro-interactions (Telegram-like). */
+:root {
+  --icon-hover-rotate: -8deg;
+  --icon-hover-scale: 1.12;
+  --icon-hover-raise: -1px;
+  --icon-active-scale: 0.96;
+}
+
+.btn-icon svg,
+.bottom-nav-item > svg,
+.desktop-nav-rail-item svg,
+.desktop-nav-rail-account-menu-item svg,
+.desktop-secondary-menu-item-icon svg,
+.chat-list-menu-item svg,
+.message-menu-item svg,
+.settings-menu-icon svg,
+.chat-menu-item-icon {
+  transform-origin: 50% 50%;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms ease;
+  will-change: transform;
+}
+
+.btn-icon:hover svg,
+.bottom-nav-item:hover > svg,
+.desktop-nav-rail-item:hover svg,
+.desktop-nav-rail-account-menu-item:hover svg,
+.desktop-secondary-menu-item:hover .desktop-secondary-menu-item-icon svg,
+.chat-list-menu-item:hover svg,
+.message-menu-item:hover svg,
+.settings-menu-item:hover .settings-menu-icon svg,
+.chat-menu-item:hover .chat-menu-item-icon {
+  transform: translateY(var(--icon-hover-raise)) scale(var(--icon-hover-scale)) rotate(var(--icon-hover-rotate));
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+}
+
+.btn-icon:active svg,
+.bottom-nav-item:active > svg,
+.desktop-nav-rail-item:active svg,
+.desktop-nav-rail-account-menu-item:active svg,
+.desktop-secondary-menu-item:active .desktop-secondary-menu-item-icon svg,
+.chat-list-menu-item:active svg,
+.message-menu-item:active svg,
+.settings-menu-item:active .settings-menu-icon svg,
+.chat-menu-item:active .chat-menu-item-icon {
+  transform: translateY(0) scale(var(--icon-active-scale));
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-icon svg,
+  .bottom-nav-item > svg,
+  .desktop-nav-rail-item svg,
+  .desktop-nav-rail-account-menu-item svg,
+  .desktop-secondary-menu-item-icon svg,
+  .chat-list-menu-item svg,
+  .message-menu-item svg,
+  .settings-menu-icon svg,
+  .chat-menu-item-icon {
+    transition: none;
+  }
+
+  .btn-icon:hover svg,
+  .bottom-nav-item:hover > svg,
+  .desktop-nav-rail-item:hover svg,
+  .desktop-nav-rail-account-menu-item:hover svg,
+  .desktop-secondary-menu-item:hover .desktop-secondary-menu-item-icon svg,
+  .chat-list-menu-item:hover svg,
+  .message-menu-item:hover svg,
+  .settings-menu-item:hover .settings-menu-icon svg,
+  .chat-menu-item:hover .chat-menu-item-icon,
+  .btn-icon:active svg,
+  .bottom-nav-item:active > svg,
+  .desktop-nav-rail-item:active svg,
+  .desktop-nav-rail-account-menu-item:active svg,
+  .desktop-secondary-menu-item:active .desktop-secondary-menu-item-icon svg,
+  .chat-list-menu-item:active svg,
+  .message-menu-item:active svg,
+  .settings-menu-item:active .settings-menu-icon svg,
+  .chat-menu-item:active .chat-menu-item-icon {
+    transform: none;
+    filter: none;
+  }
+}
+
 .btn-send:disabled {
   background: transparent;
   color: var(--text-secondary);
