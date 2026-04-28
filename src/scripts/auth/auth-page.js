@@ -445,6 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const switchToLoginBtn = document.getElementById('switchToLogin');
   const passwordToggles = document.querySelectorAll('[data-toggle-password]');
   const phoneInputs = document.querySelectorAll('[data-phone-input]');
+  const dotsRoot = document.getElementById('authDots');
+  const progressRoot = document.querySelector('.auth-progress');
+  const brandTag = document.querySelector('.auth-brand__tag');
 
   if (!loginForm || !registerForm || !panelTitle || !themeToggle || !authFormsRoot) {
     return;
@@ -473,11 +476,182 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const state = {
     mode: 'login',
-    pending: false
+    pending: false,
+    steps: {
+      login: 0,
+      register: 0
+    }
   };
   const FORM_ANIMATION_MS = 240;
   let activeForm = loginForm;
   let formAnimationTimer = 0;
+
+  const WIZARD_STEPS = {
+    login: 2,
+    register: 4
+  };
+
+  const getWizardElements = (form) => {
+    if (!form) return null;
+    const wizard = form.querySelector('[data-auth-wizard]');
+    if (!(wizard instanceof HTMLElement)) return null;
+    const viewport = wizard.querySelector('.auth-wizard-viewport');
+    const track = wizard.querySelector('.auth-wizard-track');
+    const backBtn = wizard.querySelector('[data-auth-back]');
+    const nextBtn = wizard.querySelector('[data-auth-next]');
+    const submitBtn = wizard.querySelector('.auth-submit');
+    if (!(track instanceof HTMLElement)) return null;
+    return {
+      wizard,
+      viewport: viewport instanceof HTMLElement ? viewport : null,
+      track,
+      backBtn: backBtn instanceof HTMLButtonElement ? backBtn : null,
+      nextBtn: nextBtn instanceof HTMLButtonElement ? nextBtn : null,
+      submitBtn: submitBtn instanceof HTMLButtonElement ? submitBtn : null
+    };
+  };
+
+  const syncWizardViewportHeight = (mode) => {
+    const safeMode = mode === 'register' ? 'register' : 'login';
+    const form = safeMode === 'register' ? registerForm : loginForm;
+    const ui = getWizardElements(form);
+    if (!ui?.viewport) return;
+
+    window.requestAnimationFrame(() => {
+      const steps = ui.track.querySelectorAll('.auth-step');
+      let maxHeight = 0;
+      steps.forEach((step) => {
+        if (!(step instanceof HTMLElement)) return;
+        // Use scrollHeight so hidden overflow doesn't truncate measurement.
+        maxHeight = Math.max(maxHeight, step.scrollHeight);
+      });
+      if (maxHeight > 0) {
+        ui.viewport.style.height = `${maxHeight}px`;
+      }
+    });
+  };
+
+  const syncAuthFormsMinHeight = () => {
+    if (!(authFormsRoot instanceof HTMLElement)) return;
+    window.requestAnimationFrame(() => {
+      const loginHeight = loginForm instanceof HTMLElement ? loginForm.scrollHeight : 0;
+      const registerHeight = registerForm instanceof HTMLElement ? registerForm.scrollHeight : 0;
+      const maxHeight = Math.max(loginHeight, registerHeight);
+      if (maxHeight > 0) {
+        authFormsRoot.style.minHeight = `${maxHeight}px`;
+      }
+    });
+  };
+
+  const renderDots = (count) => {
+    if (!(dotsRoot instanceof HTMLElement)) return;
+    dotsRoot.innerHTML = '';
+    for (let i = 0; i < count; i += 1) {
+      const dot = document.createElement('span');
+      dot.className = 'auth-dot';
+      dot.dataset.dotIndex = String(i);
+      dotsRoot.append(dot);
+    }
+  };
+
+  const updateDots = (mode, stepIndex) => {
+    const safeMode = mode === 'register' ? 'register' : 'login';
+    const total = Number(WIZARD_STEPS[safeMode] || 1);
+    const safeStep = Math.max(0, Math.min(Number(stepIndex || 0), total - 1));
+    if (progressRoot instanceof HTMLElement) {
+      progressRoot.setAttribute('aria-label', `Крок ${safeStep + 1} з ${total}`);
+    }
+    if (!(dotsRoot instanceof HTMLElement)) return;
+    const dots = dotsRoot.querySelectorAll('.auth-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('is-active', idx === safeStep);
+      dot.classList.toggle('is-complete', idx < safeStep);
+    });
+  };
+
+  const setWizardStep = (mode, stepIndex, { focus = true } = {}) => {
+    const safeMode = mode === 'register' ? 'register' : 'login';
+    const form = safeMode === 'register' ? registerForm : loginForm;
+    const ui = getWizardElements(form);
+    if (!ui) return;
+
+    const total = Number(WIZARD_STEPS[safeMode] || 1);
+    const nextStep = Math.max(0, Math.min(Number(stepIndex || 0), total - 1));
+    state.steps[safeMode] = nextStep;
+
+    ui.wizard.style.setProperty('--auth-step', String(nextStep));
+    if (form) form.classList.toggle('is-step-initial', nextStep === 0);
+
+    if (ui.backBtn) ui.backBtn.classList.toggle('is-hidden', nextStep === 0);
+    const isLast = nextStep >= total - 1;
+    if (ui.nextBtn) ui.nextBtn.classList.toggle('is-hidden', isLast);
+    if (ui.submitBtn) ui.submitBtn.classList.toggle('is-hidden', !isLast);
+
+    updateDots(safeMode, nextStep);
+    syncWizardViewportHeight(safeMode);
+    syncAuthFormsMinHeight();
+
+    if (focus) {
+      const targetStep = ui.track.querySelector(`[data-auth-step="${nextStep}"] input`);
+      if (targetStep instanceof HTMLInputElement) {
+        window.setTimeout(() => targetStep.focus({ preventScroll: true }), 0);
+      }
+    }
+  };
+
+  const validateWizardStep = (mode, stepIndex) => {
+    const safeMode = mode === 'register' ? 'register' : 'login';
+    const step = Number(stepIndex || 0);
+
+    if (safeMode === 'login') {
+      if (step === 0) {
+        const phone = normalizePhone(document.getElementById('authLoginPhone')?.value);
+        if (!PHONE_UA_RE.test(phone)) {
+          setFeedback('Введіть номер у форматі +380XXXXXXXXX.');
+          return false;
+        }
+        return true;
+      }
+      const password = safeTrim(document.getElementById('authLoginPassword')?.value);
+      if (!password) {
+        setFeedback('Введіть пароль.');
+        return false;
+      }
+      return true;
+    }
+
+    if (step === 0) {
+      const nickname = safeTrim(document.getElementById('authRegisterNickname')?.value);
+      if (nickname.length < 2) {
+        setFeedback('Введіть нікнейм (щонайменше 2 символи).');
+        return false;
+      }
+      return true;
+    }
+    if (step === 1) {
+      const phone = normalizePhone(document.getElementById('authRegisterPhone')?.value);
+      if (!PHONE_UA_RE.test(phone)) {
+        setFeedback('Введіть номер у форматі +380XXXXXXXXX.');
+        return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      const password = safeTrim(document.getElementById('authRegisterPassword')?.value);
+      if (password.length < 6) {
+        setFeedback('Пароль має містити щонайменше 6 символів.');
+        return false;
+      }
+      return true;
+    }
+    const password = safeTrim(document.getElementById('authRegisterPassword')?.value);
+    const confirmPassword = safeTrim(document.getElementById('authRegisterPasswordConfirm')?.value);
+    if (password !== confirmPassword) {
+      setFeedback('Паролі не співпадають.');
+      return false;
+    }
+    return true;
+  };
 
   const setFormLoadingState = (form, pending) => {
     if (!form) return;
@@ -567,6 +741,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setFormLoadingState(registerForm, false);
 
     panelTitle.textContent = isRegister ? 'Реєстрація' : 'Вхід';
+    if (brandTag instanceof HTMLElement) {
+      brandTag.textContent = isRegister ? 'Створіть акаунт' : 'Раді бачити знову';
+    }
+    renderDots(Number(WIZARD_STEPS[state.mode] || 1));
+    setWizardStep(state.mode, 0, { focus: false });
 
     setFeedback('');
   };
@@ -577,6 +756,95 @@ document.addEventListener('DOMContentLoaded', () => {
   if (switchToLoginBtn) {
     switchToLoginBtn.addEventListener('click', () => setMode('login'));
   }
+
+  const wireWizard = (mode) => {
+    const safeMode = mode === 'register' ? 'register' : 'login';
+    const form = safeMode === 'register' ? registerForm : loginForm;
+    const ui = getWizardElements(form);
+    if (!ui) return;
+
+    const goNext = () => {
+      if (state.pending) return;
+      const current = Number(state.steps[safeMode] || 0);
+      const total = Number(WIZARD_STEPS[safeMode] || 1);
+      if (current >= total - 1) return;
+      if (!validateWizardStep(safeMode, current)) return;
+      setWizardStep(safeMode, current + 1);
+    };
+
+    const goBack = () => {
+      if (state.pending) return;
+      const current = Number(state.steps[safeMode] || 0);
+      if (current <= 0) return;
+      setWizardStep(safeMode, current - 1);
+    };
+
+    ui.backBtn?.addEventListener('click', goBack);
+    ui.nextBtn?.addEventListener('click', goNext);
+
+    form.addEventListener('keydown', (event) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      if (!form.contains(event.target)) return;
+      if (event.key !== 'Enter') return;
+      if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (!(event.target instanceof HTMLInputElement)) return;
+      if (!ui.wizard.contains(event.target)) return;
+
+      const current = Number(state.steps[safeMode] || 0);
+      const total = Number(WIZARD_STEPS[safeMode] || 1);
+      const isLast = current >= total - 1;
+      if (!isLast) {
+        event.preventDefault();
+        goNext();
+        return;
+      }
+      // For the last step, let native submit happen.
+    });
+
+    if (ui.viewport) {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchActive = false;
+      ui.viewport.addEventListener(
+        'touchstart',
+        (event) => {
+          if (state.pending) return;
+          const touch = event.touches?.[0];
+          if (!touch) return;
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
+          touchActive = true;
+        },
+        { passive: true }
+      );
+      ui.viewport.addEventListener(
+        'touchend',
+        (event) => {
+          if (!touchActive || state.pending) return;
+          touchActive = false;
+          const touch = event.changedTouches?.[0];
+          if (!touch) return;
+          const dx = touch.clientX - touchStartX;
+          const dy = touch.clientY - touchStartY;
+          if (Math.abs(dx) < 46) return;
+          if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
+          if (dx < 0) goNext();
+          else goBack();
+        },
+        { passive: true }
+      );
+    }
+  };
+
+  wireWizard('login');
+  wireWizard('register');
+  syncWizardViewportHeight('login');
+  syncWizardViewportHeight('register');
+  syncAuthFormsMinHeight();
+  window.addEventListener('resize', () => {
+    syncWizardViewportHeight(state.mode);
+    syncAuthFormsMinHeight();
+  });
 
   const syncPasswordToggleState = (button, input) => {
     const isVisible = input.type === 'text';
