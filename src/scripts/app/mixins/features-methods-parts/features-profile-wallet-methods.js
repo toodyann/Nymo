@@ -2380,13 +2380,16 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
 
   showSettingsSubsection(subsectionName, settingsContainerId, sourceSection = null) {
+    if (subsectionName === 'faq') {
+      window.open('https://toodyann.github.io/Nymo-Support/', '_blank', 'noopener,noreferrer');
+      return;
+    }
     const sectionMap = {
       'notifications': 'notifications-settings',
       'privacy': 'privacy-settings',
       'messages': 'messages-settings',
       'appearance': 'appearance-settings',
       'language': 'language-settings',
-      'faq': 'faq-settings',
       'wallet': 'wallet',
       'profile-items': 'profile-items',
       'messenger-settings': 'messenger-settings',
@@ -2402,7 +2405,6 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         'messages': 'navSettings',
         'appearance': 'navSettings',
         'language': 'navSettings',
-        'faq': 'navFaq',
         'wallet': 'navWallet',
         'messenger-settings': 'navShop',
         'mini-games': 'navGames',

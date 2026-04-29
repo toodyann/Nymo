@@ -176,6 +176,10 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
           this.closeDesktopRailAccountMenu();
           const targetId = item.dataset.navTarget;
           if (!targetId) return;
+          if (targetId === 'navFaq') {
+            window.open('https://toodyann.github.io/Nymo-Support/', '_blank', 'noopener,noreferrer');
+            return;
+          }
           if (window.innerWidth > 768) {
             this.openDesktopSecondaryMenu(targetId, { activateFirst: true, triggerButton: item });
             return;

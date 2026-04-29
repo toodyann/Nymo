@@ -11,10 +11,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Nymo</title>
-    <link id="appFavicon" rel="icon" type="image/png" href="./pwa/favicon-dark.png?v=1" />
-    <link id="appFaviconShort" rel="shortcut icon" type="image/png" href="./pwa/favicon-dark.png?v=1" />
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link id="appAppleTouchIcon" rel="apple-touch-icon" href="./pwa/favicon-dark.png?v=1" />
+    <link id="appFavicon" rel="icon" type="image/png" href="./pwa/favicon-dark.png?v=3" />
+    <link id="appFaviconShort" rel="shortcut icon" type="image/png" href="./pwa/favicon-dark.png?v=3" />
+    <link rel="manifest" href="./manifest.webmanifest?v=3" />
+    <link id="appAppleTouchIcon" rel="apple-touch-icon" href="./pwa/favicon-dark.png?v=3" />
     <script>
       (() => {
         let savedTheme = '';
@@ -29,7 +29,7 @@
           : true;
         const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
         document.documentElement.classList.toggle('dark-theme', isDark);
-        const fixedIconHref = './pwa/favicon-dark.png?v=1';
+        const fixedIconHref = './pwa/favicon-dark.png?v=3';
         document.getElementById('appFavicon')?.setAttribute('href', fixedIconHref);
         document.getElementById('appFaviconShort')?.setAttribute('href', fixedIconHref);
         document.getElementById('appAppleTouchIcon')?.setAttribute('href', fixedIconHref);

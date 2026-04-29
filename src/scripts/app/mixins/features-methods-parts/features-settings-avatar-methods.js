@@ -366,13 +366,6 @@ export class ChatAppFeaturesSettingsAvatarMethods extends ChatAppFeaturesProfile
         });
       }
 
-      if (sectionName === 'faq-settings' && !isMobile && typeof this.syncDesktopNavRailActive === 'function') {
-        this.syncDesktopNavRailActive('navFaq');
-      }
-      if (sectionName === 'faq-settings') {
-        this.initFaqSection(settingsContainer, { behavior: 'auto' });
-      }
-
       if (sectionName === 'mini-games') {
         this.settingsParentSection = 'mini-games';
         await this.initMiniGames(settingsContainer);

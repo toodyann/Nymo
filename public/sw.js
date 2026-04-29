@@ -1,14 +1,14 @@
-const SHELL_CACHE = 'nymo-shell-v8';
-const RUNTIME_CACHE = 'nymo-runtime-v8';
+const SHELL_CACHE = 'nymo-shell-v10';
+const RUNTIME_CACHE = 'nymo-runtime-v10';
 const APP_SHELL_FILES = [
   './',
   './index.html',
   './auth/index.html',
-  './manifest.webmanifest',
-  './pwa/icon-192.png',
-  './pwa/icon-512.png',
-  './pwa/favicon-dark.png',
-  './pwa/favicon-light.png'
+  './manifest.webmanifest?v=3',
+  './pwa/icon-192.png?v=3',
+  './pwa/icon-512.png?v=3',
+  './pwa/favicon-dark.png?v=3',
+  './pwa/favicon-light.png?v=3'
 ];
 
 self.addEventListener('message', (event) => {

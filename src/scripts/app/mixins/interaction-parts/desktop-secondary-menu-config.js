@@ -96,33 +96,6 @@ const DESKTOP_SECONDARY_MENU_CONFIG =
           }
         ]
       },
-      navFaq: {
-        title: 'FAQ',
-        groups: [
-          {
-            title: 'ОСНОВНЕ',
-            items: [
-              { label: 'Огляд', section: 'faq-settings', parentSection: 'settings-home', icon: 'question', faqSection: 'overview' },
-              { label: 'Швидкий старт', section: 'faq-settings', parentSection: 'settings-home', icon: 'sparkles', faqSection: 'getting-started' },
-              { label: 'Навігація', section: 'faq-settings', parentSection: 'settings-home', icon: 'globe', faqSection: 'navigation' },
-              { label: 'Профіль і акаунт', section: 'faq-settings', parentSection: 'settings-home', icon: 'user', faqSection: 'profile' },
-              { label: 'Чати і дзвінки', section: 'faq-settings', parentSection: 'settings-home', icon: 'chat', faqSection: 'chats' },
-              { label: 'Магазин і Nymo Value', section: 'faq-settings', parentSection: 'settings-home', icon: 'store', faqSection: 'shop' },
-              { label: 'Гаманець', section: 'faq-settings', parentSection: 'settings-home', icon: 'wallet', faqSection: 'wallet' }
-            ]
-          },
-          {
-            title: 'ДОДАТКОВО',
-            items: [
-              { label: 'Персоналізація', section: 'faq-settings', parentSection: 'settings-home', icon: 'paint', faqSection: 'customization' },
-              { label: 'Налаштування', section: 'faq-settings', parentSection: 'settings-home', icon: 'gear', faqSection: 'settings' },
-              { label: 'Ігри та Nymo Drive', section: 'faq-settings', parentSection: 'settings-home', icon: 'drift', faqSection: 'games' },
-              { label: 'Mobile версія', section: 'faq-settings', parentSection: 'settings-home', icon: 'sliders', faqSection: 'mobile' },
-              { label: 'Якщо щось не так', section: 'faq-settings', parentSection: 'settings-home', icon: 'warning', faqSection: 'troubleshooting' }
-            ]
-          }
-        ]
-      },
       navGames: {
         title: 'Ігри',
         groups: [

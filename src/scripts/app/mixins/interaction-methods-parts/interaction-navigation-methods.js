@@ -845,24 +845,6 @@ export class ChatAppInteractionNavigationMethods {
     if (item.section === 'mini-games') {
       this.pendingMiniGameView = item.miniGameView || 'tapper';
     }
-    if (item.section === 'faq-settings') {
-      this.pendingFaqSection = item.faqSection || 'overview';
-
-      const settingsContainerId = window.innerWidth <= 768
-        ? 'settingsContainerMobile'
-        : 'settingsContainer';
-      const settingsContainer = document.getElementById(settingsContainerId);
-      const faqSectionEl = settingsContainer?.querySelector('#faq-settings');
-      const faqAlreadyVisible = Boolean(
-        settingsContainer?.classList.contains('active')
-        && faqSectionEl instanceof HTMLElement
-      );
-
-      if (faqAlreadyVisible && typeof this.initFaqSection === 'function') {
-        this.initFaqSection(settingsContainer, { behavior: 'smooth' });
-        return;
-      }
-    }
     if (item.section) this.showSettings(item.section);
   }
 
