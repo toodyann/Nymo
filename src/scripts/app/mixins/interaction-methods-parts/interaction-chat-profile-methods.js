@@ -469,6 +469,7 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
     let rafId = 0;
     let pointerX = 0;
     let pointerY = 0;
+    let baseRect = null;
 
     const applyMotion = () => {
       rafId = 0;
@@ -486,15 +487,27 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
     const resetMotion = () => {
       pointerX = 0;
       pointerY = 0;
+      baseRect = null;
       card.style.transform = '';
       card.style.setProperty('--qr-mx', '50%');
       card.style.setProperty('--qr-my', '28%');
       card.classList.remove('is-active');
     };
 
+    const ensureBaseRect = () => {
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+      return rect;
+    };
+
+    card.addEventListener('pointerenter', () => {
+      if (!supportsFinePointer()) return;
+      baseRect = ensureBaseRect();
+    });
+
     card.addEventListener('pointermove', (event) => {
       if (!supportsFinePointer()) return;
-      const rect = card.getBoundingClientRect();
+      const rect = baseRect || ensureBaseRect();
       if (!rect.width || !rect.height) return;
       const relativeX = (event.clientX - rect.left) / rect.width;
       const relativeY = (event.clientY - rect.top) / rect.height;
