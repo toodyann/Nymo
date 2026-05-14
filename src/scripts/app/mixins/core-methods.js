@@ -2420,11 +2420,13 @@ export class ChatAppCoreMethods {
 
   applyChatAvatarToElement(avatarEl, chat = null) {
     if (!avatarEl) return;
-    const { avatarImage, avatarColor, initials } = this.getChatAvatarMeta(chat);
+    const { name, avatarImage, avatarColor, initials } = this.getChatAvatarMeta(chat);
     if (avatarImage) {
       avatarEl.textContent = '';
+      avatarEl.style.background = '';
+      const placeholderBg = String(avatarColor || '').trim() || this.getContactColor(name);
+      avatarEl.style.backgroundColor = placeholderBg;
       avatarEl.style.backgroundImage = `url("${this.escapeAttr(avatarImage)}")`;
-      avatarEl.style.backgroundColor = 'transparent';
       return;
     }
     avatarEl.style.backgroundImage = '';
