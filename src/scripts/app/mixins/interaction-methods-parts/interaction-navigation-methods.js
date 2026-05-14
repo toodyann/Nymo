@@ -1082,6 +1082,9 @@ export class ChatAppInteractionNavigationMethods {
 
   openChatsHomeView({ syncNav = true } = {}) {
     this.closeBottomNavMoreSheet();
+    if (typeof this.clearLastActiveChatSession === 'function') {
+      this.clearLastActiveChatSession();
+    }
     const navChats = document.getElementById('navChats');
     if (syncNav && navChats) this.setActiveNavButton(navChats);
     this.showBottomNav();

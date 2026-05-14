@@ -728,6 +728,9 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
       this.stopActiveVoicePlayback();
     }
     this.currentChat = this.chats.find(c => c.id === chatId);
+    if (this.currentChat && typeof this.persistLastActiveChatSession === 'function') {
+      this.persistLastActiveChatSession(this.currentChat.id);
+    }
     if (this.currentChat && typeof this.primeRecentChatImageUrls === 'function') {
       this.primeRecentChatImageUrls(this.currentChat);
     }
@@ -932,6 +935,9 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
       messages.style.removeProperty('padding-bottom');
     }
     this.currentChat = null;
+    if (typeof this.clearLastActiveChatSession === 'function') {
+      this.clearLastActiveChatSession();
+    }
     document.getElementById('messageInput').value = '';
     this.resizeMessageInput();
     this.renderChatsList();
@@ -1066,6 +1072,13 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
 
     this.chats.splice(idx, 1);
     this.saveChats();
+
+    if (typeof this.readLastActiveChatSessionId === 'function' && typeof this.clearLastActiveChatSession === 'function') {
+      const stored = this.readLastActiveChatSessionId();
+      if (Number.isFinite(stored) && Number(chatId) === stored) {
+        this.clearLastActiveChatSession();
+      }
+    }
 
     if (this.currentChat?.id === chatId) {
       this.closeChat();

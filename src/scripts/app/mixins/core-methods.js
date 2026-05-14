@@ -2758,6 +2758,42 @@ export class ChatAppCoreMethods {
     return 'orion_chats';
   }
 
+  getLastActiveChatSessionKey() {
+    const userId = typeof this.getAuthUserId === 'function' ? this.getAuthUserId() : '';
+    if (userId) return `nymo_last_active_chat:${userId}`;
+    return 'nymo_last_active_chat';
+  }
+
+  readLastActiveChatSessionId() {
+    try {
+      const key = this.getLastActiveChatSessionKey();
+      const raw = window.sessionStorage?.getItem(key);
+      if (!raw) return null;
+      const id = Number.parseInt(String(raw).trim(), 10);
+      return Number.isFinite(id) && id > 0 ? id : null;
+    } catch {
+      return null;
+    }
+  }
+
+  persistLastActiveChatSession(localChatId) {
+    try {
+      const id = Number(localChatId);
+      if (!Number.isFinite(id) || id <= 0) return;
+      window.sessionStorage.setItem(this.getLastActiveChatSessionKey(), String(id));
+    } catch {
+      // Ignore private mode / disabled storage.
+    }
+  }
+
+  clearLastActiveChatSession() {
+    try {
+      window.sessionStorage.removeItem(this.getLastActiveChatSessionKey());
+    } catch {
+      // Ignore.
+    }
+  }
+
   loadChats() {
     const primaryKey = this.getChatsStorageKey();
     const stored = this.readJsonStorageWithLegacy(primaryKey, this.getLegacyChatsStorageKey(), null);
@@ -2949,8 +2985,23 @@ export class ChatAppCoreMethods {
     this.setupMobileSwipeBack();
     this.setupBottomNavReveal();
     this.setMobilePageScrollLock(false);
+    const resumeChatId = this.readLastActiveChatSessionId();
     if (window.innerWidth > 768 && typeof this.openDesktopSecondaryMenu === 'function') {
       this.openDesktopSecondaryMenu('navChats', { activateFirst: true });
+    }
+    if (
+      Number.isFinite(resumeChatId)
+      && resumeChatId > 0
+      && typeof this.selectChat === 'function'
+      && this.chats.some((c) => Number(c?.id) === resumeChatId)
+    ) {
+      void this.selectChat(resumeChatId);
+    } else if (
+      Number.isFinite(resumeChatId)
+      && resumeChatId > 0
+      && typeof this.clearLastActiveChatSession === 'function'
+    ) {
+      this.clearLastActiveChatSession();
     }
     if (window.innerWidth <= 768) {
       document.body.style.overflow = '';
