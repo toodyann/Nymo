@@ -285,6 +285,78 @@ export class ChatAppInteractionNavigationMethods {
     root.addEventListener('pointercancel', onPointerUp, { passive: true });
   }
 
+  /**
+   * Long-press on mobile bottom-nav Profile opens the same account popover
+   * as the desktop rail avatar button (`#desktopRailAccountMenu.active`).
+   */
+  setupMobileNavProfileAccountMenuLongPress() {
+    if (this.mobileNavProfileAccountLongPressBound) return;
+    const navProfile = document.getElementById('navProfile');
+    if (!(navProfile instanceof HTMLElement)) return;
+    this.mobileNavProfileAccountLongPressBound = true;
+
+    const LONG_PRESS_MS = 500;
+    const MOVE_CANCEL_PX = 12;
+    const moveCancelSq = MOVE_CANCEL_PX * MOVE_CANCEL_PX;
+
+    let timer = 0;
+    let activePointerId = null;
+    let startX = 0;
+    let startY = 0;
+
+    const clearTimer = () => {
+      if (timer) {
+        window.clearTimeout(timer);
+        timer = 0;
+      }
+    };
+
+    const isMobileLayout = () => window.innerWidth <= 768;
+
+    navProfile.addEventListener('pointerdown', (event) => {
+      if (!isMobileLayout()) return;
+      if (event.defaultPrevented) return;
+
+      clearTimer();
+      activePointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+
+      timer = window.setTimeout(() => {
+        timer = 0;
+        activePointerId = null;
+        if (!isMobileLayout()) return;
+        this.toggleDesktopRailAccountMenu(true, { triggerButton: navProfile });
+        this.suppressNextMobileNavProfileClick = true;
+        if (typeof window.navigator?.vibrate === 'function') {
+          try {
+            window.navigator.vibrate(12);
+          } catch {
+            // Ignore unsupported vibrate.
+          }
+        }
+      }, LONG_PRESS_MS);
+    }, { passive: true });
+
+    navProfile.addEventListener('pointermove', (event) => {
+      if (!timer || event.pointerId !== activePointerId) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (dx * dx + dy * dy > moveCancelSq) {
+        clearTimer();
+        activePointerId = null;
+      }
+    });
+
+    const onPointerEnd = (event) => {
+      if (event.pointerId !== activePointerId) return;
+      clearTimer();
+      activePointerId = null;
+    };
+    navProfile.addEventListener('pointerup', onPointerEnd, { passive: true });
+    navProfile.addEventListener('pointercancel', onPointerEnd, { passive: true });
+  }
+
   syncDesktopSecondaryMenuBackButtonIcon() {
     const sidebar = document.querySelector('.sidebar');
     const backButton = document.getElementById('desktopSecondaryMenuBack');

@@ -271,8 +271,15 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
         if (!(btn instanceof HTMLElement)) return;
         const navId = String(btn.id || '').trim();
         if (!navId) return;
+        if (navId === 'navProfile' && this.suppressNextMobileNavProfileClick) {
+          this.suppressNextMobileNavProfileClick = false;
+          return;
+        }
         this.navigateMobileTo(navId, { syncNav: true });
       });
+    }
+    if (typeof this.setupMobileNavProfileAccountMenuLongPress === 'function') {
+      this.setupMobileNavProfileAccountMenuLongPress();
     }
 
     // "More" sheet removed in favor of full carousel.

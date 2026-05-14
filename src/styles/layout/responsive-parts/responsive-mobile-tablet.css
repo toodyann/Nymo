@@ -1391,6 +1391,17 @@
     border-radius: 12px;
   }
 
+  /* Rail account menu is a direct .sidebar child (outside hidden .desktop-nav-rail). */
+  #desktopRailAccountMenu:not(.active) {
+    display: none !important;
+  }
+
+  #desktopRailAccountMenu.active {
+    display: flex !important;
+    flex-direction: column;
+    gap: 2px;
+  }
+
   .desktop-nav-rail-account-menu.mobile-anchor {
     position: fixed !important;
     z-index: 420;
@@ -1437,6 +1448,24 @@
   .desktop-nav-rail-account-menu.mobile-anchor .desktop-nav-rail-account-menu-item svg {
     width: 16px;
     height: 16px;
+  }
+
+  #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger {
+    color: #ff4d4f;
+  }
+
+  #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger svg {
+    fill: #ff4d4f;
+    color: #ff4d4f;
+  }
+
+  html:not(.dark-theme) #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger {
+    color: #d92d20;
+  }
+
+  html:not(.dark-theme) #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger svg {
+    fill: #d92d20;
+    color: #d92d20;
   }
 
   html:not(.dark-theme) .desktop-nav-rail-account-menu.mobile-anchor {

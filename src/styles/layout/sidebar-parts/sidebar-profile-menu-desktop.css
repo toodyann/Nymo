@@ -1458,6 +1458,11 @@ html.dark-theme .bottom-nav-indicator {
     color: #ff4d4f;
   }
 
+  #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger svg {
+    fill: #ff4d4f;
+    color: #ff4d4f;
+  }
+
   .desktop-nav-rail-account-menu-item svg {
     width: 18px;
     height: 18px;
@@ -1508,6 +1513,11 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   html:not(.dark-theme) .desktop-nav-rail-account-menu-item.is-danger {
+    color: #d92d20;
+  }
+
+  html:not(.dark-theme) #desktopRailAccountMenu .desktop-nav-rail-account-menu-item.is-danger svg {
+    fill: #d92d20;
     color: #d92d20;
   }
 }
