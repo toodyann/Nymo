@@ -95,6 +95,12 @@ html.dark-theme .settings-menu-icon {
   background: linear-gradient(135deg, #5ac8fa, #2aa0d8);
 }
 
+/* FAQ / help — was missing a tile background (white glyph on near-white read as “empty”). */
+.settings-icon-help {
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  color: #ffffff;
+}
+
 .settings-icon-store {
   background: linear-gradient(135deg, #f59e0b, #f97316);
 }
