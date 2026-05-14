@@ -13,7 +13,7 @@ function loadThreeModule() {
 
 function loadDriveLoaderModule() {
   if (!driveLoaderModulePromise) {
-    driveLoaderModulePromise = import('../features-parts/features-drive-loader.js');
+    driveLoaderModulePromise = import('../features-parts/nymo-drive-gltf-loader.js');
   }
   return driveLoaderModulePromise;
 }

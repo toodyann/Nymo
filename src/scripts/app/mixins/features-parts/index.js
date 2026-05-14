@@ -10,7 +10,7 @@ export {
   TAP_AUTO_AWAY_START_TS_KEY,
   TAP_AUTO_PENDING_REWARD_CENTS_KEY,
   TAP_AUTO_PENDING_REWARD_SECONDS_KEY
-} from './features-tap-avatar-config.js';
+} from './tapper-persons-avatar-constants.js';
 
 export {
   ORION_DRIVE_SHOP_CARS,
@@ -22,4 +22,4 @@ export {
 
 export {
   createOrionDriveGltfLoader
-} from './features-drive-loader.js';
+} from './nymo-drive-gltf-loader.js';

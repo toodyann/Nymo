@@ -1,3 +1,4 @@
+/** Nymo Drive — GLTF loader factory with texture URL remap (nymo-drive-gltf-loader.js). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 

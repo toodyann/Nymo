@@ -61,6 +61,14 @@ html.dark-theme .auth-page::before {
   pointer-events: none;
   user-select: none;
   z-index: -2;
+  transition:
+    filter 0.38s ease,
+    opacity 0.38s ease;
+}
+
+.auth-page:has(.auth-forms input:focus) .auth-scene {
+  filter: blur(22px);
+  opacity: 0.76;
 }
 
 .auth-aurora {
@@ -486,6 +494,15 @@ html.dark-theme .auth-step-next {
     transition: none;
   }
 
+  .auth-scene {
+    transition: none;
+  }
+
+  .auth-page:has(.auth-forms input:focus) .auth-scene {
+    filter: blur(18px);
+    opacity: 0.8;
+  }
+
   .auth-aurora__orb,
   .auth-wordmark__letter {
     animation: none !important;
@@ -506,6 +523,53 @@ html.dark-theme .auth-step-next {
 
 .auth-input-wrap {
   position: relative;
+}
+
+.auth-form .auth-input-wrap--nickname input#authRegisterNickname {
+  padding-right: 84px;
+}
+
+.auth-input-lang-badge {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  max-width: 72px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: color-mix(in srgb, var(--text-primary) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.auth-input-lang-badge.is-ok {
+  color: color-mix(in srgb, var(--primary-color) 92%, #0f172a);
+  border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--bg-color));
+}
+
+.auth-input-lang-badge.is-warn {
+  color: #b45309;
+  border-color: color-mix(in srgb, #f59e0b 55%, var(--border-color));
+  background: color-mix(in srgb, #fffbeb 70%, var(--bg-color));
+}
+
+html.dark-theme .auth-input-lang-badge.is-warn {
+  color: #fbbf24;
+  border-color: color-mix(in srgb, #f59e0b 40%, transparent);
+  background: color-mix(in srgb, #422006 55%, var(--bg-color));
+}
+
+.auth-input-lang-badge.is-ime {
+  color: color-mix(in srgb, var(--text-secondary) 95%, transparent);
 }
 
 .auth-input-icon {

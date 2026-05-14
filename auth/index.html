@@ -132,12 +132,26 @@
                 <div class="auth-wizard-viewport">
                   <div class="auth-wizard-track">
                     <div class="auth-step" data-auth-step="0">
-                      <label for="authRegisterNickname">Нікнейм</label>
-                      <div class="auth-input-wrap">
+                      <label for="authRegisterNickname">Нікнейм (a–z)</label>
+                      <div class="auth-input-wrap auth-input-wrap--nickname">
                         <svg class="auth-input-icon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
                           <path d="M230.92,212A8,8,0,1,1,217.08,220a103.86,103.86,0,0,0-178.16,0A8,8,0,1,1,25.08,212a119.82,119.82,0,0,1,68.56-54.2,72,72,0,1,1,68.72,0A119.82,119.82,0,0,1,230.92,212ZM128,152a56,56,0,1,0-56-56A56.06,56.06,0,0,0,128,152Z"></path>
                         </svg>
-                        <input id="authRegisterNickname" type="text" placeholder="Ваш нікнейм" autocomplete="nickname" minlength="2" maxlength="32" required />
+                        <input
+                          id="authRegisterNickname"
+                          type="text"
+                          placeholder="username"
+                          autocomplete="username"
+                          minlength="2"
+                          maxlength="32"
+                          lang="en"
+                          spellcheck="false"
+                          autocapitalize="none"
+                          autocorrect="off"
+                          aria-describedby="authRegisterNicknameBadge"
+                          required
+                        />
+                        <span id="authRegisterNicknameBadge" class="auth-input-lang-badge" aria-live="polite" title="US / UA / EU / XX">US</span>
                       </div>
                     </div>
 

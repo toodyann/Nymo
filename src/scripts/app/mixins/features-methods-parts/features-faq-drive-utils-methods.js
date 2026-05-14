@@ -1,7 +1,7 @@
 import {
   TAP_PERSONS_AVATAR_IMPORTER_BY_KEY,
   TAP_AUTO_AWAY_START_TS_KEY,
-} from '../features-parts/features-tap-avatar-config.js';
+} from '../features-parts/tapper-persons-avatar-constants.js';
 import {
   ORION_DRIVE_SHOP_CARS,
   ORION_DRIVE_CAR_PHYSICS_DEFAULT,

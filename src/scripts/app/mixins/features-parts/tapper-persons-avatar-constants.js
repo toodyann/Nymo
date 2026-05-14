@@ -1,3 +1,4 @@
+/** Tapper mini-game — person avatar asset glob + idle reward storage keys (tapper-persons-avatar-constants.js). */
 const tapPersonsAvatarModules = import.meta.glob('../../../../Assets/Persons/*.{png,jpg,jpeg,webp,avif,svg}', {
   import: 'default'
 });

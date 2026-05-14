@@ -10,19 +10,50 @@ import { buildApiUrl } from '../shared/api/api-url.js';
 import { applyThemeBranding } from '../shared/helpers/theme-branding.js';
 
 const PHONE_UA_RE = /^\+380\d{9}$/;
+const REGISTER_NICKNAME_MIN_LEN = 2;
+const REGISTER_NICKNAME_MAX_LEN = 32;
+const REGISTER_NICKNAME_RE = new RegExp(
+  `^[a-z]{${REGISTER_NICKNAME_MIN_LEN},${REGISTER_NICKNAME_MAX_LEN}}$`
+);
 const SIGNUP_NICKNAME_CACHE_PREFIX = 'orion_signup_nickname:';
 const OFFLINE_AUTH_USERS_KEY = 'orion_offline_auth_users_v1';
 const DEFAULT_OFFLINE_USER = {
   id: 'offline-demo-user',
   phone: '+380000000000',
   password: 'orion123',
-  nickname: 'Demo Nymo',
-  name: 'Demo Nymo',
+  nickname: 'demonymo',
+  name: 'demonymo',
   avatarColor: '#4f6b8a'
 };
 
 function safeTrim(value) {
   return String(value || '').trim();
+}
+
+function normalizeRegisterNicknameRaw(value) {
+  return safeTrim(String(value || ''))
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+    .slice(0, REGISTER_NICKNAME_MAX_LEN);
+}
+
+function classifyIncomingNicknameChunk(text) {
+  const s = String(text ?? '');
+  if (!s) return '';
+  for (const ch of s) {
+    if (ch === '\u200b' || ch === '\ufeff') continue;
+    if (/\s/.test(ch)) continue;
+    if (ch >= 'a' && ch <= 'z') continue;
+    if (ch >= 'A' && ch <= 'Z') return 'latin-upper';
+    try {
+      if (/\p{Script=Cyrillic}/u.test(ch)) return 'cyrillic';
+      if (/\p{Script=Latin}/u.test(ch)) return 'latin-accent';
+    } catch {
+      if (/[а-яА-ЯіІїЇєЄґҐёЁ]/.test(ch)) return 'cyrillic';
+    }
+    return 'other';
+  }
+  return 'latin';
 }
 
 function normalizeOfflineUser(raw) {
@@ -152,15 +183,15 @@ function tryOfflineLogin(phone, password) {
 function createOfflineUser({ phone, password, nickname }) {
   const normalizedPhone = normalizePhone(phone);
   const safePassword = safeTrim(password);
-  const safeNickname = safeTrim(nickname);
+  const safeNickname = normalizeRegisterNicknameRaw(nickname);
   if (!PHONE_UA_RE.test(normalizedPhone)) {
     throw new Error('Введіть номер у форматі +380XXXXXXXXX.');
   }
   if (safePassword.length < 6) {
     throw new Error('Пароль має містити щонайменше 6 символів.');
   }
-  if (safeNickname.length < 2) {
-    throw new Error('Введіть нікнейм (щонайменше 2 символи).');
+  if (!REGISTER_NICKNAME_RE.test(safeNickname)) {
+    throw new Error('Нікнейм: 2–32 символи, лише латинські малі літери a–z.');
   }
 
   const users = ensureDefaultOfflineUserSeeded();
@@ -621,9 +652,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (step === 0) {
-      const nickname = safeTrim(document.getElementById('authRegisterNickname')?.value);
-      if (nickname.length < 2) {
-        setFeedback('Введіть нікнейм (щонайменше 2 символи).');
+      const nickEl = document.getElementById('authRegisterNickname');
+      const nickname = normalizeRegisterNicknameRaw(nickEl?.value);
+      if (nickEl instanceof HTMLInputElement) nickEl.value = nickname;
+      if (!REGISTER_NICKNAME_RE.test(nickname)) {
+        setFeedback('Нікнейм: 2–32 символи, лише латинські малі літери від a до z.');
         return false;
       }
       return true;
@@ -875,6 +908,111 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const wireRegisterNicknameField = () => {
+    const nick = document.getElementById('authRegisterNickname');
+    if (!(nick instanceof HTMLInputElement)) return;
+
+    let flashTimer = 0;
+    const REGION = { US: 'US', UA: 'UA', EU: 'EU', XX: 'XX' };
+
+    const refreshBadge = () => {
+      const badge = document.getElementById('authRegisterNicknameBadge');
+      if (!(badge instanceof HTMLElement)) return;
+      window.clearTimeout(flashTimer);
+      badge.classList.remove('is-warn', 'is-ok', 'is-ime');
+      if (nick.isComposing) {
+        badge.textContent = REGION.XX;
+        badge.classList.add('is-ime');
+        return;
+      }
+      const v = normalizeRegisterNicknameRaw(nick.value);
+      if (!v) {
+        badge.textContent = REGION.US;
+        return;
+      }
+      badge.textContent = `${REGION.US} ${v.length}/${REGISTER_NICKNAME_MAX_LEN}`;
+      badge.classList.add('is-ok');
+    };
+
+    const flashBadge = (code) => {
+      const badge = document.getElementById('authRegisterNicknameBadge');
+      if (!(badge instanceof HTMLElement)) return;
+      window.clearTimeout(flashTimer);
+      badge.classList.remove('is-ok', 'is-ime');
+      badge.classList.add('is-warn');
+      const safe = String(code || REGION.XX)
+        .toUpperCase()
+        .replace(/[^A-Z]/g, '')
+        .slice(0, 2) || REGION.XX;
+      badge.textContent = safe;
+      flashTimer = window.setTimeout(() => refreshBadge(), 2400);
+    };
+
+    nick.addEventListener('beforeinput', (e) => {
+      if (state.pending) return;
+      if (e.isComposing) return;
+      const inputType = e.inputType || '';
+      if (
+        inputType === 'deleteContentBackward' ||
+        inputType === 'deleteContentForward' ||
+        inputType === 'deleteByCut' ||
+        inputType === 'historyUndo' ||
+        inputType === 'historyRedo'
+      ) {
+        return;
+      }
+      if (inputType === 'insertFromPaste') return;
+      if (inputType === 'insertCompositionText' || inputType === 'insertFromComposition') {
+        return;
+      }
+      const data = e.data;
+      if (data == null || data === '') return;
+      const kind = classifyIncomingNicknameChunk(data);
+      if (kind === 'cyrillic' || kind === 'latin-accent' || kind === 'other') {
+        e.preventDefault();
+        const code = kind === 'cyrillic' ? REGION.UA : kind === 'latin-accent' ? REGION.EU : REGION.XX;
+        flashBadge(code);
+      }
+    });
+
+    nick.addEventListener('paste', (e) => {
+      if (state.pending) return;
+      e.preventDefault();
+      const pasted = e.clipboardData?.getData('text/plain') || '';
+      const kind = classifyIncomingNicknameChunk(pasted);
+      if (kind === 'cyrillic' || kind === 'latin-accent' || kind === 'other') {
+        const code = kind === 'cyrillic' ? REGION.UA : kind === 'latin-accent' ? REGION.EU : REGION.XX;
+        flashBadge(code);
+      }
+      const start = nick.selectionStart ?? nick.value.length;
+      const end = nick.selectionEnd ?? nick.value.length;
+      const merged = nick.value.slice(0, start) + pasted + nick.value.slice(end);
+      nick.value = normalizeRegisterNicknameRaw(merged);
+      nick.dispatchEvent(new Event('input', { bubbles: true }));
+      refreshBadge();
+    });
+
+    nick.addEventListener('input', () => {
+      if (nick.isComposing) return;
+      const prev = nick.value;
+      const next = normalizeRegisterNicknameRaw(prev);
+      if (prev !== next) nick.value = next;
+      refreshBadge();
+    });
+
+    nick.addEventListener('compositionstart', refreshBadge);
+    nick.addEventListener('compositionupdate', refreshBadge);
+    nick.addEventListener('compositionend', () => {
+      nick.value = normalizeRegisterNicknameRaw(nick.value);
+      refreshBadge();
+    });
+
+    nick.value = normalizeRegisterNicknameRaw(nick.value);
+    refreshBadge();
+  };
+
+  wireRegisterNicknameField();
+
   for (const input of authFormsRoot.querySelectorAll('input')) {
     if (!(input instanceof HTMLInputElement)) continue;
     input.addEventListener('input', () => {
@@ -968,12 +1106,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.pending) return;
 
     const phone = normalizePhone(document.getElementById('authRegisterPhone')?.value);
-    const nickname = safeTrim(document.getElementById('authRegisterNickname')?.value);
+    const nickEl = document.getElementById('authRegisterNickname');
+    const nickname = normalizeRegisterNicknameRaw(nickEl?.value);
+    if (nickEl instanceof HTMLInputElement) nickEl.value = nickname;
     const password = safeTrim(document.getElementById('authRegisterPassword')?.value);
     const confirmPassword = safeTrim(document.getElementById('authRegisterPasswordConfirm')?.value);
 
-    if (nickname.length < 2) {
-      setFeedback("Введіть нікнейм (щонайменше 2 символи).");
+    if (!REGISTER_NICKNAME_RE.test(nickname)) {
+      setFeedback('Нікнейм: 2–32 символи, лише латинські малі літери від a до z.');
       return;
     }
     if (!PHONE_UA_RE.test(phone)) {
