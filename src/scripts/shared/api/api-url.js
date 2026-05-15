@@ -1,5 +1,6 @@
 const DEFAULT_DEV_API_BASE_URL = 'http://localhost:3000';
 const DEFAULT_PROD_API_BASE_URL = 'https://chat-app-anzi.onrender.com';
+const GITHUB_PAGES_HOST = 'nymo-project.github.io';
 
 function readViteEnv() {
   try {
@@ -37,10 +38,17 @@ function isLocalBrowserRuntime() {
   return /^(localhost|127(?:\.\d{1,3}){3})$/i.test(hostname);
 }
 
+function isGithubPagesRuntime() {
+  if (typeof window === 'undefined') return false;
+  const hostname = String(window.location.hostname || '').trim().toLowerCase();
+  return hostname === GITHUB_PAGES_HOST || hostname.endsWith('.github.io');
+}
+
 export function getApiBaseUrl() {
   const env = readViteEnv();
   const explicitApiBase = String(env.VITE_API_BASE_URL || '').trim();
-  if (env.DEV || isLocalBrowserRuntime()) {
+  const useDevApi = (env.DEV || isLocalBrowserRuntime()) && !isGithubPagesRuntime();
+  if (useDevApi) {
     const devApiBase = isLocalApiBaseUrl(explicitApiBase) ? explicitApiBase : DEFAULT_DEV_API_BASE_URL;
     return normalizeApiBaseUrl(devApiBase);
   }
