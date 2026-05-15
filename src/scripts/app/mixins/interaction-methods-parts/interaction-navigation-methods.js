@@ -1191,6 +1191,22 @@ export class ChatAppInteractionNavigationMethods {
     if (item.section === 'mini-games') {
       this.pendingMiniGameView = item.miniGameView || 'tapper';
     }
+    if (item.section === 'wallet') {
+      const settingsContainerId = window.innerWidth <= 768 ? 'settingsContainerMobile' : 'settingsContainer';
+      const settingsContainer = document.getElementById(settingsContainerId);
+      const walletSection = settingsContainer?.querySelector('#wallet');
+      const canSwitchInPlace = Boolean(
+        walletSection
+        && settingsContainer?.classList.contains('active')
+        && typeof this.switchWalletActiveView === 'function'
+      );
+      if (canSwitchInPlace) {
+        this.pendingWalletView = null;
+        this.settingsParentSection = 'wallet';
+        this.switchWalletActiveView(item.walletView || 'ledger');
+        return;
+      }
+    }
     if (item.section) this.showSettings(item.section);
   }
 

@@ -42,6 +42,7 @@ export class ChatApp {
     this.addToGroupTarget = null;
     this.pendingWalletView = null;
     this.walletActiveView = 'ledger';
+    this.switchWalletActiveView = null;
     this.bottomNavHidden = false;
     this.navRevealTimeout = null;
     this.lastSendTriggerAt = 0;

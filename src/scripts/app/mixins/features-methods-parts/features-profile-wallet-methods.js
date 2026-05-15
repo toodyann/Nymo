@@ -2132,6 +2132,21 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
 
     const setWalletView = (view, { persist = true } = {}) => {
       const normalizedView = view === 'analytics' ? 'analytics' : 'ledger';
+      const activePanel = walletPanels.find((panel) => panel.classList.contains('is-active'));
+      const activePanelView = String(activePanel?.getAttribute('data-wallet-panel') || '').trim();
+      if (
+        persist
+        && this.walletActiveView === normalizedView
+        && activePanelView === normalizedView
+      ) {
+        if (window.innerWidth > 768 && typeof this.syncDesktopSecondaryMenuActiveItem === 'function') {
+          this.syncDesktopSecondaryMenuActiveItem({
+            section: 'wallet',
+            walletView: normalizedView
+          });
+        }
+        return;
+      }
       if (persist) this.walletActiveView = normalizedView;
       walletViewButtons.forEach((button) => {
         const isActive = button.getAttribute('data-wallet-view') === normalizedView;
@@ -2153,6 +2168,12 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         setIdleAnalyticsFocus();
         window.requestAnimationFrame(() => {
           render();
+        });
+      }
+      if (window.innerWidth > 768 && typeof this.syncDesktopSecondaryMenuActiveItem === 'function') {
+        this.syncDesktopSecondaryMenuActiveItem({
+          section: 'wallet',
+          walletView: normalizedView
         });
       }
     };
@@ -2376,6 +2397,8 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
         render();
       })
       .catch(() => {});
+
+    this.switchWalletActiveView = (view, options = {}) => setWalletView(view, options);
   }
 
 
@@ -2431,7 +2454,11 @@ export class ChatAppFeaturesProfileWalletMethods extends ChatAppFeaturesShopMeth
             section: sectionName
           };
           if (sectionName === 'wallet') {
-            activeCriteria.walletView = 'ledger';
+            const pendingView = String(this.pendingWalletView || '').trim().toLowerCase();
+            const activeView = String(this.walletActiveView || '').trim().toLowerCase();
+            activeCriteria.walletView = pendingView === 'analytics' || activeView === 'analytics'
+              ? 'analytics'
+              : 'ledger';
           }
           if (sectionName === 'mini-games') {
             activeCriteria.miniGameView = 'tapper';

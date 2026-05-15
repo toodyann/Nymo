@@ -1,0 +1,30 @@
+/* Pause decorative infinite animations when the tab is in the background. */
+html.is-page-hidden .auth-aurora__orb,
+html.is-page-hidden .auth-wordmark__letter {
+  will-change: auto;
+}
+
+html.is-page-hidden .auth-aurora__orb,
+html.is-page-hidden .auth-wordmark__letter,
+html.is-page-hidden .empty-state-emoji,
+html.is-page-hidden .message.message-typing-indicator .typing-dot,
+html.is-page-hidden .profile-hero-card[data-profile-motion]::after,
+html.is-page-hidden .shop-item-preview-card[data-profile-motion]::after,
+html.is-page-hidden .orion-network-spinner,
+html.is-page-hidden .messages-top-loader-spinner {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-aurora__orb,
+  .auth-wordmark__letter {
+    animation: none !important;
+  }
+
+  .empty-state-emoji,
+  .message.message-typing-indicator .typing-dot,
+  .profile-hero-card[data-profile-motion]::after,
+  .shop-item-preview-card[data-profile-motion]::after {
+    animation: none !important;
+  }
+}

@@ -62,6 +62,9 @@ export class ChatAppFeaturesSettingsAvatarMethods extends ChatAppFeaturesProfile
 
   async showSettings(sectionName) {
     this.disposeShopGarageViewer();
+    if (sectionName !== 'wallet') {
+      this.switchWalletActiveView = null;
+    }
     if (sectionName !== 'mini-games') {
       this.stopTapAutoMiningRuntime({ markAway: true });
     } else {
