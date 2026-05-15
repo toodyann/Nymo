@@ -5,7 +5,26 @@
     z-index: 40;
     transition:
       width 0.18s ease,
-      box-shadow 0.18s ease;
+      box-shadow 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  /* Divider rides the rail edge when it expands on hover (secondary menu open). */
+  .sidebar:has(.desktop-secondary-menu.active) .desktop-nav-rail {
+    border-right-style: solid;
+    border-right-width: 1px;
+  }
+
+  html.dark-theme
+    .sidebar:has(.desktop-secondary-menu.active)
+    .desktop-nav-rail {
+    border-right-color: rgba(152, 152, 152, 0.35);
+  }
+
+  html:not(.dark-theme)
+    .sidebar:has(.desktop-secondary-menu.active)
+    .desktop-nav-rail {
+    border-right-color: rgba(15, 23, 42, 0.12);
   }
 
   .desktop-nav-rail:hover,
@@ -96,11 +115,15 @@
     text-transform: none;
   }
 
-  html.dark-theme .desktop-nav-rail-brand .desktop-nav-rail-label {
+  html.dark-theme .desktop-nav-rail-brand .desktop-nav-rail-label,
+  html.dark-theme .desktop-nav-rail-account-btn,
+  html.dark-theme .desktop-nav-rail-account-btn .desktop-nav-rail-label {
     color: #ffffff !important;
   }
 
-  html:not(.dark-theme) .desktop-nav-rail-brand .desktop-nav-rail-label {
+  html:not(.dark-theme) .desktop-nav-rail-brand .desktop-nav-rail-label,
+  html:not(.dark-theme) .desktop-nav-rail-account-btn,
+  html:not(.dark-theme) .desktop-nav-rail-account-btn .desktop-nav-rail-label {
     color: #0c0e12 !important;
   }
 

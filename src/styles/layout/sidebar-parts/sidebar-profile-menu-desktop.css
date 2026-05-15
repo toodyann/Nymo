@@ -370,6 +370,8 @@ html.dark-theme .bottom-nav-indicator {
 
   .desktop-secondary-menu.active {
     background: #080808 !important;
+    border-left: none !important;
+    box-sizing: border-box;
   }
 
   html.dark-theme .desktop-secondary-menu.active {
@@ -378,6 +380,14 @@ html.dark-theme .bottom-nav-indicator {
 
   html:not(.dark-theme) .desktop-secondary-menu.active {
     background: #fff !important;
+  }
+
+  .sidebar:has(.desktop-secondary-menu.active) {
+    border-right: 1px solid rgba(152, 152, 152, 0.35);
+  }
+
+  html:not(.dark-theme) .sidebar:has(.desktop-secondary-menu.active) {
+    border-right-color: rgba(15, 23, 42, 0.12);
   }
 
   .desktop-secondary-menu.active .desktop-secondary-menu-header-btn {
@@ -1210,13 +1220,14 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .sidebar:has(.desktop-secondary-menu.active) .desktop-nav-rail {
-    border-right-color: transparent !important;
+    border-right: 1px solid rgba(152, 152, 152, 0.35) !important;
     background: #080808 !important;
   }
 
   html:not(.dark-theme)
     .sidebar:has(.desktop-secondary-menu.active)
     .desktop-nav-rail {
+    border-right-color: rgba(15, 23, 42, 0.12) !important;
     background: #ffffff !important;
   }
 
@@ -1336,6 +1347,7 @@ html.dark-theme .bottom-nav-indicator {
     cursor: pointer;
     position: relative;
     line-height: 0;
+    color: #ffffff;
   }
 
   .desktop-nav-rail-account-btn::before {
@@ -1474,6 +1486,10 @@ html.dark-theme .bottom-nav-indicator {
   html:not(.dark-theme) .desktop-nav-rail-item.active::before {
     background: var(--desktop-nav-rail-active-bg, #b4bcc8);
     border-color: var(--desktop-nav-rail-active-border, rgba(0, 0, 0, 0.12));
+  }
+
+  html:not(.dark-theme) .desktop-nav-rail-account-btn {
+    color: #0f172a;
   }
 
   html:not(.dark-theme) .desktop-nav-rail-account-btn:hover::before {
