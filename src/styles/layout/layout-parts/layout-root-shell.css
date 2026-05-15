@@ -47,6 +47,11 @@ html.dark-theme body {
   width: 100%;
   height: 100%;
   --keyboard-inset: 0px;
+  --desktop-nav-rail-width: 56px;
+  --desktop-nav-rail-expanded-width: 212px;
+  --desktop-nav-rail-gap: 8px;
+  --desktop-nav-rail-active-bg: #1f1f1f;
+  --desktop-nav-rail-active-border: rgba(214, 214, 214, 0.14);
   --sidebar-panel-width: 440px;
 }
 
@@ -133,13 +138,13 @@ html:not(.dark-theme) .app-header {
 /* Narrow desktop: rail + secondary + chat leaves no room for header; hide secondary while chat is open. */
 @media (min-width: 769px) and (max-width: 900px) {
   .orion-app.suppress-desktop-secondary-for-chat {
-    --sidebar-panel-width: 72px;
+    --sidebar-panel-width: var(--desktop-nav-rail-width, 56px);
   }
 
   .orion-app.suppress-desktop-secondary-for-chat .sidebar {
-    width: 72px !important;
-    min-width: 72px !important;
-    max-width: 72px !important;
+    width: var(--desktop-nav-rail-width, 56px) !important;
+    min-width: var(--desktop-nav-rail-width, 56px) !important;
+    max-width: var(--desktop-nav-rail-width, 56px) !important;
   }
 
   .orion-app.suppress-desktop-secondary-for-chat .desktop-secondary-menu {

@@ -60,6 +60,9 @@
   --shadow: var(--ms-shadow-soft);
   --shadow-dark: var(--ms-shadow-card);
 
+  --desktop-nav-rail-active-bg: color-mix(in srgb, var(--ms-rail-bg) 35%, #000000 65%);
+  --desktop-nav-rail-active-border: color-mix(in srgb, var(--ms-border-strong) 55%, transparent);
+
   font-family: var(--ms-font);
   background: var(--ms-app-bg);
 }
@@ -92,6 +95,9 @@ html.dark-theme .orion-app {
   --success-color: #30d158;
   --warning-color: #ffd60a;
   --glow: rgba(255, 255, 255, 0.22);
+
+  --desktop-nav-rail-active-bg: color-mix(in srgb, var(--ms-rail-bg) 28%, #000000 72%);
+  --desktop-nav-rail-active-border: color-mix(in srgb, var(--ms-border-strong) 55%, transparent);
 }
 
 .orion-app * {
@@ -334,9 +340,9 @@ html.dark-theme .orion-app {
   }
 
   .orion-app .desktop-nav-rail-item.active::before {
-    background: var(--ms-surface-1) !important;
-    border-color: var(--ms-border-strong) !important;
-    box-shadow: var(--ms-shadow-soft);
+    background: var(--desktop-nav-rail-active-bg) !important;
+    border-color: var(--desktop-nav-rail-active-border) !important;
+    box-shadow: none;
   }
 
   .orion-app .desktop-nav-rail-item.active {
@@ -538,8 +544,8 @@ html.dark-theme .orion-app {
   }
 
   .orion-app .desktop-secondary-menu-item.active {
-    background: color-mix(in srgb, var(--ms-accent) 16%, var(--ms-surface-1) 84%);
-    border-color: color-mix(in srgb, var(--ms-accent) 36%, var(--ms-border));
+    background: var(--desktop-nav-rail-active-bg) !important;
+    border: 1px solid var(--desktop-nav-rail-active-border);
   }
 
   .orion-app .desktop-secondary-menu-item.active .desktop-secondary-menu-item-icon,

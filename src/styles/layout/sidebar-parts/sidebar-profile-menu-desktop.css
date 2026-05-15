@@ -136,32 +136,6 @@
     display: none !important;
   }
 
-  /* Stable canonical mode: prevent visual glitches in chat sidebar nav */
-  .sidebar.nav-menu-vertical .desktop-sidebar-top {
-    display: flex !important;
-    order: 3 !important;
-    border-top: 1px solid var(--border-color) !important;
-    border-bottom: none !important;
-    padding: 8px 6px 10px !important;
-    gap: 0 !important;
-  }
-
-  .sidebar.nav-menu-vertical .desktop-sidebar-top .sidebar-avatars-strip {
-    display: none !important;
-  }
-
-  .sidebar.nav-menu-vertical .profile-menu-wrapper {
-    width: 100% !important;
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav,
-  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item {
-    animation: none !important;
-  }
 }
 
 /* Keep bottom nav surface consistent with shop-filter-summary in all nav modes */
@@ -184,20 +158,20 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 72px;
+    width: var(--desktop-nav-rail-width, 56px);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 10px;
+    align-items: stretch;
+    gap: var(--desktop-nav-rail-gap, 8px);
+    padding: 8px 4px 10px;
     box-sizing: border-box;
     border-right: 1px solid var(--border-color);
     z-index: 3;
   }
 
   .desktop-nav-rail-item {
-    width: 48px;
-    height: 48px;
+    width: 100%;
+    height: 44px;
     border-radius: 14px;
     border: 1px solid transparent;
     background: transparent;
@@ -261,8 +235,8 @@
   .sidebar > .desktop-sidebar-top,
   .sidebar > .chats-list,
   .sidebar > .settings-container {
-    margin-left: 72px;
-    width: calc(100% - 72px);
+    margin-left: var(--desktop-nav-rail-width, 56px);
+    width: calc(100% - var(--desktop-nav-rail-width, 56px));
     box-sizing: border-box;
   }
 }
@@ -298,7 +272,7 @@ html.dark-theme .desktop-nav-rail-item.active {
 }
 
 html.dark-theme .desktop-nav-rail-item.active[data-nav-target="navChats"] {
-  color: #000000;
+  color: #ffffff;
 }
 
 html.dark-theme .search-input:focus {
@@ -382,8 +356,8 @@ html.dark-theme .bottom-nav-indicator {
   .desktop-secondary-menu {
     display: flex !important;
     flex-direction: column;
-    width: calc(100% - 72px);
-    margin-left: 72px;
+    width: calc(100% - var(--desktop-nav-rail-width, 56px));
+    margin-left: var(--desktop-nav-rail-width, 56px);
     height: 100%;
     min-height: 100%;
     background: transparent;
@@ -506,7 +480,8 @@ html.dark-theme .bottom-nav-indicator {
   html:not(.dark-theme)
     .desktop-secondary-menu.active
     .desktop-secondary-chat-item.active {
-    background: #dfe6ef;
+    background: var(--desktop-nav-rail-active-bg, #b4bcc8);
+    border-color: var(--desktop-nav-rail-active-border, rgba(0, 0, 0, 0.12));
   }
 
   html:not(.dark-theme)
@@ -1218,7 +1193,8 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-secondary-menu-item.active {
-    background: rgba(255, 255, 255, 0.14);
+    background: var(--desktop-nav-rail-active-bg, #1f1f1f);
+    border: 1px solid var(--desktop-nav-rail-active-border, rgba(214, 214, 214, 0.14));
     color: #ffffff;
   }
 
@@ -1228,8 +1204,8 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail {
-    padding: 0 !important;
-    gap: 0 !important;
+    padding: 8px 0 10px !important;
+    gap: var(--desktop-nav-rail-gap, 8px) !important;
     overflow: visible !important;
   }
 
@@ -1245,11 +1221,11 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-item {
-    width: 72px !important;
-    height: 56px !important;
-    min-width: 72px !important;
-    min-height: 56px !important;
-    flex: 0 0 56px;
+    width: 100% !important;
+    height: 44px !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    flex: 0 0 44px;
     box-sizing: border-box;
     border-radius: 0 !important;
     border: none !important;
@@ -1312,9 +1288,9 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-brand {
-    width: 72px;
-    height: 56px;
-    flex: 0 0 56px;
+    width: 100%;
+    height: 44px;
+    flex: 0 0 44px;
     margin: 0;
     padding: 0;
     border: 0;
@@ -1337,8 +1313,8 @@ html.dark-theme .bottom-nav-indicator {
 
   .desktop-nav-rail-account-wrap {
     margin-top: auto;
-    width: 72px;
-    padding: 8px 0 12px;
+    width: 100%;
+    padding: 4px 0 8px;
     display: flex;
     justify-content: center;
     position: relative;
@@ -1346,9 +1322,9 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-account-btn {
-    width: 72px;
-    height: 56px;
-    min-width: 72px;
+    width: 100%;
+    height: 44px;
+    min-width: 0;
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -1389,7 +1365,7 @@ html.dark-theme .bottom-nav-indicator {
 
   .desktop-nav-rail-account-menu {
     position: absolute;
-    left: 70px;
+    left: calc(var(--desktop-nav-rail-width, 56px) + 6px);
     bottom: 12px;
     min-width: 196px;
     display: none;
@@ -1478,8 +1454,8 @@ html.dark-theme .bottom-nav-indicator {
   }
 
   .desktop-nav-rail-item.active::before {
-    background: #3a3a3a;
-    border-color: rgba(214, 214, 214, 0.2);
+    background: var(--desktop-nav-rail-active-bg, #1f1f1f);
+    border-color: var(--desktop-nav-rail-active-border, rgba(214, 214, 214, 0.14));
   }
 
   html:not(.dark-theme) .desktop-nav-rail-item {
@@ -1490,9 +1466,14 @@ html.dark-theme .bottom-nav-indicator {
     background: rgba(0, 0, 0, 0.06);
   }
 
+  html:not(.dark-theme) .orion-app {
+    --desktop-nav-rail-active-bg: #b4bcc8;
+    --desktop-nav-rail-active-border: rgba(0, 0, 0, 0.12);
+  }
+
   html:not(.dark-theme) .desktop-nav-rail-item.active::before {
-    background: #d7dbe2;
-    border-color: rgba(0, 0, 0, 0.1);
+    background: var(--desktop-nav-rail-active-bg, #b4bcc8);
+    border-color: var(--desktop-nav-rail-active-border, rgba(0, 0, 0, 0.12));
   }
 
   html:not(.dark-theme) .desktop-nav-rail-account-btn:hover::before {

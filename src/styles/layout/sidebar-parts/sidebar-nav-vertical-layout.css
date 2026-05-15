@@ -1,0 +1,164 @@
+/* Vertical sidebar nav (chat open): rail + chats + bottom nav slot */
+@media (min-width: 769px) {
+  .sidebar.nav-menu-vertical {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-nav-rail {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--desktop-nav-rail-width, 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--desktop-nav-rail-gap, 8px);
+    padding: 8px 4px 10px;
+    box-sizing: border-box;
+    z-index: 3;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-nav-rail-brand,
+  .sidebar.nav-menu-vertical .desktop-nav-rail-item,
+  .sidebar.nav-menu-vertical .desktop-nav-rail-account-btn {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-nav-rail-brand,
+  .sidebar.nav-menu-vertical .desktop-nav-rail-item {
+    height: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+    border-radius: 12px;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-nav-rail-account-wrap {
+    width: 100%;
+    margin-top: auto;
+    padding: 4px 0 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-nav-rail-account-btn {
+    height: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .sidebar.nav-menu-vertical > .chats-list,
+  .sidebar.nav-menu-vertical > .desktop-sidebar-top {
+    margin-left: var(--desktop-nav-rail-width, 56px);
+    width: auto;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .orion-app.chat-active .sidebar.nav-menu-vertical > .chats-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    order: 1;
+    padding: 8px 0;
+    align-items: center;
+  }
+
+  .orion-app.chat-active .sidebar.nav-menu-vertical .desktop-sidebar-top {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    order: 2;
+    gap: 8px;
+    padding: 8px 8px 10px;
+    border-top: 1px solid var(--border-color);
+    border-bottom: none;
+  }
+
+  .sidebar.nav-menu-vertical .desktop-sidebar-top .sidebar-avatars-strip {
+    display: none;
+  }
+
+  .sidebar.nav-menu-vertical .sidebar-nav-slot {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper {
+    position: relative;
+    width: 100%;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 12px;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item > span:not(.nav-avatar) {
+    display: inline;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-indicator {
+    display: none;
+  }
+
+  html:not(.dark-theme) .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav {
+    background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+    border-color: var(--border-color);
+    box-shadow: var(--ms-shadow-soft, 0 8px 20px rgba(15, 19, 32, 0.08));
+  }
+
+  html:not(.dark-theme) .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item {
+    color: var(--text-secondary);
+  }
+
+  html:not(.dark-theme) .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item:hover {
+    background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+    color: var(--text-primary);
+  }
+
+  html:not(.dark-theme) .sidebar.nav-menu-vertical .profile-menu-wrapper .bottom-nav-item.active {
+    background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+    border-left-color: var(--primary-color);
+    color: var(--text-primary);
+  }
+}

@@ -1,0 +1,222 @@
+/* Supabase-style desktop nav rail: expand on hover to show section labels */
+@media (min-width: 769px) {
+  .desktop-nav-rail {
+    overflow: hidden;
+    z-index: 40;
+    transition:
+      width 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .desktop-nav-rail:hover,
+  .desktop-nav-rail.is-expanded,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail {
+    width: var(--desktop-nav-rail-expanded-width, 212px) !important;
+    overflow: visible;
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.32);
+  }
+
+  html:not(.dark-theme) .desktop-nav-rail:hover,
+  html:not(.dark-theme) .desktop-nav-rail.is-expanded,
+  html:not(.dark-theme)
+    .sidebar:has(#desktopRailAccountMenu.active)
+    .desktop-nav-rail {
+    box-shadow: 8px 0 24px rgba(15, 23, 42, 0.12);
+  }
+
+  /* Icon column stays fixed; only labels appear in the extra width */
+  .desktop-nav-rail-brand,
+  .desktop-nav-rail-item,
+  .desktop-nav-rail-account-btn {
+    justify-content: flex-start !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 0 !important;
+    line-height: normal !important;
+  }
+
+  .desktop-nav-rail-item-icon {
+    flex: 0 0 var(--desktop-nav-rail-width, 56px);
+    width: var(--desktop-nav-rail-width, 56px);
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .desktop-nav-rail-item-icon--avatar {
+    height: 30px;
+  }
+
+  .desktop-nav-rail-item-icon svg,
+  .desktop-nav-rail-item-icon .desktop-nav-rail-logo {
+    width: 22px !important;
+    height: 22px !important;
+    display: block;
+    object-fit: contain;
+  }
+
+  #desktopRailReload .desktop-nav-rail-item-icon .desktop-nav-rail-logo {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .desktop-nav-rail-label {
+    flex: 0 0 0;
+    width: 0;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: inherit;
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+    padding: 0;
+    transition: opacity 0.12s ease 0.04s;
+  }
+
+  .desktop-nav-rail-brand .desktop-nav-rail-label {
+    font-family:
+      "SN Pro",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-transform: none;
+  }
+
+  html.dark-theme .desktop-nav-rail-brand .desktop-nav-rail-label {
+    color: #ffffff !important;
+  }
+
+  html:not(.dark-theme) .desktop-nav-rail-brand .desktop-nav-rail-label {
+    color: #0c0e12 !important;
+  }
+
+  .desktop-nav-rail:hover .desktop-nav-rail-label,
+  .desktop-nav-rail.is-expanded .desktop-nav-rail-label,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail .desktop-nav-rail-label {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    opacity: 1;
+    padding-right: 12px;
+  }
+
+  .desktop-nav-rail-account-wrap {
+    justify-content: flex-start !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Hover pill: centered in the fixed icon column when collapsed */
+  .desktop-nav-rail-item::before,
+  .desktop-nav-rail-account-btn::before {
+    left: calc(var(--desktop-nav-rail-width, 56px) * 0.5);
+    right: auto;
+    width: 34px;
+    transform: translate(-50%, -50%);
+  }
+
+  .desktop-nav-rail:hover .desktop-nav-rail-item::before,
+  .desktop-nav-rail.is-expanded .desktop-nav-rail-item::before,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail-item::before {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    transform: translateY(-50%);
+    top: 50%;
+  }
+
+  .desktop-nav-rail:hover .desktop-nav-rail-account-btn::before,
+  .desktop-nav-rail.is-expanded .desktop-nav-rail-account-btn::before,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail-account-btn::before {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    transform: translateY(-50%);
+    top: 50%;
+  }
+
+  .desktop-nav-rail-item.has-unread-dot::after {
+    left: calc(var(--desktop-nav-rail-width, 56px) * 0.5 + 10px);
+    right: auto;
+  }
+
+  .desktop-nav-rail:hover .desktop-nav-rail-item.has-unread-dot::after,
+  .desktop-nav-rail.is-expanded .desktop-nav-rail-item.has-unread-dot::after {
+    left: auto;
+    right: 10px;
+  }
+
+  .sidebar:has(.desktop-nav-rail:hover) .desktop-nav-rail-account-menu,
+  .sidebar:has(.desktop-nav-rail.is-expanded) .desktop-nav-rail-account-menu,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail-account-menu {
+    left: calc(var(--desktop-nav-rail-expanded-width, 212px) + 6px);
+  }
+
+  /*
+   * In chat: collapsed rail stays under the panel; expanded rail (labels) pops
+   * above the list, while the secondary header stays on top of everything.
+   */
+  .orion-app.chat-active .desktop-nav-rail,
+  .orion-app.chat-open .desktop-nav-rail {
+    z-index: 3 !important;
+  }
+
+  .orion-app.chat-active .desktop-nav-rail:hover,
+  .orion-app.chat-active .desktop-nav-rail.is-expanded,
+  .orion-app.chat-open .desktop-nav-rail:hover,
+  .orion-app.chat-open .desktop-nav-rail.is-expanded,
+  .orion-app.chat-active .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail,
+  .orion-app.chat-open .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail {
+    z-index: 45 !important;
+  }
+
+  .orion-app.chat-active .desktop-secondary-menu,
+  .orion-app.chat-open .desktop-secondary-menu {
+    position: relative;
+    z-index: auto;
+  }
+
+  .orion-app.chat-active .desktop-secondary-menu-list,
+  .orion-app.chat-open .desktop-secondary-menu-list {
+    position: relative;
+    z-index: 1;
+  }
+
+  .orion-app.chat-active .desktop-secondary-menu-header,
+  .orion-app.chat-open .desktop-secondary-menu-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .orion-app.chat-active .desktop-secondary-menu.active .desktop-secondary-menu-header,
+  .orion-app.chat-open .desktop-secondary-menu.active .desktop-secondary-menu-header {
+    background: #080808;
+  }
+
+  html:not(.dark-theme) .orion-app.chat-active .desktop-secondary-menu.active .desktop-secondary-menu-header,
+  html:not(.dark-theme) .orion-app.chat-open .desktop-secondary-menu.active .desktop-secondary-menu-header {
+    background: #ffffff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desktop-nav-rail,
+    .desktop-nav-rail-label {
+      transition: none;
+    }
+  }
+}

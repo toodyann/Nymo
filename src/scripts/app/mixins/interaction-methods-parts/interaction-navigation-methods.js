@@ -1371,6 +1371,8 @@ export class ChatAppInteractionNavigationMethods {
     menu.style.top = '';
     menu.style.bottom = '';
     button.setAttribute('aria-expanded', 'false');
+    document.querySelector('.desktop-nav-rail')?.classList.remove('is-expanded');
+    button.blur();
   }
 
 

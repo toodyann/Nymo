@@ -11,13 +11,13 @@
   }
 
   .sidebar.compact {
-    width: 136px;
-    min-width: 136px;
+    width: calc(var(--desktop-nav-rail-width, 56px) + 80px);
+    min-width: calc(var(--desktop-nav-rail-width, 56px) + 80px);
   }
 
   .sidebar.compact:has(.desktop-secondary-menu.active[data-menu-root="navChats"]) {
-    width: 156px;
-    min-width: 156px;
+    width: calc(var(--desktop-nav-rail-width, 56px) + 100px);
+    min-width: calc(var(--desktop-nav-rail-width, 56px) + 100px);
   }
 
   .sidebar.compact .search-box,

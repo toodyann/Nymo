@@ -780,6 +780,7 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
       appEl.classList.add('chat-active');
     }
     this.mountBottomNavInSidebar();
+    document.querySelector('.desktop-nav-rail')?.classList.remove('is-expanded');
     try {
       const sidebar = document.querySelector('.sidebar');
       const sidebarOverlay = document.getElementById('sidebarOverlay');

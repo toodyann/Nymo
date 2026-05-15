@@ -148,6 +148,7 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
     }
     
     const navProfile = document.getElementById('navProfile');
+    const desktopNavRail = document.querySelector('.desktop-nav-rail');
     const desktopRailItems = document.querySelectorAll('.desktop-nav-rail-item[data-nav-target]');
     const desktopRailReload = document.getElementById('desktopRailReload');
     const desktopRailAccountBtn = document.getElementById('desktopRailAccountBtn');
@@ -163,9 +164,47 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
       return Boolean(desktopActive || mobileActive);
     };
 
+    if (desktopNavRail && !this.desktopNavRailExpandBound) {
+      this.desktopNavRailExpandBound = true;
+      let desktopNavRailCollapseTimer = 0;
+
+      const isDesktopRailAccountMenuOpen = () => (
+        Boolean(desktopRailAccountMenu?.classList.contains('active'))
+      );
+
+      const expandDesktopNavRail = () => {
+        window.clearTimeout(desktopNavRailCollapseTimer);
+        desktopNavRail.classList.add('is-expanded');
+      };
+
+      const collapseDesktopNavRail = () => {
+        window.clearTimeout(desktopNavRailCollapseTimer);
+        if (isDesktopRailAccountMenuOpen()) return;
+        desktopNavRail.classList.remove('is-expanded');
+        const active = document.activeElement;
+        if (active instanceof HTMLElement && desktopNavRail.contains(active)) {
+          active.blur();
+        }
+      };
+
+      const scheduleDesktopNavRailCollapse = () => {
+        window.clearTimeout(desktopNavRailCollapseTimer);
+        desktopNavRailCollapseTimer = window.setTimeout(collapseDesktopNavRail, 80);
+      };
+
+      desktopNavRail.addEventListener('mouseenter', expandDesktopNavRail);
+      desktopNavRail.addEventListener('mouseleave', scheduleDesktopNavRailCollapse);
+
+      if (desktopRailAccountMenu) {
+        desktopRailAccountMenu.addEventListener('mouseenter', expandDesktopNavRail);
+        desktopRailAccountMenu.addEventListener('mouseleave', scheduleDesktopNavRailCollapse);
+      }
+    }
+
     if (desktopRailItems.length) {
       desktopRailItems.forEach((item) => {
         item.addEventListener('click', () => {
+          item.blur();
           this.closeDesktopRailAccountMenu();
           const targetId = item.dataset.navTarget;
           if (!targetId) return;
@@ -185,6 +224,7 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
 
     if (desktopRailReload) {
       desktopRailReload.addEventListener('click', () => {
+        desktopRailReload.blur();
         this.closeDesktopRailAccountMenu();
         window.location.reload();
       });
@@ -194,6 +234,9 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
       desktopRailAccountBtn.addEventListener('click', (event) => {
         event.stopPropagation();
         this.toggleDesktopRailAccountMenu();
+        if (!desktopRailAccountMenu.classList.contains('active')) {
+          desktopRailAccountBtn.blur();
+        }
       });
 
       desktopRailAccountMenu.addEventListener('click', (event) => {
@@ -1406,8 +1449,10 @@ export class ChatAppInteractionEventComposerMethods extends ChatAppInteractionNa
       ? metrics.keyboardHeight
       : 0;
 
+    const railWidthRaw = window.getComputedStyle(appEl).getPropertyValue('--desktop-nav-rail-width').trim();
+    const railWidthPx = Number.parseInt(railWidthRaw, 10);
     const narrowDesktopRailInsetPx = appEl.classList.contains('suppress-desktop-secondary-for-chat')
-      ? 72
+      ? (Number.isFinite(railWidthPx) && railWidthPx > 0 ? railWidthPx : 56)
       : 0;
 
     chatArea.style.setProperty('position', 'fixed', 'important');

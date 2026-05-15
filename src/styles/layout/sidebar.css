@@ -1,4 +1,6 @@
 @import './sidebar-parts/sidebar-compact-theme.css';
 @import './sidebar-parts/sidebar-chat-list.css';
 @import './sidebar-parts/sidebar-profile-menu-desktop.css';
+@import './sidebar-parts/sidebar-nav-vertical-layout.css';
+@import './sidebar-parts/sidebar-nav-rail-expand.css';
 @import './sidebar-parts/sidebar-mobile-secondary-menu.css';
