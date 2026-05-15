@@ -18,7 +18,7 @@
   html.dark-theme
     .sidebar:has(.desktop-secondary-menu.active)
     .desktop-nav-rail {
-    border-right-color: rgba(152, 152, 152, 0.35);
+    border-right-color: rgba(255, 255, 255, 0.08);
   }
 
   html:not(.dark-theme)

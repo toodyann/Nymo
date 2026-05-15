@@ -249,7 +249,7 @@
 
 html.dark-theme .desktop-nav-rail {
   background: #070707;
-  border-right-color: rgba(152, 152, 152, 0.35);
+  border-right-color: rgba(255, 255, 255, 0.08);
 }
 
 html.dark-theme .desktop-nav-rail-item {
@@ -382,12 +382,12 @@ html.dark-theme .bottom-nav-indicator {
     background: #fff !important;
   }
 
-  .sidebar:has(.desktop-secondary-menu.active) {
-    border-right: 1px solid rgba(152, 152, 152, 0.35);
+  html.dark-theme .sidebar:has(.desktop-secondary-menu.active) {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   html:not(.dark-theme) .sidebar:has(.desktop-secondary-menu.active) {
-    border-right-color: rgba(15, 23, 42, 0.12);
+    border-right: 1px solid rgba(15, 23, 42, 0.1);
   }
 
   .desktop-secondary-menu.active .desktop-secondary-menu-header-btn {
@@ -1219,15 +1219,17 @@ html.dark-theme .bottom-nav-indicator {
     overflow: visible !important;
   }
 
-  .sidebar:has(.desktop-secondary-menu.active) .desktop-nav-rail {
-    border-right: 1px solid rgba(152, 152, 152, 0.35) !important;
+  html.dark-theme
+    .sidebar:has(.desktop-secondary-menu.active)
+    .desktop-nav-rail {
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     background: #080808 !important;
   }
 
   html:not(.dark-theme)
     .sidebar:has(.desktop-secondary-menu.active)
     .desktop-nav-rail {
-    border-right-color: rgba(15, 23, 42, 0.12) !important;
+    border-right: 1px solid rgba(15, 23, 42, 0.1) !important;
     background: #ffffff !important;
   }
 
