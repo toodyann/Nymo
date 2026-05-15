@@ -1597,8 +1597,20 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
       return;
     }
 
-    const isOnline = (this.currentChat.status || 'offline') !== 'offline';
-    statusEl.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
+    const isOnline = typeof this.isDirectChatParticipantOnline === 'function'
+      ? this.isDirectChatParticipantOnline(this.currentChat)
+      : (this.currentChat.status || 'offline') !== 'offline';
+    if (isOnline) {
+      statusEl.textContent = this.translateUiText?.('Онлайн') || 'Онлайн';
+      return;
+    }
+
+    const lastSeenAt = typeof this.resolveDirectChatLastSeenAt === 'function'
+      ? this.resolveDirectChatLastSeenAt(this.currentChat)
+      : null;
+    statusEl.textContent = lastSeenAt && typeof this.formatLastSeenLabel === 'function'
+      ? this.formatLastSeenLabel(lastSeenAt)
+      : (this.translateUiText?.('Не в мережі') || 'Не в мережі');
   }
 
 
@@ -1840,8 +1852,9 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
       : '';
 
     const chatName = String(cachedName || this.currentChat.name || 'Контакт').trim() || 'Контакт';
-    const chatStatus = this.currentChat.status || cachedMeta?.status || 'offline';
-    const isOnline = chatStatus !== 'offline';
+    const isOnline = typeof this.isDirectChatParticipantOnline === 'function'
+      ? this.isDirectChatParticipantOnline(this.currentChat)
+      : (this.currentChat.status || cachedMeta?.status || 'offline') !== 'offline';
     const chatDob = this.currentChat.dob || this.currentChat.birthDate || this.currentChat.dateOfBirth || '';
     const resolvedAvatarColor = String(
       this.currentChat.avatarColor
@@ -1859,7 +1872,16 @@ export class ChatAppInteractionChatProfileMethods extends ChatAppInteractionEven
     handle.textContent = this.currentChat.handle || this.buildContactHandle(chatName);
     bio.textContent = this.currentChat.bio || 'Опис профілю відсутній.';
     dob.textContent = this.formatContactBirthDate(chatDob);
-    status.textContent = isOnline ? 'Онлайн' : 'Не в мережі';
+    if (isOnline) {
+      status.textContent = this.translateUiText?.('Онлайн') || 'Онлайн';
+    } else {
+      const lastSeenAt = typeof this.resolveDirectChatLastSeenAt === 'function'
+        ? this.resolveDirectChatLastSeenAt(this.currentChat)
+        : null;
+      status.textContent = lastSeenAt && typeof this.formatLastSeenLabel === 'function'
+        ? this.formatLastSeenLabel(lastSeenAt)
+        : (this.translateUiText?.('Не в мережі') || 'Не в мережі');
+    }
 
     avatar.style.background = hasCustomAvatar ? 'transparent' : resolvedAvatarColor;
     avatar.style.boxShadow = hasCustomAvatar ? 'none' : '';

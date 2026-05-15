@@ -90,6 +90,113 @@ export class ChatAppMessagingUserMetaMethods extends ChatAppMessagingSelfDeleteU
   }
 
 
+  extractLastSeenTimestamp(source) {
+    if (!source || typeof source !== 'object') return null;
+    const nestedUser = source.user && typeof source.user === 'object' ? source.user : null;
+    const raw = source.lastSeenAt
+      ?? source.last_seen_at
+      ?? source.lastSeen
+      ?? source.last_seen
+      ?? source.lastOnlineAt
+      ?? source.last_online_at
+      ?? source.offlineAt
+      ?? source.offline_at
+      ?? nestedUser?.lastSeenAt
+      ?? nestedUser?.last_seen_at
+      ?? nestedUser?.lastSeen
+      ?? nestedUser?.last_seen
+      ?? null;
+
+    if (typeof raw === 'number') {
+      return Number.isFinite(raw) && raw > 0 ? raw : null;
+    }
+    if (typeof raw === 'string') {
+      const parsed = Date.parse(raw);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    }
+    if (raw instanceof Date) {
+      const parsed = raw.getTime();
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    }
+    return null;
+  }
+
+
+  isOwnLastSeenSharingEnabled() {
+    return this.settings?.lastSeen !== false;
+  }
+
+
+  isDirectChatParticipantOnline(chat) {
+    if (!chat || chat.isGroup) return false;
+    const participantId = String(chat.participantId || '').trim();
+    if (!participantId) return false;
+    return this.getPresenceStatusForUser(participantId, 'offline') === 'online';
+  }
+
+
+  resolveDirectChatLastSeenAt(chat) {
+    if (!chat || chat.isGroup) return null;
+    const fromChat = this.extractLastSeenTimestamp(chat);
+    if (fromChat) return fromChat;
+    const participantId = String(chat.participantId || '').trim();
+    if (!participantId) return null;
+    return this.extractLastSeenTimestamp(this.getCachedUserMeta(participantId));
+  }
+
+
+  formatLastSeenLabel(timestamp) {
+    const ts = Number(timestamp);
+    if (!Number.isFinite(ts) || ts <= 0) {
+      return this.translateUiText?.('Не в мережі') || 'Не в мережі';
+    }
+
+    const diffMs = Math.max(0, Date.now() - ts);
+    const minute = 60_000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    const week = 7 * day;
+    const month = 30 * day;
+
+    if (diffMs < minute) {
+      return this.translateUiText?.('був(ла) щойно') || 'був(ла) щойно';
+    }
+    if (diffMs < hour) {
+      const minutes = Math.max(1, Math.floor(diffMs / minute));
+      return `був(ла) ${minutes} хв тому`;
+    }
+    if (diffMs < day) {
+      const hours = Math.max(1, Math.floor(diffMs / hour));
+      return `був(ла) ${hours} год тому`;
+    }
+    if (diffMs < week) {
+      const days = Math.max(1, Math.floor(diffMs / day));
+      return `був(ла) ${days} дн. тому`;
+    }
+    if (diffMs < month) {
+      return this.translateUiText?.('був(ла) тиждень тому') || 'був(ла) тиждень тому';
+    }
+    return this.translateUiText?.('був(ла) понад місяць тому') || 'був(ла) понад місяць тому';
+  }
+
+
+  getDirectChatPresenceSubtitle(chat) {
+    if (!chat || chat.isGroup) return '';
+    if (typeof this.isChatTypingActive === 'function' && this.isChatTypingActive(chat)) {
+      return this.translateUiText?.('друкує...') || 'друкує...';
+    }
+    if (this.isDirectChatParticipantOnline(chat)) {
+      return '';
+    }
+
+    const lastSeenAt = this.resolveDirectChatLastSeenAt(chat);
+    if (lastSeenAt) {
+      return this.formatLastSeenLabel(lastSeenAt);
+    }
+    return this.translateUiText?.('Не в мережі') || 'Не в мережі';
+  }
+
+
   normalizeParticipantRecord(member) {
     if (!member || typeof member !== 'object') return null;
     const nestedUser = member.user && typeof member.user === 'object' ? member.user : null;
@@ -114,7 +221,8 @@ export class ChatAppMessagingUserMetaMethods extends ChatAppMessagingSelfDeleteU
           ?? normalizedSource.presence
           ?? normalizedSource.isOnline
           ?? normalizedSource.online
-      )
+      ),
+      lastSeenAt: this.extractLastSeenTimestamp(normalizedSource)
     };
   }
 
@@ -140,6 +248,11 @@ export class ChatAppMessagingUserMetaMethods extends ChatAppMessagingSelfDeleteU
     if (safeAvatar) next.avatarImage = safeAvatar;
     if (safeAvatarColor) next.avatarColor = safeAvatarColor;
     if (safeStatus) next.status = safeStatus;
+
+    const lastSeenAt = this.extractLastSeenTimestamp(meta);
+    if (Number.isFinite(lastSeenAt) && lastSeenAt > 0) {
+      next.lastSeenAt = lastSeenAt;
+    }
 
     this.knownUsersById.set(safeId, next);
     if (next.name) {

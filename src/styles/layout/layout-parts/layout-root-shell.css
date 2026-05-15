@@ -394,7 +394,7 @@ html:not(.dark-theme) .orion-app.chat-active .app-header-right {
 
 .app-chat-typing {
   display: none;
-  max-width: 120px;
+  max-width: min(240px, 42vw);
   font-size: 12px;
   line-height: 1;
   letter-spacing: 0.01em;

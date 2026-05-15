@@ -746,11 +746,70 @@ export class ChatAppMessagingChatApiMethods extends ChatAppMessagingGroupCreateM
 
   getPresenceStatusForUser(userId, fallback = 'offline') {
     const safeId = String(userId || '').trim();
-    if (!safeId) return fallback;
+    if (!safeId) return 'offline';
     if (this.realtimeOnlineUserIds instanceof Set && this.realtimeOnlineUserIds.has(safeId)) {
       return 'online';
     }
-    return fallback;
+    return 'offline';
+  }
+
+
+  emitOwnPresenceOffline() {
+    const socket = this.realtimeSocket;
+    const userId = this.getAuthUserId();
+    if (!socket?.connected || !userId) return;
+
+    const payload = { userId };
+    if (this.isOwnLastSeenSharingEnabled()) {
+      const lastSeenAt = new Date().toISOString();
+      payload.lastSeenAt = lastSeenAt;
+      payload.last_seen_at = lastSeenAt;
+      payload.lastSeen = lastSeenAt;
+      payload.last_seen = lastSeenAt;
+    }
+
+    try {
+      socket.emit('userOffline', payload);
+      socket.emit('offline', payload);
+      socket.emit('presence', { ...payload, status: 'offline', online: false, isOnline: false });
+    } catch {
+      // Ignore transient websocket emit errors.
+    }
+  }
+
+
+  pauseRealtimeSocketForBackground() {
+    this.realtimePausedForBackground = true;
+    this.stopRealtimeTyping({ emit: true });
+    this.emitOwnPresenceOffline();
+
+    const socket = this.realtimeSocket;
+    if (!socket) return;
+
+    try {
+      if (socket.io?.opts) {
+        socket.io.opts.reconnection = false;
+      }
+      socket.disconnect();
+    } catch {
+      // Ignore transient websocket shutdown failures.
+    }
+
+    this.realtimeSocketConnected = false;
+    this.realtimeJoinedChatId = '';
+    if (this.realtimeJoinedChatIds instanceof Set) {
+      this.realtimeJoinedChatIds.clear();
+    }
+  }
+
+
+  resumeRealtimeSocketFromBackground() {
+    this.realtimePausedForBackground = false;
+    const socket = this.realtimeSocket;
+    if (socket?.io?.opts) {
+      socket.io.opts.reconnection = true;
+    }
+    this.updateRealtimePrivacyState();
   }
 
 

@@ -166,22 +166,35 @@ export class ChatAppInteractionMessageFlowMethods extends ChatAppInteractionGrou
           && this.isChatTypingActive(this.currentChat)
         );
 
-        if (isTyping) {
-          if (contactTyping) {
-            contactTyping.textContent = this.translateUiText('друкує...');
-            contactTyping.classList.add('active');
-          }
-        } else if (contactTyping) {
-          contactTyping.textContent = '';
-          contactTyping.classList.remove('active');
-        }
-
         if (!this.currentChat.isGroup) {
-          const isOnline = (this.currentChat.status || 'offline') !== 'offline';
+          const isOnline = typeof this.isDirectChatParticipantOnline === 'function'
+            ? this.isDirectChatParticipantOnline(this.currentChat)
+            : (this.currentChat.status || 'offline') !== 'offline';
+          const presenceSubtitle = typeof this.getDirectChatPresenceSubtitle === 'function'
+            ? this.getDirectChatPresenceSubtitle(this.currentChat)
+            : '';
+
+          if (contactTyping) {
+            if (isTyping) {
+              contactTyping.textContent = this.translateUiText('друкує...');
+              contactTyping.classList.add('active');
+            } else if (!isOnline && presenceSubtitle) {
+              contactTyping.textContent = presenceSubtitle;
+              contactTyping.classList.add('active');
+            } else {
+              contactTyping.textContent = '';
+              contactTyping.classList.remove('active');
+            }
+          }
+
           contactStatus.classList.toggle('online', isOnline);
           contactStatus.classList.toggle('offline', !isOnline);
           contactStatus.classList.remove('hidden');
         } else {
+          if (contactTyping) {
+            contactTyping.textContent = '';
+            contactTyping.classList.remove('active');
+          }
           contactStatus.classList.remove('online', 'offline');
           contactStatus.classList.add('hidden');
         }

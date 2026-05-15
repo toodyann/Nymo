@@ -89,27 +89,38 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
       document.removeEventListener('visibilitychange', this.realtimeVisibilityHandler);
     }
     this.realtimeVisibilityHandler = () => {
-      if (document.visibilityState !== 'visible') return;
-      if (!this.realtimeSocketConnected) {
-        this.updateRealtimePrivacyState();
+      if (document.visibilityState === 'hidden') {
+        this.pauseRealtimeSocketForBackground();
+        return;
       }
+      this.resumeRealtimeSocketFromBackground();
     };
     document.addEventListener('visibilitychange', this.realtimeVisibilityHandler);
 
     if (this.realtimeBeforeUnloadHandler) {
       window.removeEventListener('beforeunload', this.realtimeBeforeUnloadHandler);
     }
-    this.realtimeBeforeUnloadHandler = () => {
-      this.stopRealtimeTyping({ emit: true });
-      if (this.realtimeSocket) {
-        try {
-          this.realtimeSocket.disconnect();
-        } catch {
-          // Ignore disconnect failures on page unload.
-        }
-      }
+    if (this.realtimePageHideHandler) {
+      window.removeEventListener('pagehide', this.realtimePageHideHandler);
+    }
+    const handleLeave = () => {
+      this.pauseRealtimeSocketForBackground();
     };
+    this.realtimeBeforeUnloadHandler = handleLeave;
+    this.realtimePageHideHandler = handleLeave;
     window.addEventListener('beforeunload', this.realtimeBeforeUnloadHandler);
+    window.addEventListener('pagehide', this.realtimePageHideHandler);
+
+    if (!this.presenceLabelRefreshTimer) {
+      this.presenceLabelRefreshTimer = window.setInterval(() => {
+        if (!this.currentChat || this.currentChat.isGroup) return;
+        if (this.isDirectChatParticipantOnline(this.currentChat)) return;
+        this.updateChatHeader();
+        if (typeof this.updateCurrentContactProfileStatusLabel === 'function') {
+          this.updateCurrentContactProfileStatusLabel();
+        }
+      }, 60_000);
+    }
   }
 
 
@@ -118,6 +129,7 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
     const userId = this.getAuthUserId();
     const socketUrl = this.getRealtimeSocketUrl();
     if (!this.isOwnOnlineVisibilityEnabled() || !ioFactory || !userId || !socketUrl) return;
+    if (this.realtimePausedForBackground && document.visibilityState === 'hidden') return;
     const retryAfter = Number(this.realtimeSocketRetryAfterTs || 0);
     if (retryAfter > Date.now()) return;
 
@@ -299,22 +311,33 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
 
     let changed = false;
     const nextStatus = isOnline ? 'online' : 'offline';
-    this.cacheKnownUserMeta(userId, { status: nextStatus });
+    const lastSeenAt = isOnline ? null : (this.extractLastSeenTimestamp(payload) || Date.now());
+    this.cacheKnownUserMeta(userId, isOnline
+      ? { status: nextStatus }
+      : { status: nextStatus, lastSeenAt });
+
     const chats = Array.isArray(this.chats) ? this.chats : [];
     chats.forEach((chat) => {
       if (!chat || chat.isGroup) return;
       const participantId = String(chat.participantId || '').trim();
       if (!participantId || participantId !== userId) return;
-      if (chat.status !== nextStatus) {
-        chat.status = nextStatus;
-        changed = true;
+      const statusChanged = chat.status !== nextStatus;
+      const lastSeenChanged = !isOnline && Number(chat.lastSeenAt || 0) !== Number(lastSeenAt || 0);
+      if (!statusChanged && !lastSeenChanged) return;
+      chat.status = nextStatus;
+      if (!isOnline) {
+        chat.lastSeenAt = lastSeenAt;
       }
+      changed = true;
     });
 
     if (!changed) return;
     this.saveChats();
     this.updateChatHeader();
     this.renderChatsList();
+    if (typeof this.updateCurrentContactProfileStatusLabel === 'function') {
+      this.updateCurrentContactProfileStatusLabel();
+    }
   }
 
 
@@ -691,11 +714,13 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
         const participantAvatarImage = this.getAvatarImage(otherParticipant?.avatarImage || otherParticipant?.avatarUrl);
         const participantAvatarColor = String(otherParticipant?.avatarColor || '').trim();
         const participantStatus = this.normalizePresenceStatus(otherParticipant?.status);
+        const participantLastSeenAt = this.extractLastSeenTimestamp(otherParticipant);
         this.cacheKnownUserMeta(participantId, {
           name: participantName,
           avatarImage: participantAvatarImage,
           avatarColor: participantAvatarColor,
-          status: participantStatus
+          status: participantStatus,
+          lastSeenAt: participantLastSeenAt
         });
         const isGroup = Boolean(item.isGroup ?? item.group ?? item.type === 'group');
         const fallbackName = String(item.name ?? item.title ?? '').trim();
@@ -738,6 +763,13 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
         );
         const activityAt = this.getChatActivityTimestampValue(item);
 
+        const lastSeenAt = isGroup
+          ? null
+          : (
+            this.extractLastSeenTimestamp(otherParticipant)
+            || this.extractLastSeenTimestamp(item)
+          );
+
         return {
           serverId,
           name,
@@ -748,6 +780,7 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
           avatarUrl: avatarImage,
           avatarColor,
           status,
+          lastSeenAt,
           activityAt,
           groupParticipants: isGroup ? normalizedParticipants : []
         };
@@ -1526,14 +1559,14 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
       ).trim();
       const mergedStatus = serverChat.isGroup
         ? ''
-        : this.getPresenceStatusForUser(
-          mergedParticipantId,
-          String(
-            serverChat.status
-            || cachedParticipantMeta?.status
-            || existing?.status
-            || 'offline'
-          ).trim() || 'offline'
+        : this.getPresenceStatusForUser(mergedParticipantId, 'offline');
+      const mergedLastSeenAt = serverChat.isGroup
+        ? null
+        : (
+          this.extractLastSeenTimestamp(serverChat)
+          || this.extractLastSeenTimestamp(cachedParticipantMeta)
+          || existing?.lastSeenAt
+          || null
         );
       const mergedGroupParticipants = serverChat.isGroup
         ? (
@@ -1556,6 +1589,7 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
         avatarUrl: mergedAvatarImage,
         avatarColor: mergedAvatarColor,
         status: mergedStatus,
+        lastSeenAt: mergedLastSeenAt,
         isGroup: serverChat.isGroup,
         groupParticipants: mergedGroupParticipants,
         messages
@@ -1571,6 +1605,7 @@ export class ChatAppMessagingRealtimeSyncMethods extends ChatAppMessagingChatApi
         || String(existing?.avatarColor || '') !== String(updatedChat.avatarColor || '')
         || JSON.stringify(existingGroupParticipants) !== JSON.stringify(mergedGroupParticipants)
         || String(existing?.status || '') !== String(updatedChat.status || '')
+        || Number(existing?.lastSeenAt || 0) !== Number(updatedChat.lastSeenAt || 0)
       ) {
         changed = true;
       }
