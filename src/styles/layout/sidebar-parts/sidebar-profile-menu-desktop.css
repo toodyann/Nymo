@@ -1348,7 +1348,8 @@ html.dark-theme .bottom-nav-indicator {
     justify-content: center;
     cursor: pointer;
     position: relative;
-    line-height: 0;
+    line-height: 1.2;
+    overflow: visible;
     color: #ffffff;
   }
 
@@ -1363,10 +1364,21 @@ html.dark-theme .bottom-nav-indicator {
     border-radius: 10px;
     border: 1px solid transparent;
     background: transparent;
+    transition: none;
   }
 
   .desktop-nav-rail-account-btn:hover::before {
     background: color-mix(in srgb, #ffffff 3%, transparent);
+  }
+
+  .desktop-nav-rail:hover .desktop-nav-rail-account-btn::before,
+  .desktop-nav-rail.is-expanded .desktop-nav-rail-account-btn::before,
+  .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail-account-btn::before {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .desktop-nav-rail-account-avatar {

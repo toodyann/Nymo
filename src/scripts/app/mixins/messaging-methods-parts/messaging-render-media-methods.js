@@ -1905,7 +1905,8 @@ export class ChatAppMessagingRenderMediaMethods extends ChatAppMessagingSendUplo
     profileMenu.classList.add('in-sidebar-slot');
     profileMenu.setAttribute('data-nav-mode', 'sidebar-vertical');
     profileMenu.style.display = '';
-    if (sidebar) sidebar.classList.add('nav-menu-vertical');
+    // Desktop rail must stay on the default layout; nav-menu-vertical only
+    // overrides account-btn overflow and breaks the «Акаунт» label in chat.
     this.bottomNavInSidebarTop = false;
     this.syncBottomNavVisualState();
   }

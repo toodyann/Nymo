@@ -102,4 +102,3 @@ flowchart TD
 
 ## Ліцензія
 
-Приватний репозиторій (`"private": true` у `package.json`).

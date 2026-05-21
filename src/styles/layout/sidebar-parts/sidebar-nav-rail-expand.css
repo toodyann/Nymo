@@ -99,7 +99,7 @@
     position: relative;
     z-index: 1;
     padding: 0;
-    transition: opacity 0.12s ease 0.04s;
+    transition: opacity 0.08s ease 0s;
   }
 
   .desktop-nav-rail-brand .desktop-nav-rail-label {
@@ -135,12 +135,26 @@
     max-width: none;
     opacity: 1;
     padding-right: 12px;
+    transition: opacity 0.12s ease 0.04s;
   }
 
   .desktop-nav-rail-account-wrap {
     justify-content: flex-start !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .desktop-nav-rail-account-btn {
+    line-height: 1.2 !important;
+  }
+
+  .desktop-nav-rail-account-btn .desktop-nav-rail-item-icon,
+  .desktop-nav-rail-account-btn .desktop-nav-rail-label {
+    position: relative;
+    z-index: 1;
   }
 
   /* Hover pill: centered in the fixed icon column when collapsed */
@@ -165,11 +179,12 @@
   .desktop-nav-rail:hover .desktop-nav-rail-account-btn::before,
   .desktop-nav-rail.is-expanded .desktop-nav-rail-account-btn::before,
   .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail-account-btn::before {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    transform: translateY(-50%);
-    top: 50%;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    height: 34px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
 
   .desktop-nav-rail-item.has-unread-dot::after {
@@ -236,9 +251,44 @@
     background: #ffffff;
   }
 
+  /* Chat open: sidebar clips the bottom rail row unless overflow is relaxed while expanded. */
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail:hover),
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail.is-expanded),
+  .orion-app.chat-active .sidebar:has(#desktopRailAccountMenu.active),
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail:hover),
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail.is-expanded),
+  .orion-app.chat-open .sidebar:has(#desktopRailAccountMenu.active) {
+    overflow: visible;
+  }
+
+  /*
+   * Secondary panel sits above the collapsed rail; when the rail expands, pass
+   * clicks through the overlap so «Акаунт» stays a real button (not dead text).
+   */
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail:hover) .desktop-secondary-menu,
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail.is-expanded) .desktop-secondary-menu,
+  .orion-app.chat-active .sidebar:has(#desktopRailAccountMenu.active) .desktop-secondary-menu,
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail:hover) .desktop-secondary-menu,
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail.is-expanded) .desktop-secondary-menu,
+  .orion-app.chat-open .sidebar:has(#desktopRailAccountMenu.active) .desktop-secondary-menu {
+    pointer-events: none;
+  }
+
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail:hover) .desktop-secondary-menu > *,
+  .orion-app.chat-active .sidebar:has(.desktop-nav-rail.is-expanded) .desktop-secondary-menu > *,
+  .orion-app.chat-active .sidebar:has(#desktopRailAccountMenu.active) .desktop-secondary-menu > *,
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail:hover) .desktop-secondary-menu > *,
+  .orion-app.chat-open .sidebar:has(.desktop-nav-rail.is-expanded) .desktop-secondary-menu > *,
+  .orion-app.chat-open .sidebar:has(#desktopRailAccountMenu.active) .desktop-secondary-menu > * {
+    pointer-events: auto;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .desktop-nav-rail,
-    .desktop-nav-rail-label {
+    .desktop-nav-rail-label,
+    .desktop-nav-rail:hover .desktop-nav-rail-label,
+    .desktop-nav-rail.is-expanded .desktop-nav-rail-label,
+    .sidebar:has(#desktopRailAccountMenu.active) .desktop-nav-rail .desktop-nav-rail-label {
       transition: none;
     }
   }
